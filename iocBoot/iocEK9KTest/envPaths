@@ -1,0 +1,4 @@
+epicsEnvSet("ARCH","linux-x86")
+epicsEnvSet("IOC","iocEK9KTest")
+epicsEnvSet("TOP","/home/jeremy/epics-r3-14/extensions")
+epicsEnvSet("EPICS_BASE","/home/jeremy/epics-r3-14/base")
