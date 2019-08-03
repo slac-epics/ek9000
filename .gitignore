@@ -1,0 +1,35 @@
+# Ignore certain bad files
+#.vscode/
+.vscode/ipch
+bin/
+lib/
+
+*.o
+*.a
+*.so
+*.d
+
+# We should ignore changes in the user settings file
+configure/CONFIG_SITE
+
+# Ignore this shtuff
+dbd/
+lib/
+include/
+bin/
+
+# Ignore all local configs
+*.local
+O.*
+
+.kdev4/
+
+compile_commands.json
+
+*.tar 
+
+ek.txt
+makelist.py
+maketemplate.py
+terminals.xml
+tparse\.py

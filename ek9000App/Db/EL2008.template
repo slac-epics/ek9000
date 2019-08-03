@@ -1,0 +1,64 @@
+# Record for EL2008
+record(bo, "$(TERMINAL):1") {
+	field(DESC, "$(DESC1)")
+	field(VAL,  "$(VAL1)")
+	field(ONAM, "$(ONAM1)")
+	field(ZNAM, "$(ZNAM1)")
+	field(HIGH, "$(HIGH1)")
+}
+
+record(bo, "$(TERMINAL):2") {
+	field(DESC, "$(DESC2)")
+	field(VAL,  "$(VAL2)")
+	field(ONAM, "$(ONAM2)")
+	field(ZNAM, "$(ZNAM2)")
+	field(HIGH, "$(HIGH2)")
+}
+
+record(bo, "$(TERMINAL):3") {
+	field(DESC, "$(DESC3)")
+	field(VAL,  "$(VAL3)")
+	field(ONAM, "$(ONAM3)")
+	field(ZNAM, "$(ZNAM3)")
+	field(HIGH, "$(HIGH3)")
+}
+
+record(bo, "$(TERMINAL):4") {
+	field(DESC, "$(DESC4)")
+	field(VAL,  "$(VAL4)")
+	field(ONAM, "$(ONAM4)")
+	field(ZNAM, "$(ZNAM4)")
+	field(HIGH, "$(HIGH4)")
+}
+
+record(bo, "$(TERMINAL):5") {
+	field(DESC, "$(DESC5)")
+	field(VAL,  "$(VAL5)")
+	field(ONAM, "$(ONAM5)")
+	field(ZNAM, "$(ZNAM5)")
+	field(HIGH, "$(HIGH5)")
+}
+
+record(bo, "$(TERMINAL):6") {
+	field(DESC, "$(DESC6)")
+	field(VAL,  "$(VAL6)")
+	field(ONAM, "$(ONAM6)")
+	field(ZNAM, "$(ZNAM6)")
+	field(HIGH, "$(HIGH6)")
+}
+
+record(bo, "$(TERMINAL):7") {
+	field(DESC, "$(DESC7)")
+	field(VAL,  "$(VAL7)")
+	field(ONAM, "$(ONAM7)")
+	field(ZNAM, "$(ZNAM7)")
+	field(HIGH, "$(HIGH7)")
+}
+
+record(bo, "$(TERMINAL):8") {
+	field(DESC, "$(DESC8)")
+	field(VAL,  "$(VAL8)")
+	field(ONAM, "$(ONAM8)")
+	field(ZNAM, "$(ZNAM8)")
+	field(HIGH, "$(HIGH8)")
+}
