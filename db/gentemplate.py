@@ -71,7 +71,7 @@ def make_ai(name, i, dtyp):
 		subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
 		subs.write("\t\tTERMINAL,\t\n")
 		while num <= i:
-			fs.write("record(bo,\"$(TERMINAL):" + str(num) +"\")\n{\n")
+			fs.write("record(ai,\"$(TERMINAL):" + str(num) +"\")\n{\n")
 			fs.write("\tfield(DESC,  \"$(DESC" + str(num) + ")\")\n")
 			fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
 			fs.write("\tfield(SCAN,  \"$(SCAN" + str(num) + ")\")\n")
@@ -122,7 +122,7 @@ def make_ao(name, i, dtyp):
 		subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
 		subs.write("\t\tTERMINAL,\t\n")
 		while num <= i:
-			fs.write("record(bo,\"$(TERMINAL):" + str(num) +"\")\n{\n")
+			fs.write("record(ao,\"$(TERMINAL):" + str(num) +"\")\n{\n")
 			fs.write("\tfield(DESC,  \"$(DESC" + str(num) + ")\")\n")
 			fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
 			fs.write("\tfield(SCAN,  \"$(SCAN" + str(num) + ")\")\n")
