@@ -87,7 +87,7 @@ def make_ai(name, i, dtyp):
 			fs.write("\tfield(LOW,   \"$(LOW" + str(num) + ")\")\n")
 			fs.write("\tfield(MDEL,  \"$(MDEL" + str(num) + ")\")\n")
 			fs.write("\tfield(SMOO,  \"$(SMOO" + str(num) + ")\")\n")
-			fs.write("\tfield(UNIT,  \"$(UNIT" + str(num) + ")\")\n")
+			fs.write("\tfield(EGU,   \"$(EGU" + str(num) + ")\")\n")
 			fs.write("\tfield(LINR,  \"LINEAR\")\n")
 			fs.write("}\n\n")
 			subs.write("\t\tDESC" + str(num) + ",\t")
