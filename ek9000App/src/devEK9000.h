@@ -200,6 +200,7 @@ private:
 	size_t m_nCount = 0;
 	Node<T> *m_pRoot = NULL;
 	Node<T> *m_pEnd = NULL;
+	mutable Node<T>* m_pCtx = NULL;
 
 public:
 	CSimpleList()
@@ -290,11 +291,30 @@ public:
 			int i = 0;
 			for (Node<T> *node = m_pRoot; node; node = node->m_pNext, i++)
 			{
-				if (*node->val == *dev)
+				if (node->val == dev)
 					return i;
 			}
 		}
 		return -1;
+	}
+
+	T* FirstNode() const
+	{
+		m_pCtx = m_pRoot;
+		return m_pCtx;
+	}
+
+	T* NextNode() const
+	{
+		if(m_pCtx)
+		{
+			m_pCtx = m_pCtx->m_pNext;
+			return m_pCtx;
+		}
+		else
+		{
+			return m_pCtx;
+		}
 	}
 
 	/* Find first item */
@@ -408,6 +428,9 @@ private:
 	/* for the first/next stuff */
 	mutable Node *ctx = NULL;
 
+	/* Mutex for multi-threaded stuff */
+	epicsMutexId m_Mutex = 0;
+
 public:
 	/* Used to quicky look up terminals */
 	CTerminalList m_Terminals;
@@ -415,6 +438,12 @@ public:
 	friend class CEK9000Device;
 
 public:
+	/* Contructor */
+	CDeviceMgr();
+
+	/* Destructor */
+	~CDeviceMgr();
+
 	/* Initialize CDeviceMgr */
 	static int Init();
 

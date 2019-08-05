@@ -66,9 +66,44 @@ class CDeviceMgr;
 
 extern CDeviceMgr *g_pDeviceMgr = 0;
 
+extern "C" epicsThreadId g_PollThread = 0;
+extern "C" epicsMutexId g_ThreadMutex = 0;
+
 //==========================================================//
 // Utils
 //==========================================================//
+void PollThreadFunc(void* param);
+
+void Utl_InitThread()
+{
+	g_ThreadMutex = epicsMutexCreate();
+	g_PollThread = epicsThreadCreate("EK9000_PollThread", priorityHigh, 
+		epicsThreadGetStackSize(epicsThreadStackMedium), PollThreadFunc, NULL);
+}
+
+void PollThreadFunc(void* param)
+{
+	while(true)
+	{
+		int status = epicsMutexLock(g_ThreadMutex);
+		if(status)
+			continue;
+		for(CEK9000Device* elem = g_pDeviceMgr->FirstDevice(); elem; elem = g_pDeviceMgr->NextDevice())
+		{
+			if(elem)
+			{
+				status = (elem)->Lock();
+				if(status)
+					continue;
+				uint16_t buf = 0;
+				(elem)->doEK9000IO(0, 1, 1, &buf);
+				(elem)->Unlock();
+			}
+		}
+		epicsThreadSleep(0.5);
+		epicsMutexUnlock(g_ThreadMutex);
+	}
+}
 
 //==========================================================//
 // class CTerminal
@@ -868,6 +903,17 @@ const char *CEK9000Device::ErrorToString(int i)
 // class CDeviceMgr (impl)
 //		Manages devices and such
 //==========================================================//
+CDeviceMgr::CDeviceMgr()
+{
+	this->m_Mutex = epicsMutexCreate();
+}
+
+CDeviceMgr::~CDeviceMgr()
+{
+	if(this->m_Mutex)
+		epicsMutexDestroy(this->m_Mutex);
+}
+
 int CDeviceMgr::Init()
 {
 	g_pDeviceMgr = new CDeviceMgr();
@@ -876,13 +922,25 @@ int CDeviceMgr::Init()
 
 int CDeviceMgr::CanAdd(const CEK9000Device &dev)
 {
-	return (this->FindDevice(dev.m_pName) == NULL);
+	int status = epicsMutexLock(m_Mutex);	
+	if(status)
+		return 0;
+	int ret = (this->FindDevice(dev.m_pName) == NULL);
+	epicsMutexUnlock(m_Mutex);
+	return ret;
 }
 
 CEK9000Device *CDeviceMgr::FindDevice(const char *name) const
 {
-	if (!name)
+	int status = epicsMutexLock(m_Mutex);
+	if(status)
 		return NULL;
+
+	if (!name)
+	{
+		epicsMutexUnlock(m_Mutex);
+		return NULL;
+	}
 
 	if (m_pRoot)
 	{
@@ -890,23 +948,33 @@ CEK9000Device *CDeviceMgr::FindDevice(const char *name) const
 		{
 			if (strcmp(name, node->device->m_pName) == 0)
 			{
+				epicsMutexUnlock(m_Mutex);
 				return node->device;
 			}
 		}
 	}
+	epicsMutexUnlock(m_Mutex);
 	return NULL;
 }
 
 void CDeviceMgr::Add(CEK9000Device *dev)
 {
-	if (!dev)
+	int status = epicsMutexLock(m_Mutex);
+	if(status)
 		return;
+
+	if (!dev)
+	{
+		epicsMutexUnlock(m_Mutex);
+		return;
+	}
 
 	if (!m_pRoot)
 	{
 		m_pRoot = new Node();
 		m_pRoot->device = dev;
 		m_nCount++;
+		epicsMutexUnlock(m_Mutex);
 		return;
 	}
 	else
@@ -918,16 +986,25 @@ void CDeviceMgr::Add(CEK9000Device *dev)
 				node->next = new Node();
 				node->next->device = dev;
 				m_nCount++;
+				epicsMutexUnlock(m_Mutex);
 				return;
 			}
 		}
 	}
+	epicsMutexUnlock(m_Mutex);
 }
 
 void CDeviceMgr::Remove(CEK9000Device *dev)
 {
-	if (!dev)
+	int status = epicsMutexLock(m_Mutex);
+	if(status)
 		return;
+
+	if (!dev)
+	{
+		epicsMutexUnlock(m_Mutex);
+		return;
+	}
 
 	if (m_pRoot)
 	{
@@ -940,6 +1017,7 @@ void CDeviceMgr::Remove(CEK9000Device *dev)
 					prev->next = node->next;
 					delete node;
 					m_nCount--;
+					epicsMutexUnlock(m_Mutex);
 					return;
 				}
 				/* This must be root node */
@@ -947,33 +1025,61 @@ void CDeviceMgr::Remove(CEK9000Device *dev)
 				{
 					delete m_pRoot;
 					m_nCount--;
+					epicsMutexUnlock(m_Mutex);
 					return;
 				}
 			}
 		}
 	}
+	epicsMutexUnlock(m_Mutex);
 }
 
 CEK9000Device *CDeviceMgr::FirstDevice() const
 {
-	this->ctx = m_pRoot;
-	if (ctx)
-		return ctx->device;
-	else
+	/* TODO: Is locking really needed here? */
+	int status = epicsMutexLock(m_Mutex);
+	if(status)
 		return NULL;
+	
+	this->ctx = m_pRoot;
+	
+	if (ctx)
+	{
+		CEK9000Device* dev = ctx->device;
+		epicsMutexUnlock(m_Mutex);
+		return dev;
+	}
+	else
+	{
+		epicsMutexUnlock(m_Mutex);
+		return NULL;
+	}
 }
 
 CEK9000Device *CDeviceMgr::NextDevice() const
 {
-	if (!ctx)
+	int status = epicsMutexLock(m_Mutex);
+	if(status)
 		return NULL;
 
+	if (!ctx)
+	{
+		epicsMutexUnlock(m_Mutex);
+		return NULL;
+	}
 	this->ctx = ctx->next;
 
 	if (ctx)
-		return ctx->device;
+	{
+		CEK9000Device* dev = ctx->device;
+		epicsMutexUnlock(m_Mutex);
+		return dev;
+	}
 	else
+	{
+		epicsMutexUnlock(m_Mutex);
 		return NULL;
+	}
 }
 
 //==========================================================//
@@ -1323,6 +1429,7 @@ static long ek9000_init(int after)
 				dev->InitTerminals();
 		}
 		epicsStdoutPrintf("Initialization Complete.\n");
+		Utl_InitThread();
 	}
 	return 0;
 }
