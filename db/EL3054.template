@@ -2,7 +2,7 @@
 # EL3054 template.
 #
 
-record(bo,"$(TERMINAL):1")
+record(ai,"$(TERMINAL):1")
 {
 	field(DESC,  "$(DESC1)")
 	field(DTYP,  "EL30XX")
@@ -19,11 +19,11 @@ record(bo,"$(TERMINAL):1")
 	field(LOW,   "$(LOW1)")
 	field(MDEL,  "$(MDEL1)")
 	field(SMOO,  "$(SMOO1)")
-	field(UNIT,  "$(UNIT1)")
+	field(EGU,   "$(EGU1)")
 	field(LINR,  "LINEAR")
 }
 
-record(bo,"$(TERMINAL):2")
+record(ai,"$(TERMINAL):2")
 {
 	field(DESC,  "$(DESC2)")
 	field(DTYP,  "EL30XX")
@@ -40,11 +40,11 @@ record(bo,"$(TERMINAL):2")
 	field(LOW,   "$(LOW2)")
 	field(MDEL,  "$(MDEL2)")
 	field(SMOO,  "$(SMOO2)")
-	field(UNIT,  "$(UNIT2)")
+	field(EGU,   "$(EGU2)")
 	field(LINR,  "LINEAR")
 }
 
-record(bo,"$(TERMINAL):3")
+record(ai,"$(TERMINAL):3")
 {
 	field(DESC,  "$(DESC3)")
 	field(DTYP,  "EL30XX")
@@ -61,11 +61,11 @@ record(bo,"$(TERMINAL):3")
 	field(LOW,   "$(LOW3)")
 	field(MDEL,  "$(MDEL3)")
 	field(SMOO,  "$(SMOO3)")
-	field(UNIT,  "$(UNIT3)")
+	field(EGU,   "$(EGU3)")
 	field(LINR,  "LINEAR")
 }
 
-record(bo,"$(TERMINAL):4")
+record(ai,"$(TERMINAL):4")
 {
 	field(DESC,  "$(DESC4)")
 	field(DTYP,  "EL30XX")
@@ -82,7 +82,7 @@ record(bo,"$(TERMINAL):4")
 	field(LOW,   "$(LOW4)")
 	field(MDEL,  "$(MDEL4)")
 	field(SMOO,  "$(SMOO4)")
-	field(UNIT,  "$(UNIT4)")
+	field(EGU,   "$(EGU4)")
 	field(LINR,  "LINEAR")
 }
 

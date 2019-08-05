@@ -2,7 +2,7 @@
 # EL4004 template.
 #
 
-record(bo,"$(TERMINAL):1")
+record(ao,"$(TERMINAL):1")
 {
 	field(DESC,  "$(DESC1)")
 	field(DTYP,  "EL40XX")
@@ -18,7 +18,7 @@ record(bo,"$(TERMINAL):1")
 	field(PINI,  "$(PINI1)")
 }
 
-record(bo,"$(TERMINAL):2")
+record(ao,"$(TERMINAL):2")
 {
 	field(DESC,  "$(DESC2)")
 	field(DTYP,  "EL40XX")
@@ -34,7 +34,7 @@ record(bo,"$(TERMINAL):2")
 	field(PINI,  "$(PINI2)")
 }
 
-record(bo,"$(TERMINAL):3")
+record(ao,"$(TERMINAL):3")
 {
 	field(DESC,  "$(DESC3)")
 	field(DTYP,  "EL40XX")
@@ -50,7 +50,7 @@ record(bo,"$(TERMINAL):3")
 	field(PINI,  "$(PINI3)")
 }
 
-record(bo,"$(TERMINAL):4")
+record(ao,"$(TERMINAL):4")
 {
 	field(DESC,  "$(DESC4)")
 	field(DTYP,  "EL40XX")

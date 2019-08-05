@@ -2,7 +2,7 @@
 # EL4002 template.
 #
 
-record(bo,"$(TERMINAL):1")
+record(ao,"$(TERMINAL):1")
 {
 	field(DESC,  "$(DESC1)")
 	field(DTYP,  "EL40XX")
@@ -18,7 +18,7 @@ record(bo,"$(TERMINAL):1")
 	field(PINI,  "$(PINI1)")
 }
 
-record(bo,"$(TERMINAL):2")
+record(ao,"$(TERMINAL):2")
 {
 	field(DESC,  "$(DESC2)")
 	field(DTYP,  "EL40XX")
