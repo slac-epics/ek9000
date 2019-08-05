@@ -96,7 +96,6 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	/* Set props */
 	pRecord->rval = buf[0];
 	pRecord->pact = 0;
-	printf("%u: %i\n", dpvt->m_pTerminal->m_nInputStart + (dpvt->m_nChannel * 2), pRecord->rval);
 
 	/* Check for error */
 	if(status)
