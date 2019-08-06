@@ -88,7 +88,7 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 	/* Do the actual IO */
 	uint16_t buf = 0;
 	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_COILS, dpvt->m_pTerminal->m_nInputStart +
-		(dpvt->m_nChannel-1), &buf, 1);
+		(dpvt->m_nChannel-2), &buf, 1);
 	pRecord->pact = 0;
 
 	/* Error states */
@@ -124,7 +124,7 @@ static long EL10XX_init_record(void* precord)
 	SEL10XXSupportData* dpvt = (SEL10XXSupportData*)pRecord->dpvt;
 
 	/* Get terminal */
-	char* name;
+	char* name = NULL;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, name);
 	
 	/* Verify terminal */
@@ -168,7 +168,6 @@ static long EL10XX_init_record(void* precord)
 static long EL10XX_read_record(void* precord)
 {
 	biRecord* pRecord = (biRecord*)precord;
-
 	CALLBACK* callback = (CALLBACK*)calloc(1, sizeof(CALLBACK));
 	*callback = *(CALLBACK*)EL10XX_ReadCallback;
 	callbackSetCallback(EL10XX_ReadCallback, callback);
