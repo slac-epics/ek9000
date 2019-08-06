@@ -184,11 +184,8 @@ static long EL30XX_init_record(void *precord)
 static long EL30XX_read_record(void *precord)
 {
 	aiRecord* pRecord = (aiRecord*)precord;
-	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
-
 	/* indicate processing */
 	pRecord->pact = 1;
-
 	/* Allocate and set callback */
 	CALLBACK *callback = (CALLBACK *)malloc(sizeof(CALLBACK));
 	*callback = *(CALLBACK*)EL30XX_ReadCallback;
