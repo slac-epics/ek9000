@@ -164,7 +164,7 @@ CTerminal *CTerminal::ProcessRecordName(const char *recname, int &outindex, char
 
 	for (int i = len; i >= 0; i--)
 	{
-		if (ret[i] == ':' && i < len)
+		if (ret[i] == ':' && (size_t)i < len)
 		{
 			ret[i] = '\0';
 			good = 1;
@@ -201,7 +201,7 @@ void CTerminal::GetTerminalInfo(int termid, int &inp_size, int &out_size)
 {
 	for (int i = 0; i < NUM_TERMINALS; i++)
 	{
-		if (g_pTerminalInfos[i]->m_nID == termid)
+		if (g_pTerminalInfos[i]->m_nID == (uint32_t)termid)
 		{
 			inp_size = g_pTerminalInfos[i]->m_nInputSize;
 			out_size = g_pTerminalInfos[i]->m_nOutputSize;
