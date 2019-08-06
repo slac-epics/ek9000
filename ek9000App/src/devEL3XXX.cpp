@@ -91,7 +91,7 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	/* read analog input, 4 bytes each, first 16 bytes is the actual adc value */
 	uint16_t buf[2];
 	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
-		(dpvt->m_nChannel * 2), buf, 2);
+		((dpvt->m_nChannel-1) * 2), buf, 2);
 
 	/* Set props */
 	pRecord->rval = buf[0];
