@@ -88,7 +88,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 
 	/* Write to buffer */
 	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, 
-		dpvt->m_pTerminal->m_nInputStart + dpvt->m_nChannel, &buf, 1);
+		dpvt->m_pTerminal->m_nOutputStart + (dpvt->m_nChannel-2), &buf, 1);
 
 	/* Processing done */
 	pRecord->pact = 0;
@@ -127,7 +127,7 @@ static long EL20XX_init_record(void* precord)
 	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
 	
 	/* Grab terminal info */
-	char* recname;
+	char* recname = NULL;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
 
 	/* Verify terminal */
@@ -180,7 +180,6 @@ static long EL20XX_init_record(void* precord)
 static long EL20XX_write_record(void* precord)
 {
 	boRecord* pRecord = (boRecord*)precord;
-	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
 	CALLBACK* callback = (CALLBACK*)malloc(sizeof(CALLBACK));
 	*callback = *(CALLBACK*)EL20XX_WriteCallback;
 	callbackSetUser(pRecord, callback);
