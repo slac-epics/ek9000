@@ -1310,6 +1310,15 @@ void ek9000DisableDebug(const iocshArgBuf* args)
 	dev->EnableDebug(false);
 }
 
+void ek9000List(const iocshArgBuf* args)
+{
+	for(CEK9000Device* dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+	{
+		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_pName, dev->m_nTerms);
+		epicsPrintf("\tIP: %s\n", dev->m_pIP);
+	}
+}
+
 int ek9000RegisterFunctions()
 {
 	/* ek9000Configure(name, ip, termcount) */
@@ -1366,6 +1375,12 @@ int ek9000RegisterFunctions()
 		static const iocshArg* const args[] = {&arg1};
 		static const iocshFuncDef func = {"ek9000DisableDebig", 1, args};
 		iocshRegister(&func, ek9000DisableDebug);
+	}
+
+	/* ek9000List */
+	{
+		static iocshFuncDef func = {"ek9000List", 0, NULL};
+		iocshRegister(&func, ek9000List);
 	}
 
 	CDeviceMgr::Init();
