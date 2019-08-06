@@ -324,22 +324,6 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 	return pek;
 }
 
-int CEK9000Device::AddTerminal(const char *name, const char *type, int position)
-{
-	ETerminalType typ = ETerminalType::UNKNOWN;
-
-	if (strcmp(type, "EL10XX") == 0)
-		typ = ETerminalType::EL10XX;
-	else if (strcmp(type, "EL20XX") == 0)
-		typ = ETerminalType::EL20XX;
-	else if (strcmp(type, "EL30XX") == 0)
-		typ = ETerminalType::EL30XX;
-	else if (strcmp(type, "EL40XX") == 0)
-		typ = ETerminalType::EL40XX;
-
-	return 0; //AddTerminal(name, typ, position);
-}
-
 int CEK9000Device::AddTerminal(const char *name, int type, int position)
 {
 	if (position > m_nTerms || !name)
