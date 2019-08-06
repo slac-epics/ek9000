@@ -470,8 +470,8 @@ void CEK9000Device::ReportError(int errcode, const char* _msg)
 		time_t time;
 		tm _tm;
 		epicsTime_localtime(&time, &_tm);
-		epicsStdoutPrintf("%i/%i/%i %i:%i:%i CEK9000Device: %s: Error Ocurred: error=%x message=%s\n", __msg,
-			_tm.tm_year, _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, _tm.tm_min, _tm.tm_sec,
+		epicsStdoutPrintf("%i/%i/%i %i:%i:%i CEK9000Device: %s: Error Ocurred: error=%x message=%s\n",
+			_tm.tm_year, _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, _tm.tm_min, _tm.tm_sec, __msg,
 			errcode, msg);
 	}
 }
@@ -483,11 +483,11 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 	{
 		uint16_t tmp_data[] =
 			{
-				1,		  /* 0x1400 = execute */
-				term,	 /* 0x1401 = term id */
-				index,	/* 0x1402 = Le object */
-				subindex, /* 0x1403 = subindex */
-				len,	  /* 0x1404 = length */
+				1,			/* 0x1400 = execute */
+				term,		/* 0x1401 = term id */
+				index,		/* 0x1402 = Le object */
+				subindex, 	/* 0x1403 = subindex */
+				len,		/* 0x1404 = length */
 			};
 		/* Prepare buffer */
 		uint16_t *buf = (uint16_t *)malloc(sizeof(uint16_t) * (6 + len));
