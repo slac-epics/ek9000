@@ -176,7 +176,6 @@ static long EL40XX_init_record(void* record)
 static long EL40XX_write_record(void* record)
 {
 	aoRecord* pRecord = (aoRecord*)record;
-	SEL40XXSupportData* dpvt = (SEL40XXSupportData*)pRecord->dpvt;
 	CALLBACK* callback = (CALLBACK*)malloc(sizeof(CALLBACK));
 	*callback = *(CALLBACK*)EL40XX_WriteCallback;
 	callbackSetCallback(EL40XX_WriteCallback, callback);
