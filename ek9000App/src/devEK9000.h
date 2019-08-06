@@ -515,9 +515,6 @@ public:
 	/* Allows for better error handling (instead of using print statements to indicate error) */
 	static CEK9000Device *Create(const char *name, const char *ip, int terminal_count);
 
-	/* You should call the other AddTerminal, unless you're calling from iocsh */
-	int AddTerminal(const char *name, const char *type, int position);
-
 	int AddTerminal(const char *name, int type, int position);
 
 	CTerminal *GetTerminal(const char *recordname);
