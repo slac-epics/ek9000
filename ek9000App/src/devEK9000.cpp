@@ -57,7 +57,7 @@
 #define POLL_DURATION 0.05
 #define TIMEOUT_COUNT 50
 
-#define printf epicsPrintf
+//#define epicsPrintf epicsPrintf
 #define print_error epicsPrintf
 
 /* Forward decls */
@@ -367,7 +367,7 @@ int CEK9000Device::InitTerminals()
 {
 	if (m_bInit)
 	{
-		printf("CEK9000Device: Already initialized.\n");
+		epicsPrintf("CEK9000Device: Already initialized.\n");
 		return 1;
 	}
 	m_bInit = true;
@@ -455,7 +455,7 @@ void CEK9000Device::ReportError(int errcode, const char* _msg)
 		time_t time;
 		tm _tm;
 		epicsTime_localtime(&time, &_tm);
-		epicsStdoutPrintf("%i/%i/%i %i:%i:%i CEK9000Device: %s: Error Ocurred: error=%x message=%s\n",
+		epicsPrintf("%i/%i/%i %i:%i:%i CEK9000Device: %s: Error Ocurred: error=%x message=%s\n",
 			_tm.tm_year, _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, _tm.tm_min, _tm.tm_sec, __msg,
 			errcode, msg);
 	}
@@ -1087,25 +1087,25 @@ void ek9000Configure(const iocshArgBuf *args)
 
 	if (!name)
 	{
-		epicsStdoutPrintf("Invalid name passed.\n");
+		epicsPrintf("Invalid name passed.\n");
 		return;
 	}
 
 	if (!ip)
 	{
-		epicsStdoutPrintf("Invalid IP passed.\n");
+		epicsPrintf("Invalid IP passed.\n");
 		return;
 	}
 
 	if (num < 0)
 	{
-		epicsStdoutPrintf("Invalid terminal count passed.\n");
+		epicsPrintf("Invalid terminal count passed.\n");
 		return;
 	}
 
 	if (port <= 0)
 	{
-		epicsStdoutPrintf("The port %i is invalid.\n", port);
+		epicsPrintf("The port %i is invalid.\n", port);
 		return;
 	}
 
@@ -1118,7 +1118,7 @@ void ek9000Configure(const iocshArgBuf *args)
 
 	if (!dev)
 	{
-		epicsStdoutPrintf("Unable to create device: Unspecified error.\n");
+		epicsPrintf("Unable to create device: Unspecified error.\n");
 		return;
 	}
 
@@ -1134,7 +1134,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 
 	if (!ek || !name || !type || id < 0)
 	{
-		epicsStdoutPrintf("Invalid parameter passed!\n");
+		epicsPrintf("Invalid parameter passed!\n");
 		return;
 	}
 
@@ -1143,7 +1143,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 	/* If we cant find the device :( */
 	if (!dev)
 	{
-		epicsStdoutPrintf("Unable to create terminal \"%s\": Device by the name of \"%s\" not found.\n",
+		epicsPrintf("Unable to create terminal \"%s\": Device by the name of \"%s\" not found.\n",
 						  name, ek);
 		return;
 	}
@@ -1159,7 +1159,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 	}
 	if(tid == 0) 
 	{
-		epicsStdoutPrintf("Unabel to create terminal %s: No terminal with the ID %s found.\n",
+		epicsPrintf("Unabel to create terminal %s: No terminal with the ID %s found.\n",
 			name, type);
 		return;
 	}
@@ -1167,7 +1167,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 	/* Check for out of boundries */
 	if (id > dev->m_nTerms)
 	{
-		epicsStdoutPrintf("Unable to create terminal \"%s\": Terminal index out of range.\n", name);
+		epicsPrintf("Unable to create terminal \"%s\": Terminal index out of range.\n", name);
 		return;
 	}
 
@@ -1179,7 +1179,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 		return;
 	}
 
-	epicsStdoutPrintf("Created terminal \"%s\"\n", name);
+	epicsPrintf("Created terminal \"%s\"\n", name);
 }
 
 void ek9000SetOption(const iocshArgBuf *args)
@@ -1191,7 +1191,7 @@ void ek9000SetOption(const iocshArgBuf *args)
 
 	if (!opt || !val || !ek9k)
 	{
-		epicsStdoutPrintf("Unable to set option: Invalid parameter passed.\n");
+		epicsPrintf("Unable to set option: Invalid parameter passed.\n");
 		return;
 	}
 
@@ -1199,7 +1199,7 @@ void ek9000SetOption(const iocshArgBuf *args)
 
 	if (!dev)
 	{
-		epicsStdoutPrintf("Invalid device.\n");
+		epicsPrintf("Invalid device.\n");
 		return;
 	}
 
@@ -1211,14 +1211,14 @@ void ek9000Stat(const iocshArgBuf *args)
 	const char *ek9k = args[0].sval;
 	if (!ek9k)
 	{
-		epicsStdoutPrintf("Invalid parameter.\n");
+		epicsPrintf("Invalid parameter.\n");
 		return;
 	}
 	CEK9000Device *dev = g_pDeviceMgr->FindDevice(ek9k);
 
 	if (!dev)
 	{
-		printf("Invalid device.\n");
+		epicsPrintf("Invalid device.\n");
 		return;
 	}
 
@@ -1243,35 +1243,35 @@ void ek9000Stat(const iocshArgBuf *args)
 	dev->ReadNumFallbacksTriggered(wtd);
 	dev->ReadMfgDate(day, month, year);
 
-	printf("Device: %s\n", ek9k);
+	epicsPrintf("Device: %s\n", ek9k);
 	if(connected)
-		printf("\tStatus: CONNECTED\n");
+		epicsPrintf("\tStatus: CONNECTED\n");
 	else
-		printf("\tStatus: NOT CONNECTED\n");
-	printf("\tIP: %s\n", dev->m_pIP);
-	printf("\tAsyn Port Name: %s\n", dev->m_pPortName);
-	printf("\tAO size: %u\n", ao);
-	printf("\tAI size: %u\n", ai);
-	printf("\tBI size: %u\n", bi);
-	printf("\tBO size: %u\n", bo);
-	printf("\tTCP connections: %u\n", tcp);
-	printf("\tSerial number: %u\n", sn);
-	printf("\tHardware Version: %u\n", hver);
-	printf("\tSoftware Version: %u.%u.%u\n", svermaj, svermin, sverpat);
-	printf("\tFallbacks triggered: %u\n", wtd);
-	printf("\tMfg date: %u/%u/%u\n", month, day, year);
+		epicsPrintf("\tStatus: NOT CONNECTED\n");
+	epicsPrintf("\tIP: %s\n", dev->m_pIP);
+	epicsPrintf("\tAsyn Port Name: %s\n", dev->m_pPortName);
+	epicsPrintf("\tAO size: %u\n", ao);
+	epicsPrintf("\tAI size: %u\n", ai);
+	epicsPrintf("\tBI size: %u\n", bi);
+	epicsPrintf("\tBO size: %u\n", bo);
+	epicsPrintf("\tTCP connections: %u\n", tcp);
+	epicsPrintf("\tSerial number: %u\n", sn);
+	epicsPrintf("\tHardware Version: %u\n", hver);
+	epicsPrintf("\tSoftware Version: %u.%u.%u\n", svermaj, svermin, sverpat);
+	epicsPrintf("\tFallbacks triggered: %u\n", wtd);
+	epicsPrintf("\tMfg date: %u/%u/%u\n", month, day, year);
 
 	for(int i = 0; i < dev->m_nTerms; i++)
 	{
 		if(!dev->m_pTerms[i].m_pRecordName)
 			continue;
-		printf("\tSlave #%i:\n", i+1);
-		printf("\t\tType: %u\n", dev->m_pTerms[i].m_nTerminalID);
-		printf("\t\tRecord Name: %s\n", dev->m_pTerms[i].m_pRecordName);
-		printf("\t\tOutput Size: %u\n", dev->m_pTerms[i].m_nOutputSize);
-		printf("\t\tOutput Start: %u\n", dev->m_pTerms[i].m_nOutputStart);
-		printf("\t\tInput Size: %u\n", dev->m_pTerms[i].m_nInputSize);
-		printf("\t\tInput Start: %u\n", dev->m_pTerms[i].m_nInputStart);
+		epicsPrintf("\tSlave #%i:\n", i+1);
+		epicsPrintf("\t\tType: %u\n", dev->m_pTerms[i].m_nTerminalID);
+		epicsPrintf("\t\tRecord Name: %s\n", dev->m_pTerms[i].m_pRecordName);
+		epicsPrintf("\t\tOutput Size: %u\n", dev->m_pTerms[i].m_nOutputSize);
+		epicsPrintf("\t\tOutput Start: %u\n", dev->m_pTerms[i].m_nOutputStart);
+		epicsPrintf("\t\tInput Size: %u\n", dev->m_pTerms[i].m_nInputSize);
+		epicsPrintf("\t\tInput Start: %u\n", dev->m_pTerms[i].m_nInputStart);
 	}
 
 	dev->Unlock();
@@ -1282,13 +1282,13 @@ void ek9000EnableDebug(const iocshArgBuf* args)
 	const char* ek9k = args[0].sval;
 	if(!ek9k)
 	{
-		epicsStdoutPrintf("Invalid parameter!\n");
+		epicsPrintf("Invalid parameter!\n");
 		return;
 	}
 	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
 	if(!dev)
 	{
-		epicsStdoutPrintf("No device by name: %s\n", ek9k);
+		epicsPrintf("No device by name: %s\n", ek9k);
 		return;
 	}
 	dev->EnableDebug(true);
@@ -1299,13 +1299,13 @@ void ek9000DisableDebug(const iocshArgBuf* args)
 	const char* ek9k = args[0].sval;
 	if(!ek9k)
 	{
-		epicsStdoutPrintf("Invalid parameter!\n");
+		epicsPrintf("Invalid parameter!\n");
 		return;
 	}
 	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
 	if(!dev)
 	{
-		epicsStdoutPrintf("No device by name: %s\n", ek9k);
+		epicsPrintf("No device by name: %s\n", ek9k);
 		return;
 	}
 	dev->EnableDebug(false);
@@ -1422,13 +1422,13 @@ static long ek9000_init(int after)
 {
 	if (after == 0)
 	{
-		epicsStdoutPrintf("Initializing EK9000 Couplers.\n");
+		epicsPrintf("Initializing EK9000 Couplers.\n");
 		for (CEK9000Device *dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
 		{
 			if (!dev->m_bInit)
 				dev->InitTerminals();
 		}
-		epicsStdoutPrintf("Initialization Complete.\n");
+		epicsPrintf("Initialization Complete.\n");
 		Utl_InitThread();
 	}
 	return 0;
@@ -1436,7 +1436,7 @@ static long ek9000_init(int after)
 
 static long ek9000_init_record(void *prec)
 {
-	epicsStdoutPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
+	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
 	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
 	return 0;
 }
