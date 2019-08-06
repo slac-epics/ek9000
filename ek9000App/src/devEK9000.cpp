@@ -1213,67 +1213,59 @@ void ek9000Stat(const iocshArgBuf *args)
 		return;
 	}
 
-	if (!dev->VerifyConnection())
+	if(dev->Lock())
 	{
-		printf("Device is not connected.\n");
+		dev->ReportError(EK_EMUTEXTIMEOUT, "ek9000Stat");
 		return;
 	}
+
+	bool connected = false;
+	if (dev->VerifyConnection())
+		connected = true;
 
 	uint16_t ao = 0, ai = 0, bo = 0, bi = 0, tcp = 0, sn = 0, wtd = 0;
 	uint16_t hver = 0, svermaj = 0, svermin = 0, sverpat = 0;
 	uint16_t day = 0, month = 0, year = 0;
 
-	if (dev->ReadProcessImageSize(ao, ai, bo, bi))
-	{
-		printf("Error while reading process image size.\n");
-		return;
-	}
-
-	if (dev->ReadNumTCPConnections(tcp))
-	{
-		printf("Error while reading tcp connection count.\n");
-		return;
-	}
-
-	if (dev->ReadSerialNumber(sn))
-	{
-		printf("Error while reading serial number.\n");
-		return;
-	}
-
-	if (dev->ReadVersionInfo(hver, svermaj, svermin, sverpat))
-	{
-		printf("Error while reading version info\n");
-		return;
-	}
-
-	if (dev->ReadNumFallbacksTriggered(wtd))
-	{
-		printf("Error while reading number of fallbacks triggered.\n");
-		return;
-	}
-
-	if (dev->ReadMfgDate(day, month, year))
-	{
-		printf("Error while reading mfg date.\n");
-		return;
-	}
+	dev->ReadProcessImageSize(ao, ai, bo, bi);
+	dev->ReadNumTCPConnections(tcp);
+	dev->ReadSerialNumber(sn);
+	dev->ReadVersionInfo(hver, svermaj, svermin, sverpat);
+	dev->ReadNumFallbacksTriggered(wtd);
+	dev->ReadMfgDate(day, month, year);
 
 	printf("Device: %s\n", ek9k);
-	printf("AO size: %u\n", ao);
-	printf("AI size: %u\n", ai);
-	printf("BI size: %u\n", bi);
-	printf("BO size: %u\n", bo);
-	printf("TCP connections: %u\n", tcp);
-	printf("Serial number: %u\n", sn);
-	printf("Hardware Version: %u\n", hver);
-	printf("Software Version: %u.%u.%u\n", svermaj, svermin, sverpat);
-	printf("Fallbacks triggered: %u\n", wtd);
-	printf("Mfg date: %u/%u/%u\n", month, day, year);
-}
+	if(connected)
+		printf("\tStatus: CONNECTED\n");
+	else
+		printf("\tStatus: NOT CONNECTED\n");
+	printf("\tIP: %s\n", dev->m_pIP);
+	printf("\tAsyn Port Name: %s\n", dev->m_pPortName);
+	printf("\tAO size: %u\n", ao);
+	printf("\tAI size: %u\n", ai);
+	printf("\tBI size: %u\n", bi);
+	printf("\tBO size: %u\n", bo);
+	printf("\tTCP connections: %u\n", tcp);
+	printf("\tSerial number: %u\n", sn);
+	printf("\tHardware Version: %u\n", hver);
+	printf("\tSoftware Version: %u.%u.%u\n", svermaj, svermin, sverpat);
+	printf("\tFallbacks triggered: %u\n", wtd);
+	printf("\tMfg date: %u/%u/%u\n", month, day, year);
 
-void ek9000DoTest(const iocshArgBuf *args)
-{
+	for(int i = 0; i < dev->m_nTerms; i++)
+	{
+		if(!dev->m_pTerms[i].m_pRecordName)
+			continue;
+		printf("\tSlave #%i:\n", i+1);
+		printf("\t\tType: %u\n", dev->m_pTerms[i].m_nTerminalID);
+		printf("\t\tRecord Name: %s\n", dev->m_pTerms[i].m_pRecordName);
+		printf("\t\tOutput Size: %u\n", dev->m_pTerms[i].m_nOutputSize);
+		printf("\t\tOutput Start: %u\n", dev->m_pTerms[i].m_nOutputStart);
+		printf("\t\tInput Size: %u\n", dev->m_pTerms[i].m_nInputSize);
+		printf("\t\tInput Start: %u\n", dev->m_pTerms[i].m_nInputStart);
+	}
+
+	dev->Unlock();
 }
 
 void ek9000EnableDebug(const iocshArgBuf* args)
