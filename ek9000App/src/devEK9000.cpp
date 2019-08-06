@@ -64,10 +64,11 @@
 class CEK9000Device;
 class CDeviceMgr;
 
-extern CDeviceMgr *g_pDeviceMgr = 0;
-
-extern "C" epicsThreadId g_PollThread = 0;
-extern "C" epicsMutexId g_ThreadMutex = 0;
+/* Globals */
+CDeviceMgr *g_pDeviceMgr = 0;
+epicsThreadId g_PollThread = 0;
+epicsMutexId g_ThreadMutex = 0;
+int g_nPollDelay = 1000;
 
 //==========================================================//
 // Utils
@@ -100,7 +101,7 @@ void PollThreadFunc(void* param)
 				(elem)->Unlock();
 			}
 		}
-		epicsThreadSleep(0.5);
+		epicsThreadSleep(g_nPollDelay);
 		epicsMutexUnlock(g_ThreadMutex);
 	}
 }
@@ -787,11 +788,16 @@ int CEK9000Device::SetOption(int term, const char *opt, const char *val)
 	if (term < 0 || term > this->m_nTerms)
 		return EK_EBADTERM;
 
+	int stat = this->Lock();
+	if(stat)
+		return EK_EMUTEXTIMEOUT;
+	stat = EK_EBADPARAM;
+
 	if (strcmp(opt, "WatchdogTimer") == 0)
 	{
 		int i = atoi(val);
 		if (i >= 0 && i <= 1000)
-			return this->WriteWatchdogTime((uint16_t)i);
+			stat = this->WriteWatchdogTime((uint16_t)i);
 		else
 			return EK_EBADPARAM;
 	}
@@ -799,25 +805,28 @@ int CEK9000Device::SetOption(int term, const char *opt, const char *val)
 	{
 		int i = atoi(val);
 		if (i >= 0 && i <= 2)
-			return this->WriteWatchdogType(i);
-		else
-			return EK_EBADPARAM;
+			stat =  this->WriteWatchdogType(i);
 	}
 	else if (strcmp(opt, "FallbackMode") == 0)
 	{
 		int i = atoi(val);
 		if (i >= 0 && i <= 2)
-			return this->WriteFallbackMode(i);
-		else
-			return EK_EBADPARAM;
+			stat = this->WriteFallbackMode(i);
 	}
 	else if (strcmp(opt, "WriteLock") == 0)
 	{
 		int i = atoi(val);
 		if (i >= 0 && i <= 1)
-			return this->WriteWritelockMode(i);
-		else
-			return EK_EBADPARAM;
+			stat = this->WriteWritelockMode(i);
+	}
+	else if(strcmp(opt, "PollTime") == 0)
+	{
+		int i = atoi(val);
+		if (i >= 10 && i < 10000)
+		{
+			stat = EK_EOK;
+			g_nPollDelay = i;
+		}
 	}
 	return EK_EOK;
 }
