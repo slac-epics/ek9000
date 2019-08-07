@@ -17,16 +17,18 @@ def make_bi(name, i, dtyp):
 			fs.write("\tfield(ZSV,   \"$(ZSV" + str(num) + ")\")\n")
 			fs.write("\tfield(OSV,   \"$(OSV" + str(num) + ")\")\n")
 			fs.write("\tfield(COSV,  \"$(COSV" + str(num) + ")\")\n")
+			fs.write("\tfield(SCAN,  \"$(SCAN" + str(num) + ")\")\n")
 			fs.write("}\n\n")			
 			subs.write("\t\tDESC" + str(num) + ",\t")
 			subs.write("ZNAM" + str(num) + ",\t")
 			subs.write("ONAM" + str(num) + ",\t")
 			subs.write("ZSV" + str(num) + ",\t")
 			subs.write("OSV" + str(num) + ",\t")
+			subs.write("COSV" + str(num) + ",\t")
 			if not num == i:
-				subs.write("COSV" + str(num) + ",\t")
+				subs.write("SCAN" + str(num) + ",\t")
 			else:
-				subs.write("COSV" + str(num) + "\t")
+				subs.write("SCAN" + str(num) + "\t")
 			subs.write("\n")
 			num = num + 1
 		subs.write("\t}\n\t{\n\t}\n}\n")
@@ -157,7 +159,11 @@ def make_ao(name, i, dtyp):
 	subs.flush()
 	subs.close()
 
-			
+
+make_bi("EL1001", 1, "EL10XX")
+make_bi("EL1002", 2, "EL10XX")
+make_bi("EL1004", 4, "EL10XX")
+make_bi("EL1008", 8, "EL10XX")
 make_bo("EL2001", 1, "EL20XX")
 make_bo("EL2002", 2, "EL20XX")
 make_bo("EL2004", 4, "EL20XX")

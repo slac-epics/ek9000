@@ -87,14 +87,14 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 
 	/* Do the actual IO */
 	uint16_t buf = 0;
-	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_COILS, dpvt->m_pTerminal->m_nInputStart +
+	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_DISCRETE_INPUTS, dpvt->m_pTerminal->m_nInputStart +
 		(dpvt->m_nChannel-2), &buf, 1);
-	pRecord->pact = 0;
+	
+	dpvt->m_pDevice->Unlock();
 
 	/* Error states */
 	if(status)
 	{
-		dpvt->m_pDevice->Unlock();
 		/* Check type of err */
 		if(status > 0x100)
 		{
@@ -104,6 +104,7 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 		dpvt->m_pDevice->ReportError(status);
 		return;
 	}
+	pRecord->pact = 0;
 	pRecord->rval = buf;
 }
 
@@ -153,6 +154,7 @@ static long EL10XX_init_record(void* precord)
 	/* Invalid term id */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
+		dpvt->m_pDevice->Unlock();
 		dpvt->m_pDevice->ReportError(EK_ETERMIDMIS, "EL10XX_init_record");
 		return 1;
 	}

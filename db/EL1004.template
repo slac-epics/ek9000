@@ -1,5 +1,5 @@
 #
-# EL1124 template.
+# EL1004 template.
 #
 
 record(bi,"$(TERMINAL):1")
