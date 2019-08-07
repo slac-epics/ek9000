@@ -148,9 +148,12 @@ static long EL40XX_init_record(void* record)
 		return 1;
 	}
 
+
 	/* Read terminal ID */
 	uint16_t termid = 0;
 	dpvt->m_pTerminal->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
+	
+	dpvt->m_pDevice->Unlock();
 
 	/* Verify terminal ID */
 	if(termid == 0)
@@ -163,10 +166,7 @@ static long EL40XX_init_record(void* record)
 		dpvt->m_pDevice->ReportError(EK_ETERMIDMIS, "EL40XX_init_record");
 		return 1;
 	}
-	
-	/* Unlock mutex */
-	dpvt->m_pTerminal->m_pDevice->Unlock();
-	
+		
 	return 0;
 }
 
