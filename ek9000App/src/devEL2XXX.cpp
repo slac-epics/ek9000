@@ -172,8 +172,6 @@ static long EL20XX_init_record(void* precord)
 	/* Unlock modbus record */
 	dpvt->m_pDevice->Unlock();
 
-	/* Do a write to propagate values */
-	EL20XX_write_record(pRecord);
 	return 0;
 }
 
