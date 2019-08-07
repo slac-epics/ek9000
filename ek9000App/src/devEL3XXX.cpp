@@ -99,7 +99,6 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	/* Check for error */
 	if(status)
 	{
-		dpvt->m_pDevice->Unlock();
 		if(status > 0x100)
 		{
 			dpvt->m_pDevice->ReportError(EK_EMODBUSERR, "EL30XX_ReadCallback");			
