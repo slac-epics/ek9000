@@ -499,11 +499,11 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 	{
 		uint16_t tmp_data[] =
 			{
-				1,		  /* 0x1400 = exec */
-				term,	 /* 0x1401 = term id */
-				index,	/* 0x1402 = obj */
-				subindex, /* 0x1403 = subindex */
-				0,		  /* 0x1404 = len = 0 */
+				1,		  	/* 0x1400 = exec */
+				term,	 	/* 0x1401 = term id */
+				index,		/* 0x1402 = obj */
+				subindex, 	/* 0x1403 = subindex */
+				0,		  	/* 0x1404 = len = 0 */
 			};
 
 		/* tell it what to do */
