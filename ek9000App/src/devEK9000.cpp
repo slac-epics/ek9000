@@ -144,9 +144,9 @@ CTerminal *CTerminal::Create(CEK9000Device *device, uint32_t termid, int termind
 	term->m_nTerminalID = termid;
 
 	if(termid >= 1000 && termid < 3000)
-		term->m_TerminalFamily |= TERMINAL_OUTPUT_DIGITAL;
+		term->m_TerminalFamily = TERMINAL_OUTPUT_DIGITAL;
 	else if(termid >= 3000 && termid < 8000)
-		term->m_TerminalFamily |= TERMINAL_FAMILY_ANALOG;
+		term->m_TerminalFamily = TERMINAL_FAMILY_ANALOG;
 
 	/* Get the process image size for this terminal */
 	CTerminal::GetTerminalInfo((int)termid, inp, outp);
@@ -382,13 +382,13 @@ int CEK9000Device::InitTerminals()
 	/* First loop: analog terms */
 	for (int i = 0; i < this->m_nTerms; i++)
 	{
-		CTerminal& term = m_pTerms[i];
-		if ((term.m_TerminalFamily | TERMINAL_FAMILY_ANALOG) == TERMINAL_FAMILY_ANALOG)
+		CTerminal* term = &m_pTerms[i];
+		if (term->m_TerminalFamily == TERMINAL_FAMILY_ANALOG)
 		{
-			term.m_nInputStart = reg_in;
-			term.m_nOutputStart = reg_out;
-			reg_in += term.m_nInputSize;
-			reg_out += term.m_nOutputSize;
+			term->m_nInputStart = reg_in;
+			term->m_nOutputStart = reg_out;
+			reg_in += term->m_nInputSize;
+			reg_out += term->m_nOutputSize;
 		}
 	}
 
@@ -396,7 +396,7 @@ int CEK9000Device::InitTerminals()
 	for (int i = 0; i < this->m_nTerms; i++)
 	{
 		CTerminal *term = &m_pTerms[i];
-		if ((term->m_TerminalFamily | TERMINAL_FAMILY_DIGITAL) == TERMINAL_FAMILY_DIGITAL)
+		if (term->m_TerminalFamily == TERMINAL_FAMILY_DIGITAL)
 		{
 			term->m_nInputStart = coil_in;
 			term->m_nOutputStart = coil_out;
