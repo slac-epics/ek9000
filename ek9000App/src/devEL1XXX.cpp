@@ -65,7 +65,6 @@ struct
 
 epicsExportAddress(dset, devEL10XX);
 
-
 static void EL10XX_ReadCallback(CALLBACK* callback)
 {
 	void* usr = 0;
@@ -74,7 +73,8 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 		return;
 	biRecord* pRecord = (biRecord*)usr;
 	SEL10XXSupportData* dpvt = (SEL10XXSupportData*)pRecord->dpvt;
-
+	free(callback);
+	
 	/* Lock for modbus io */
 	int status = dpvt->m_pDevice->Lock();
 
@@ -150,18 +150,14 @@ static long EL10XX_init_record(void* precord)
 	/* Read termid */
 	uint16_t termid = 0;
 	dpvt->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
-
+	
+	dpvt->m_pDevice->Unlock();
 	/* Invalid term id */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
-		dpvt->m_pDevice->Unlock();
 		dpvt->m_pDevice->ReportError(EK_ETERMIDMIS, "EL10XX_init_record");
 		return 1;
 	}
-
-	/* Unlock */
-	dpvt->m_pDevice->Unlock();
-	
 	return 0;
 }
 

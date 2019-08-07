@@ -71,7 +71,8 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	callbackGetUser(record, callback);
 	aoRecord* pRecord = (aoRecord*)record;
 	SEL40XXSupportData* dpvt = (SEL40XXSupportData*)pRecord->dpvt;
-
+	free(callback);
+	
 	/* Verify connection */
 	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
 	{

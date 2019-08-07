@@ -73,6 +73,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	callbackGetUser(record, callback);
 	pRecord = (boRecord*)record;
 	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
+	free(callback);
 
 	/* Lock & verify mutex */
 	int status = dpvt->m_pDevice->Lock();
@@ -92,11 +93,11 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 
 	/* Processing done */
 	pRecord->pact = 0;
+	dpvt->m_pDevice->Unlock();
 
 	/* check for errors... */
 	if(status)
 	{
-		dpvt->m_pDevice->Unlock();
 		if(status > 0x100)
 		{
 			dpvt->m_pDevice->ReportError(EK_EMODBUSERR, "EL20XX_WriteCallback");
@@ -105,9 +106,6 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 		dpvt->m_pDevice->ReportError(status, "EL20XX_WriteCallback");
 		return;
 	}
-
-	/* Unlock */
-	dpvt->m_pDevice->Unlock();
 }
 
 static long EL20XX_dev_report(int interest)
@@ -160,18 +158,14 @@ static long EL20XX_init_record(void* precord)
 	/* Read terminal ID */
 	uint16_t termid = 0;
 	dpvt->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
+	dpvt->m_pDevice->Unlock();
 
 	/* Verify terminal ID */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
 		dpvt->m_pDevice->ReportError(EK_EBADTERM, "EL20XX_init_record");
-		dpvt->m_pDevice->Unlock();
 		return 1;
 	}
-
-	/* Unlock modbus record */
-	dpvt->m_pDevice->Unlock();
-
 	return 0;
 }
 

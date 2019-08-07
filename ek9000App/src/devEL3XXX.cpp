@@ -78,7 +78,8 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	callbackGetUser(record, callback);
 	aiRecord* pRecord = (aiRecord*)record;
 	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
-
+	free(callback);
+	
 	/* Lock mutex */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 
@@ -151,12 +152,12 @@ static long EL30XX_init_record(void *precord)
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
 	dpvt->m_pTerminal->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
+	dpvt->m_pDevice->Unlock();
 
 	if(termid == 0)
 	{
 		epicsStdoutPrintf("Error while reading terminal id for %s.", pRecord->name);
 		free(dpvt);
-		dpvt->m_pDevice->Unlock();
 		return 1;
 	}
 	if(termid != dpvt->m_pTerminal->m_nTerminalID)
@@ -164,11 +165,9 @@ static long EL30XX_init_record(void *precord)
 		epicsStdoutPrintf("Error: Slave #%u has configured ID %u, but the coupler reports it has ID %u.",
 			dpvt->m_pTerminal->m_nTerminalIndex, dpvt->m_pTerminal->m_nTerminalID, termid);
 		free(dpvt);
-		dpvt->m_pDevice->Unlock();
 		return 1;
 	}
 
-	dpvt->m_pDevice->Unlock();
 
 	return 0;
 }
