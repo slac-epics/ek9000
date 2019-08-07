@@ -167,9 +167,6 @@ static long EL40XX_init_record(void* record)
 	/* Unlock mutex */
 	dpvt->m_pTerminal->m_pDevice->Unlock();
 	
-	/* Do a record write to propagate values */
-	EL40XX_write_record(pRecord);
-	
 	return 0;
 }
 

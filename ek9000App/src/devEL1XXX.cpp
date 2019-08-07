@@ -159,9 +159,7 @@ static long EL10XX_init_record(void* precord)
 
 	/* Unlock */
 	dpvt->m_pDevice->Unlock();
-
-	/* Do read */
-	EL10XX_read_record(precord);
+	
 	return 0;
 }
 
