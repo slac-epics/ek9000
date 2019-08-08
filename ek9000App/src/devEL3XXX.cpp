@@ -79,13 +79,13 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	aiRecord* pRecord = (aiRecord*)record;
 	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
 	free(callback);
-	
+
 	/* Lock mutex */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 
 	if(status != epicsMutexLockOK)
 	{
-		dpvt->m_pDevice->ReportError(EK_EMUTEXTIMEOUT, "EL30XX_ReadCallback");
+		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
 	/* read analog input, 4 bytes each, first 16 bytes is the actual adc value */
@@ -102,10 +102,10 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	{
 		if(status > 0x100)
 		{
-			dpvt->m_pDevice->ReportError(EK_EMODBUSERR, "EL30XX_ReadCallback");			
+			DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
-		dpvt->m_pDevice->ReportError(status, "EL30XX_ReadCallback");
+		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		return;
 	}
 	return;
@@ -128,11 +128,11 @@ static long EL30XX_init_record(void *precord)
 	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
 
 	/* Get the terminal */
-	char* recname = 0;
+	char* recname = NULL;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
 	if(!dpvt->m_pTerminal)
 	{
-		dbgprintf("Failed to create terminal.")
+		Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
@@ -143,7 +143,7 @@ static long EL30XX_init_record(void *precord)
 	/* Check connection to terminal */
 	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
 	{
-		dpvt->m_pDevice->ReportError(EK_ENOCONN);
+		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		free(dpvt);
 		dpvt->m_pDevice->Unlock();
 		return 1;
@@ -156,19 +156,16 @@ static long EL30XX_init_record(void *precord)
 
 	if(termid == 0)
 	{
-		epicsStdoutPrintf("Error while reading terminal id for %s.", pRecord->name);
+		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS));
 		free(dpvt);
 		return 1;
 	}
 	if(termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
-		epicsStdoutPrintf("Error: Slave #%u has configured ID %u, but the coupler reports it has ID %u.",
-			dpvt->m_pTerminal->m_nTerminalIndex, dpvt->m_pTerminal->m_nTerminalID, termid);
+		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS));
 		free(dpvt);
 		return 1;
 	}
-
-
 	return 0;
 }
 

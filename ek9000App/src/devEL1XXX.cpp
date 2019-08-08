@@ -80,7 +80,7 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 
 	if(status != epicsMutexLockOK)
 	{
-		dpvt->m_pDevice->ReportError(EK_EMUTEXTIMEOUT, "EL10XX_ReadCallback");
+		DevError("EL10XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		pRecord->pact = 0;
 		return;
 	}
@@ -98,10 +98,10 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 		/* Check type of err */
 		if(status > 0x100)
 		{
-			dpvt->m_pDevice->ReportError(EK_EMODBUSERR, "EL10XX_ReadCallback");
+			DevError("EL10XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(status));
 			return;
 		}
-		dpvt->m_pDevice->ReportError(status);
+		DevError("EL10XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		return;
 	}
 	pRecord->pact = 0;
@@ -131,7 +131,7 @@ static long EL10XX_init_record(void* precord)
 	/* Verify terminal */
 	if(!dpvt->m_pTerminal)
 	{
-		dbgprintf("Error while initializing record: Unable to find terminal.");
+		Error("EL10XX_init_record(): Unable to terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(name);
@@ -143,7 +143,7 @@ static long EL10XX_init_record(void* precord)
 	/* Verify lock OK */
 	if(status != epicsMutexLockOK)
 	{
-		dpvt->m_pDevice->ReportError(EK_EMUTEXTIMEOUT, "EL10XX_init_record");
+		Error("EL10XX_init_record(): %s\n", CEK9000Device::ErrorToString(status));
 		return 1;
 	}
 
@@ -155,7 +155,7 @@ static long EL10XX_init_record(void* precord)
 	/* Invalid term id */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
-		dpvt->m_pDevice->ReportError(EK_ETERMIDMIS, "EL10XX_init_record");
+		Error("EL10XX_init_record(): %s\n", CEK9000Device::ErrorToString(status));
 		return 1;
 	}
 	return 0;
