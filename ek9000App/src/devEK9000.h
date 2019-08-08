@@ -34,14 +34,6 @@
 
 #define PORT_PREFIX "PORT_"
 
-#define dbgprintf(...)                            \
-	{                                             \
-		char buf[128];                            \
-		epicsSnprintf(buf, 128, __VA_ARGS__);     \
-		epicsPrintf("[%s:%s:%u]: %s\n", __FILE__, \
-					__FUNCTION__, __LINE__, buf); \
-	}
-
 /* Choice strings */
 #define EL2008_STRING "EL2008"
 #define EL1124_STRING "EL1124"
@@ -88,7 +80,9 @@ template <class T>
 class CSimpleList;
 struct CTerminal;
 
+/* Globals */
 extern CDeviceMgr *g_pDeviceMgr;
+extern bool g_bDebug;
 
 /* Terminal types */
 enum class ETerminalType
@@ -129,13 +123,13 @@ struct STerminalProcessInfo
 	int m_nChannel;
 };
 
-#define IMAGE_TYPE_NONE			0x0
-#define IMAGE_TYPE_OUTPUT		0x1
-#define IMAGE_TYPE_INPUT		0x2
+void Info(const char* fmt, ...);
+void Warning(const char* fmt, ...);
+void Error(const char* fmt, ...);
 
-/* Terminal output types */
-#define TERMINAL_OUTPUT_DIGITAL	0x0
-#define TERMINAL_OUTPUT_ANALOG	0x1
+#define DevInfo(fmt, ...) if(g_bDebug) { Info(fmt, __VA_ARGS__); }
+#define DevWarn(fmt, ...) if(g_bDebug) { Warning(fmt, __VA_ARGS__); }
+#define DevError(fmt, ...) if(g_bDebug) { Error(fmt, __VA_ARGS__); }
 
 class CTerminal
 {
@@ -542,7 +536,7 @@ public:
 	const char *LastErrorString();
 
 	/* error to string */
-	const char *ErrorToString(int err);
+	static const char *ErrorToString(int err);
 
 public:
 	/* Utils for reading/writing */
@@ -684,10 +678,10 @@ public:
 
 public:
 	/* Error reporting function, only prints on debug */
-	void ReportError(int errorcode, const char* _msg = NULL);
+	//void ReportError(int errorcode, const char* _msg = NULL);
 
 	/* Enable/disable debug */
-	void EnableDebug(bool enabled) { m_bDebug = enabled; };
+	//void EnableDebug(bool enabled) { m_bDebug = enabled; };
 
 public:
 	/* Needed for the list impl */
