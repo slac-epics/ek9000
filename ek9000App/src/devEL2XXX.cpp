@@ -74,6 +74,10 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	pRecord = (boRecord*)record;
 	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
 	free(callback);
+	
+	/* Check for invalid */
+	if(!dpvt->m_pTerminal)
+		return;
 
 	/* Lock & verify mutex */
 	int status = dpvt->m_pDevice->Lock();
@@ -163,7 +167,7 @@ static long EL20XX_init_record(void* precord)
 	/* Verify terminal ID */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
-		Error("EL20XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS));
+		Error("EL20XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 	return 0;

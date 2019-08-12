@@ -80,6 +80,10 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
 	free(callback);
 
+	/* Check for invalid */
+	if(!dpvt->m_pTerminal)
+		return;
+
 	/* Lock mutex */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 
@@ -155,7 +159,7 @@ static long EL30XX_init_record(void *precord)
 
 	if(termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
 	{
-		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS));
+		Error("EL30XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 	return 0;

@@ -75,6 +75,10 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 	SEL10XXSupportData* dpvt = (SEL10XXSupportData*)pRecord->dpvt;
 	free(callback);
 	
+	/* Check for invalid */
+	if(!dpvt->m_pTerminal)
+		return;
+
 	/* Lock for modbus io */
 	int status = dpvt->m_pDevice->Lock();
 
@@ -155,7 +159,7 @@ static long EL10XX_init_record(void* precord)
 	/* Invalid term id */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
-		Error("EL10XX_init_record(): %s\n", CEK9000Device::ErrorToString(status));
+		Error("EL10XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 	return 0;

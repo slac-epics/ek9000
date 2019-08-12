@@ -72,7 +72,11 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	aoRecord* pRecord = (aoRecord*)record;
 	SEL40XXSupportData* dpvt = (SEL40XXSupportData*)pRecord->dpvt;
 	free(callback);
-	
+
+	/* Check for invalid */
+	if(!dpvt->m_pTerminal)
+		return;
+
 	/* Verify connection */
 	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
 	{
@@ -157,14 +161,9 @@ static long EL40XX_init_record(void* record)
 	dpvt->m_pDevice->Unlock();
 
 	/* Verify terminal ID */
-	if(termid == 0)
+	if(termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
 	{
-		Error("EL40XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS));
-		return 1;
-	}
-	if(termid != dpvt->m_pTerminal->m_nTerminalID)
-	{
-		Error("EL40XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS));
+		Error("EL40XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 		
