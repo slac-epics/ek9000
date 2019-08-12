@@ -1,4 +1,4 @@
-#
+#!/usr/bin/python3
 # Horrible script to auto generate templates and sub files
 #
 def make_bi(name, i, dtyp):
@@ -176,3 +176,4 @@ make_ai("EL3064", 4, "EL30XX")
 make_ai("EL3054", 4, "EL30XX")
 make_ai("EL3052", 4, "EL30XX")
 make_ai("EL3062", 4, "EL30XX")
+make_ai("EL3174", 4, "EL31XX")
