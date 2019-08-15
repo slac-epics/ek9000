@@ -539,6 +539,10 @@ public:
 	static const char *ErrorToString(int err);
 
 public:
+	/* Find Pdo size of the specified terminal using CoE */
+	int FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int& rxpdo);
+	
+public:
 	/* Utils for reading/writing */
 
 	/* Verify connection using asynUser */
