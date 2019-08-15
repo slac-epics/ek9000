@@ -382,6 +382,100 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 	return EK_EERR;
 }
 
+/* Finds PDO sizes for the specified terminal */
+int CEK9000Device::FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int& rxpdo)
+{
+	if(termtype >= 3000 && termtype < 5000 || 1)
+	{
+		/* Find TxPdo */
+		uint16_t buf = 0;
+		uint16_t index = 0, subindex = 0;
+		uint16_t buf32[2] = {0,0};
+		txpdo = 0;
+		rxpdo = 0;
+		/* Read the subindex of the mapping entry */
+		int status = doCoEIO(0, termindex, 0x1c13, 1, &buf, 0);
+		if(status)
+			return EK_EADSERR;
+		if(buf == 0)
+		{
+			txpdo = 0;
+			goto rxpdo;
+		}
+		/* Read 0x1c13:buf, aka the index of the txpdo mapping object */
+		status = doCoEIO(0, termindex, 0x1c13, 1, &index, buf);
+		if(status)
+			return EK_EADSERR;
+		if(buf == 0)
+		{
+			txpdo = 0;
+			goto rxpdo;
+		}
+		/* Read index:0 into subindex, this will be the max number of inputs */
+		status = doCoEIO(0, termindex, index, 1, &subindex, 0);
+		if(status)
+			return EK_EADSERR;
+		if(subindex == 0)
+		{
+			txpdo = 0;
+			goto rxpdo;
+		}
+		/* Each entry in this list is going to be the index of the pdo and the size */
+		for(int i = 1; i <= subindex; i++)
+		{
+			doCoEIO(0, termindex, index, 2, buf32, i);
+			txpdo += (buf32[0] & 0xFF);
+		}
+		/* Finally grab the number of channels */
+		status = doCoEIO(0, termindex, 0xF000, 1, &buf, 2);
+		if(status)
+			return EK_EADSERR;
+		txpdo *= buf;
+
+	rxpdo:
+		/* Read the subindex of the mapping entry */
+		status = doCoEIO(0, termindex, 0x1c12, 1, &buf, 0);
+		if(status)
+			return EK_EADSERR;
+		if(buf == 0)
+		{
+			rxpdo = 0;
+			return EK_EOK;
+		}
+		/* Read 0x1c13:buf, aka the index of the txpdo mapping object */
+		status = doCoEIO(0, termindex, 0x1c12, 1, &index, buf);
+		if(status)
+			return EK_EADSERR;
+		if(buf == 0)
+		{
+			rxpdo = 0;
+			return EK_EOK;
+		}
+		/* Read index:0 into subindex, this will be the max number of inputs */
+		status = doCoEIO(0, termindex, index, 1, &subindex, 0);
+		if(status)
+			return EK_EADSERR;
+		if(subindex == 0)
+		{
+			rxpdo = 0;
+			return EK_EOK;
+		}
+		/* Each entry in this list is going to be the index of the pdo and the size */
+		for(int i = 1; i <= subindex; i++)
+		{
+			doCoEIO(0, termindex, index, 2, buf32, i);
+			rxpdo += (buf32[0] & 0xFF);
+		}
+		/* Finally grab the number of channels */
+		status = doCoEIO(0, termindex, 0xF000, 1, &buf, 2);
+		if(status)
+			return EK_EADSERR;
+		rxpdo *= buf;
+		return EK_EOK;
+	}
+}
+
+
 /* Verifies that terminals have the correct ID */
 /* Sets the process image size */
 int CEK9000Device::InitTerminal(int term)
@@ -529,7 +623,7 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 				term,	 	/* 0x1401 = term id */
 				index,		/* 0x1402 = obj */
 				subindex, 	/* 0x1403 = subindex */
-				0,		  	/* 0x1404 = len = 0 */
+				0,	  		/* 0x1404 = len = 0 */
 				0,
 				0,
 				0,
@@ -551,9 +645,9 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 			}
 			return EK_EERR;
 		}
-
+		epicsThreadSleep(0.05);
 		/* read result */
-		this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1406, data, len);
+		int res = this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1406, data, len);
 		return EK_EOK;
 	}
 }
@@ -871,7 +965,7 @@ int CEK9000Device::Poll(float duration, int timeout)
 		timeout--;
 	} while ((dat | 0x200) == 0x200 && timeout > 0);
 
-	if (timeout == 0)
+	if (timeout <= 0)
 		return 1;
 	else
 		return 0;
@@ -1346,19 +1440,36 @@ void ek9000PDOTest(const iocshArgBuf* args)
 
 	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek);
 
-	epicsPrintf("Reading PDO Stuff for terminal 1.\n");
-
 	dev->Lock();
 
-	uint16_t buf = 0;
-	dev->doCoEIO(1, 6, 0x6010, 1, &buf, 0);
-	printf("%u\n", buf);
+	for(int b = 0; b < 100; b++)
+	{
+	for(int i = 4; i <= dev->m_nTerms; i++)
+	{
+		uint16_t buf;
+		dev->doCoEIO(0, i, 0x1000, 1, &buf, 0);
+		//printf("Buf: %u\n", buf);
+		if(buf != 5001)
+			printf("ERROR.\n");
+	}
+	}
+
+	for(int i = 1; i <= dev->m_nTerms; i++)
+	{
+		printf("Term %u\n", i);
+		int txpdo, rxpdo;
+		int stat = dev->FindPdoSize(dev->m_pTerms[i].m_nTerminalID, i, txpdo, rxpdo);
+		if(stat)
+			printf("Error\n");
+		printf("TxPdo: %u bits\n", txpdo);
+	}
 	
 	dev->Unlock();
 }
 
 int ek9000RegisterFunctions()
 {
+	/* ek9000PDOTest(name) */
 	{
 		static const iocshArg arg1 = {"EK9k", iocshArgString};
 		static const iocshArg *const args[] = {&arg1};
