@@ -26,7 +26,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <signal.h>
 
 #include "devEK9000.h"
 

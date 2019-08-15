@@ -29,10 +29,6 @@
 
 #include "devEK9000.h"
 
-/* STL includes */
-#include <unordered_map>
-#include <map>
-
 struct SEL10XXSupportData
 {
 	int m_nChannel;
