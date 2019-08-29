@@ -69,6 +69,8 @@ struct SEL30XXSupportData
 	int m_nChannel;
 	/* Compact or standard PDO used */
 	bool m_bCompactPDO;
+	/* PDO type, 1 = standard, 2 = compact */
+	int m_nPdoType;
 };
 
 static void EL30XX_ReadCallback(CALLBACK* callback)
@@ -91,10 +93,22 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
-	/* read analog input, 4 bytes each, first 16 bytes is the actual adc value */
 	uint16_t buf[2];
-	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
-		((dpvt->m_nChannel-1) * 2), buf, 2);
+	if(dpvt->m_nPdoType == EL30XX_STANDARD_ID)
+	{
+		/* Standard analog is 32-bits per channel, low word is adc value, high word is some info stuff */
+		/* Some note on this: m_nChannel is treated as an offset, which is why we do m_nChannel-1. Likewise, modbus registers are 16 bits wide,
+		 * and we're trying to read 4 bytes total (because the standard pdo mapping defines some status data in the high byte. This is why:
+		 * m_nChannel-1 * 2. This computes the register offset. */
+		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart+((dpvt->m_nChannel-1)*2), buf, 2);
+	}
+	/* In the case of compact pdo */
+	else
+	{
+		/* Compact analog is 16-bits per channel, completely adc value */
+		/* Some note on this: we only need to read 16-bits here, so m_nChannel just represents the register offset */
+		status = dpvt->m-pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel)-1), buf, 1);
+	}
 	/* Set props */
 	pRecord->rval = buf[0];
 	pRecord->pact = 0;
@@ -139,7 +153,8 @@ static long EL30XX_init_record(void *precord)
 		return 1;
 	}
 	free(recname);
-
+	
+	dpvt->m_nPdoType = dpvt->m_pTerminal->m_nPdoType;
 	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
 	dpvt->m_pDevice->Lock();
 
@@ -180,6 +195,7 @@ static long EL30XX_read_record(void *precord)
 	return 0;
 }
 
+/* EL30XX uses a 12-bit ADC value that's sign extended to 16-bits for transmission */
 static long EL30XX_linconv(void* precord, int after)
 {
 	aiRecord* pRecord = (aiRecord*)precord;
@@ -212,10 +228,11 @@ struct
 
 epicsExportAddress(dset, devEL31XX);
 
+/* Nearly identical to the EL30XX stuff, except EL1XX uses 16-bit unsigned ints for each channel */
 static long EL31XX_linconv(void* precord, int after)
 {
 	aiRecord* pRecord = (aiRecord*)precord;
-	/* Max range is 32767 */
+	/* Max range is 65535 */
 	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 65535;
 	pRecord->roff = 0x0;
 	return 0;
