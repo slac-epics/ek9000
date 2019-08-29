@@ -42,6 +42,7 @@
 #include <callback.h>
 #include <epicsTime.h>
 #include <epicsGeneralTime.h>
+#include <ctype.h>
 
 /* Modbus or asyn includes */
 #include <drvModbusAsyn.h>
@@ -146,6 +147,13 @@ void Error(const char* fmt, ...)
 	va_start(list, fmt);
 	epicsVprintf(fmt, list);
 	va_end(list);
+}
+
+char* strlower(char* str)
+{
+	for(size_t i = 0; i < strlen(str); i++)
+		str[i] = tolower(str[i]);
+	return str;
 }
 
 //==========================================================//
@@ -382,10 +390,27 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 	return EK_EERR;
 }
 
+int CEK9000Device::RemoveTerminal(const char* name)
+{
+	if(!name)
+		return EK_EBADPARAM;
+	for(int i = 0; i < this->m_nTerms; i++)
+	{
+		if(!this->m_pTerms[i].m_pRecordName)
+			continue;
+		if(strcmp(this->m_pTerms[i].m_pRecordName, name))
+		{
+			memset(&this->m_pTerms[i], 0, sizeof(CTerminal));
+			return EK_EOK;
+		}
+	}
+	return EK_EOK;
+}
+
 /* Finds PDO sizes for the specified terminal */
 int CEK9000Device::FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int& rxpdo)
 {
-	if(termtype >= 3000 && termtype < 5000 || 1)
+	if(termtype >= 3000 && termtype < 5000)
 	{
 		/* Find TxPdo */
 		uint16_t buf = 0;
@@ -473,6 +498,7 @@ int CEK9000Device::FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int
 		rxpdo *= buf;
 		return EK_EOK;
 	}
+	return EK_EOK;
 }
 
 
@@ -601,7 +627,7 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 
 		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, len + 5);
 
-		if (this->Poll(0.05, 50))
+		if (this->Poll(0.005, 50))
 		{
 			uint16_t dat = 0;
 			this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
@@ -634,7 +660,7 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, 9);
 
 		/* poll */
-		if (this->Poll(POLL_DURATION, TIMEOUT_COUNT))
+		if (this->Poll(0.005, TIMEOUT_COUNT))
 		{
 			uint16_t dat = 0;
 			this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1405, &dat, 1);
@@ -648,6 +674,8 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 		epicsThreadSleep(0.05);
 		/* read result */
 		int res = this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1406, data, len);
+		if(res)
+			return EK_EERR;
 		return EK_EOK;
 	}
 }
@@ -963,7 +991,7 @@ int CEK9000Device::Poll(float duration, int timeout)
 		this->m_pDriver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
 		epicsThreadSleep(duration);
 		timeout--;
-	} while ((dat | 0x200) == 0x200 && timeout > 0);
+	} while ((dat & 0x200) == 0x200 && timeout > 0);
 
 	if (timeout <= 0)
 		return 1;
@@ -1207,6 +1235,98 @@ CEK9000Device *CDeviceMgr::NextDevice() const
 	}
 }
 
+int CEK9000Device::FindRxPdoSize(int type, uint16_t index)
+{
+	/* analog terminals */
+	if(type >= 3000 || type < 5000)
+	{
+		uint16_t subindex = 0;
+		uint16_t u32[2] = {0,0};
+		int ret = 0;
+		/* Read 0x1c13:0 */
+		int status = doCoEIO(0, index, 0x1c12, 1, &subindex, 0);
+		if(status)
+			/* i am sorry for this.... */
+			return -status;
+		else if(subindex == 0)
+			return 0;
+		/* Read 0x1c13:subindex */
+		status = doCoEIO(0, index, 0x1c12, 1, &subindex, subindex);
+		if(status)
+			return -status;
+		else if(subindex == 0)
+			return 0;
+		/* Read subindex:0 is going to be the number of inputs */
+		status = doCoEIO(0, index, subindex, 1, &subindex, 0);
+		if(status)
+			return -status;
+		else if(subindex == 0)
+			return 0;
+		uint16_t tmp = subindex;
+
+		/* Loop through all entries */
+		for(int i = 0; i < subindex; i++)
+		{
+			doCoEIO(0, index, tmp, 1, u32, i);
+			ret += u32[0] & 0xFF;
+		}
+		/* Get channel number */
+		status = doCoEIO(0, index, 0xF000, 1, &subindex, 2);
+		if(status)
+			return -status;
+		else if(subindex == 0)
+			return 0;
+		ret *= subindex;
+	}
+	return EK_EOK;
+}
+
+int CEK9000Device::FindTxPdoSize(int type, uint16_t index)
+{
+	/* analog terminals */
+	if(type < 5000 && type >= 3000)
+	{
+		uint16_t subindex = 0;
+		uint16_t u32[2] = {0,0};
+		int ret = 0;
+		/* Read 0x1c13:0 */
+		int status = doCoEIO(0, index, 0x1c13, 1, &subindex, 0);
+		if(status)
+			/* i am sorry for this.... */
+			return -status;
+		else if(subindex == 0)
+			return 0;
+		/* Read 0x1c13:subindex */
+		status = doCoEIO(0, index, 0x1c13, 1, &subindex, subindex);
+		if(status)
+			return -status;
+		else if(subindex == 0)
+			return 0;
+		/* Read subindex:0 is going to be the number of inputs */
+		status = doCoEIO(0, index, subindex, 1, &subindex, 0);
+		if(status)
+			return -status;
+		else if(subindex == 0)
+			return 0;
+		uint16_t tmp = subindex;
+
+		/* Loop through all entries */
+		for(int i = 1; i <= subindex; i++)
+		{
+			doCoEIO(0, index, tmp, 2, u32, i);
+			ret += (u32[0] & 0xFF);
+		}
+		/* Get channel number */
+		status = doCoEIO(0, index, 0xF000, 1, &subindex, 2);
+		if(status)
+			return -status;
+		else if(subindex == 0)
+			return 0;
+		ret *= subindex;
+	}
+	return 0;
+}
+
 //==========================================================//
 // IOCsh functions here
 //==========================================================//
@@ -1440,31 +1560,186 @@ void ek9000PDOTest(const iocshArgBuf* args)
 
 	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek);
 
-	dev->Lock();
 
-	for(int b = 0; b < 100; b++)
-	{
-	for(int i = 4; i <= dev->m_nTerms; i++)
-	{
-		uint16_t buf;
-		dev->doCoEIO(0, i, 0x1000, 1, &buf, 0);
-		//printf("Buf: %u\n", buf);
-		if(buf != 5001)
-			printf("ERROR.\n");
-	}
-	}
+#if 0
+	dev->Lock();
 
 	for(int i = 1; i <= dev->m_nTerms; i++)
 	{
+		CTerminal& t = dev->m_pTerms[i-1];
 		printf("Term %u\n", i);
-		int txpdo, rxpdo;
-		int stat = dev->FindPdoSize(dev->m_pTerms[i].m_nTerminalID, i, txpdo, rxpdo);
-		if(stat)
-			printf("Error\n");
-		printf("TxPdo: %u bits\n", txpdo);
+		printf("Type: %u\n", t.m_nTerminalID);
+		uint16_t buf = 0;
+		dev->doCoEIO(0, i, 0x1c13, 1, &buf, 0);
+		//printf("Value of 0x1C13: %u\n", buf);
+		printf("TxPdo: %u bits\n", dev->FindTxPdoSize(t.m_nTerminalID, i));
+	}
+
+	dev->Unlock();
+#else
+	dev->Lock();
+
+	printf("EL7047 Pdo: %u\n", dev->FindTxPdoSize(7047, 5));
+
+	dev->Unlock();
+#endif
+}
+
+void ek9000AddEL7047(const iocshArgBuf* args)
+{
+	const char* ek 		= args[0].sval;
+	const char*rec 		= args[1].sval;
+	int pos 		= args[2].ival;
+	const char* pdotyp	= args[3].sval;
+	
+	if(!ek)
+	{
+		epicsPrintf("Name of the ek9000 has not been specified\n");
+		return;
+	}
+	if(!rec)
+	{
+		epicsPrintf("Name of the terminal record has not been specified.\n");
+		return;
+	}
+	if(!pdotyp)
+	{
+		epicsPrintf("Name of the pdo type has not been specified.\n");
+		return;
+	}
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek);
+
+	if(!dev)
+	{
+		epicsPrintf("Could not find the specified device.\n");
+		return;
+	}
+	if(pos > dev->m_nTerms || pos < 0)
+	{
+		epicsPrintf("Invalid slave number.\n");
+		return;
 	}
 	
-	dev->Unlock();
+	/* Check the pdo types */
+	char* pdo = strlower(strdup(pdotyp));
+	int isize=0,osize=0,pdoid=0; /* pdo sizes */
+	if(strcmp(EL7047_VEL_CTRL_COMPACT_STR, pdo) == 0)
+	{
+		pdoid = EL7047_VEL_CTRL_COMPACT_ID;
+		isize = EL7047_VEL_CTRL_COMPACT_ISIZE;
+		osize = EL7047_VEL_CTRL_COMPACT_OSIZE;
+	}
+	else if(strcmp(EL7047_VEL_CTRL_COMPACT_INFO_STR, pdo) == 0)
+	{
+		pdoid = EL7047_VEL_CTRL_COMPACT_INFO_ID;
+		isize = EL7047_VEL_CTRL_COMPACT_INFO_ISIZE;
+		osize = EL7047_VEL_CTRL_COMPACT_INFO_OSIZE;
+	}
+	else if(strcmp(EL7047_VEL_CTRL_STR, pdo) == 0)
+	{
+		pdoid = EL7047_VEL_CTRL_ID;
+		isize = EL7047_VEL_CTRL_ISIZE;
+		osize = EL7047_VEL_CTRL_OSIZE;
+	}
+	else if(strcmp(EL7047_POS_CTRL_STR, pdo) == 0)
+	{
+		pdoid = EL7047_POS_CTRL_ID;
+		isize = EL7047_POS_CTRL_ISIZE;
+		osize = EL7047_POS_CTRL_OSIZE;
+	}
+	else if(strcmp(EL7047_POS_INTERFACE_COMPACT_STR, pdo) == 0)
+	{
+		pdoid = EL7047_POS_INTERFACE_COMPACT_ID;
+		isize = EL7047_POS_INTERFACE_COMPACT_ISIZE;
+		osize = EL7047_POS_INTERFACE_COMPACT_OSIZE;
+	}
+	else if(strcmp(EL7047_POS_INTERFACE_STR, pdo) == 0)
+	{
+		pdoid = EL7047_POS_INTERFACE_ID;
+		isize = EL7047_POS_INTERFACE_ISIZE;
+		osize = EL7047_POS_INTERFACE_OSIZE;
+	}
+	else if(strcmp(EL7047_POS_INTERFACE_INFO_STR, pdo) == 0)
+	{
+		pdoid = EL7047_POS_INTERFACE_INFO_ID;
+		isize = EL7047_POS_INTERFACE_INFO_ISIZE;
+		osize = EL7047_POS_INTERFACE_INFO_OSIZE;
+	}
+	else
+	{
+		epicsPrintf("Invalid Pdo type: %s. Valid options: \n", pdo);
+		epicsPrintf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
+				EL7047_VEL_CTRL_COMPACT_STR,
+				EL7047_VEL_CTRL_COMPACT_INFO_STR,
+				EL7047_VEL_CTRL_STR,
+				EL7047_POS_CTRL_STR,
+				EL7047_POS_INTERFACE_COMPACT_STR,
+				EL7047_POS_INTERFACE_STR,
+				EL7047_POS_INTERFACE_INFO_STR);
+		free(pdo);
+		return;
+	}
+	/* add a terminal */
+	int status = dev->AddTerminal(rec, 7047, pos);
+	CTerminal* term = dev->GetTerminal(rec);
+	if(status || !term)
+	{
+		epicsPrintf("Unable to create terminal %s.\n", rec);
+		return;
+	}
+	/* pdo sizes */
+	term->m_nInputSize = isize;
+	term->m_nOutputSize = osize;
+	term->m_nPdoID = pdoid;
+}
+
+void ek9000AddAnalog(const icoshArgBuf* args)
+{
+	const char* ek 		= args[0].sval;
+	const char* rec		= args[1].sval;
+	int typ			= args[2].ival;
+	int pos			= args[3].ival;
+	const char* pdotyp	= args[4].sval;
+	if(!ek || !rec || !typ || !pdotyp)
+	{
+		epicsPrintf("Invalid type passed.\n");
+		return;
+	}
+
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek);
+	if(!dev)
+	{
+		epicsPrintf("Invalid device: %s\n", ek);
+		return;
+	}
+	char* pdo = strlower(strdup(pdotyp));
+	int isize=0,pdoid=0;
+	if(strcmp(EL30XX_STANDARD_STR, pdo))
+	{
+		pdoid = EL30XX_STANDARD_ID;	
+		isize = EL30XX_STANDARD_ISIZE;
+	}
+	else if(strcmp(EL30XX_COMPACT_STR, pdo))
+	{
+		pdoid = EL30XX_COMPACT_ID;
+		pdoid = EL30XX_COMPACT_ISIZE;
+	}
+	else
+	{
+		epicsPrintf("Invalid pdo mapping type: %s\nValid options are:\n", pdotyp);
+		epicsPrintf("\t%s\n\t%s\n", EL30XX_STANDARD_STR, EL30XX_COMPACT_STR);
+		return;
+	}
+	int status = dev->AddTerminal(rec, typ, pos);
+	CTerminal* term = dev->GetTerminal(rec);
+	if(status || !term)
+	{
+		epicsPrintf("Error while creating terminal.\n");
+		return;
+	}
+	term->m_nOutputSize = 0;
+	term->m_nInputSize = isize;
+	term->m_nPdoID = pdoid;
 }
 
 int ek9000RegisterFunctions()
@@ -1488,6 +1763,29 @@ int ek9000RegisterFunctions()
 		iocshRegister(&func, ek9000Configure);
 	}
 
+	/* ek9000AddAnalog(ek9000, name, type, position, pdomaptype) */
+	{
+		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
+		static const iocshArg arg2 = {"Terminal record name", iocshArgString};
+		static const iocshArg arg3 = {"Type", iocshArgString};
+		static const iocshArg arg4 = {"Position", iocshArgInt};
+		static const iocshArg arg5 = {"Pdo mapping type", iocshArgString};
+		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4, &arg5};
+		static const iocshFuncDef func = {"ek9000AddAnalog", 5, args};
+		iocshRegister(&func, ek9000AddAnalog);
+	}
+
+
+	/* ek9000AddEL7047(ek9000, name, position, pdomaptype) */
+	{
+		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
+		static const iocshArg arg2 = {"Terminal Record Name", iocshArgString};
+		static const iocshArg arg3 = {"Position", iocshArgInt};
+		static const iocshArg arg4 = {"Pdo Mapping Type", iocshArgString};
+		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
+		static const iocshFuncDef func = {"ek9000AddEL7047", 4, args};
+		iocshRegister(&func, ek9000AddEL7047);
+	}
 	/* ek9000ConfigureTerminal(ek9000, name, type, position) */
 	{
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
