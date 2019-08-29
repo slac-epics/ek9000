@@ -106,7 +106,7 @@
 #define EL7047_POS_INTERFACE_INFO_ID		7
 /* The sizes of the pdos of el3064 (bytes) */
 #define EL30XX_STANDARD_ISIZE			16
-#define EL30XX_COMPACT_ISIZE			
+#define EL30XX_COMPACT_ISIZE			8
 /* EL30XX pdo IDs */
 #define EL30XX_STANDARD_ID			1
 #define EL30XX_COMPACT_ID			2
@@ -142,17 +142,6 @@ enum class ETerminalType
 
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
-
-/* Errors and error types */
-enum EK9KError : int
-{
-	ERR_OK,
-	ERR_GENERIC,
-	ERR_NULLPARAM,
-	ERR_INVALPARAM,
-	ERR_BADID,
-	ERR_INVALTERMID,
-};
 
 /* Simple struct that holds some data for async processing */
 struct STerminalProcessInfo
@@ -218,143 +207,6 @@ public:
 	int m_nOutputStart	= 0;
 	/* Specifically for terminals with multiple pdo types */
 	int m_nPdoID 		= 0;
-};
-
-template <class T>
-class CSimpleList
-{
-private:
-	template <class Z>
-	class Node
-	{
-	public:
-		Z val;
-		Node<Z> *m_pNext = NULL;
-		Node<Z> *m_pPrev = NULL;
-	};
-
-private:
-	size_t m_nCount = 0;
-	Node<T> *m_pRoot = NULL;
-	Node<T> *m_pEnd = NULL;
-	mutable Node<T>* m_pCtx = NULL;
-
-public:
-	CSimpleList()
-	{
-	}
-
-	~CSimpleList()
-	{
-		if (!m_pRoot)
-			return;
-
-		for (Node<T> *node = m_pRoot; node;)
-		{
-			Node<T> *tmp = node->m_pNext;
-			delete node;
-			node = tmp;
-		}
-	}
-
-public:
-	void Add(const T &t)
-	{
-		if (m_pRoot)
-		{
-			for (Node<T> *node = m_pRoot; node; node = node->m_pNext)
-			{
-				if (node->m_pNext == NULL)
-				{
-					node->m_pNext = new Node<T>();
-					node->m_pNext->val = t;
-					node->m_pNext->m_pPrev = node;
-					m_nCount++;
-					return;
-				}
-			}
-		}
-		else
-		{
-			m_pRoot = new Node<T>();
-			m_pRoot->val = t;
-			m_nCount++;
-		}
-	}
-
-	void Remove(const T &t)
-	{
-		if (m_pRoot)
-		{
-			for (Node<T> *node = m_pRoot; node; node = node->m_pNext)
-			{
-				if (node->val == t)
-				{
-					Node<T> *next = node->m_pNext;
-					Node<T> *prev = node->m_pPrev;
-					if (m_pRoot == node)
-						m_pRoot = next;
-					if (prev)
-						prev->m_pNext = next;
-					if (next)
-						prev->m_pPrev = prev;
-					delete node;
-					m_nCount--;
-				}
-			}
-		}
-	}
-
-	T *Get(int i) const
-	{
-		if (m_pRoot && i >= 0 && i < m_nCount)
-		{
-			for (Node<T> *node = m_pRoot; node; node = node->m_pNext, i--)
-			{
-				if (i <= 0)
-				{
-					return &node->val;
-				}
-			}
-		}
-		return NULL;
-	}
-
-	/* Find the index of an element, return -1 if not found */
-	int Find(const T &dev) const
-	{
-		if (m_pRoot)
-		{
-			int i = 0;
-			for (Node<T> *node = m_pRoot; node; node = node->m_pNext, i++)
-			{
-				if (node->val == dev)
-					return i;
-			}
-		}
-		return -1;
-	}
-
-	T* FirstNode() const
-	{
-		m_pCtx = m_pRoot;
-		return m_pCtx;
-	}
-
-	T* NextNode() const
-	{
-		if(m_pCtx)
-		{
-			m_pCtx = m_pCtx->m_pNext;
-			return m_pCtx;
-		}
-		else
-		{
-			return m_pCtx;
-		}
-	}
-
-	/* Find first item */
 };
 
 /* 
@@ -706,37 +558,6 @@ public:
 	/* Option management */
 
 	int SetOption(int term, const char *opt, const char *val);
-
-public:
-	/* Process data interaction */
-
-	/* Termid is the term index */
-	/* channel is the output number and is 1-based */
-	/* data is the value, true for on, false for off */
-	int WriteDigitalOut(int termid, int channel, uint16_t data);
-
-	/* termid is the term index */
-	/* channel is the output number and is 1-based */
-	int WriteAnalogOut(int termid, int channel, uint32_t data);
-
-	/* Reads analog input of the specified terminal */
-	/* channel is a 1-based number that represents the signal number */
-	int ReadDigitalInput(int termid, int channel, uint16_t& data);
-
-	/* Reads analog output of the specified terminal */
-	/* channel is a 1-based number that represents the signal number */
-	int ReadAnalogInput(int termid, int channel, uint32_t& data);
-
-	/* Motor out */
-	/* TODO: Implement */
-	int WriteMotorOut(int termid);
-
-public:
-	/* Error reporting function, only prints on debug */
-	//void ReportError(int errorcode, const char* _msg = NULL);
-
-	/* Enable/disable debug */
-	//void EnableDebug(bool enabled) { m_bDebug = enabled; };
 
 public:
 	/* Needed for the list impl */
