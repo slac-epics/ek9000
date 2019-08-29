@@ -1,4 +1,4 @@
-# EPICS Device Support for the EK9000 Modbus to EtherCAT Coupler
+# EPICS Device Support for the EK9000
 This is the manual for the EK9000 device support module for EPICS 3.14 and later.
 
 If you don't know already, the EK9000 is a low-cost Modbus to EtherCAT coupler. It allows you to control EtherCAT terminals (such as the EL3064 analog input) using a simple Modbus interface, which can be used on virtually any IOC with internet access.
@@ -16,12 +16,15 @@ make
 You can run the test IOC with `./ek9000Test st.cmd` or with `./st.cmd` from the `iocBoot` directory.
 
 ## How It Works
-Although the EK9000 is pretty easy to access with Modbus, it has some odd quirks and shortcomings that made making this module somewhat difficult, so I thought I'd include an explination of how the module functions.
+Although the EK9000 is pretty easy to access with Modbus, it has some odd quirks and shortcomings that made making this module somewhat difficult, so I thought I'd include an explanation of how the module functions.
 
 ### Initialization
-There are two steps to initialization. First is startup script functions that initialize things and the second is the actual record initialization.
+There are two steps to initialization: startup script functions and the actual record initialization.
 
-In the startup script, the function `ek9000Configure(name, ip, port, slavecount)` is used to create an EK9000 device at the specified ip and port with the specified number of slaves. 
+In the startup script, the function `ek9000Configure(name, ip, port, slavecount)` is used to create an EK9000 device at the specified ip and port with the specified number of slaves.
+Internally, it allocates memory for terminal structures and holds some important parameters. 
+
+Once the device is created, it will try to connect to the device. If it can't connect, the records and other startup script functions (such as `ek9000ConfigureTerminal`) will fail.
 
 #### Startup script
 
@@ -29,16 +32,21 @@ After this, you can use `ek9000ConfigureTerminak(ek9000_name, record_name, type,
 Type is an integral value representing the terminal type, for example, 3064, which is found in the string EL3064. 
 `slave_number` simply represents the position on the rail: keep in mind, this is a 1-based index. 
 
+It's important to make sure that the type of terminal that you specify actually matches what's on the rail. 
+The module **WILL** verify that they match, and throw an error if they don't.
+This also means that you can't initialize terminals without a connection to the device.
+
 After those functions are called, you can load a database or a substitutions file that contains the records you want to be used by terminals attached to that ek9000. It's important that you ONLY load these records after you've registerd all terminals to the device.
 
 #### Record initialization
 
-During record initialization, terminals with the `DTYP` field set to `EL10XX`, `EL11XX`, etc. will initiate a search for the terminal it's supposed to be attached to. 
+During record initialization, terminals with the `DTYP` field set to `EL10XX`, `EL11XX`, etc. will initiate a search for the terminal they're supposed to be attached to. 
 The name of the record usually will be suffixed with a `:x`, where x is an integer representing the channel that the record represents.
 The string preceding the `:x` acts as the base record name, which you specified in your init script.
 I decided to do this, because it made sense to me.. Comments on this design decision are welcome.
 
-For example, if you use the template `EL1002.template`, and substitute all the stuff you want to, the records `MyTerminal1:1` and `MyTerminal1:2` will be created. Given that you ran `ek9000ConfigureTerminal("EK9K1", "MyTerminal1", 1002, 1)` or something similar in your ioc init script, the records will initialize successfully.
+For example, if you use the template `EL1002.template`, and substitute all the stuff you want to, the records `MyTerminal1:1` and `MyTerminal1:2` will be created. 
+Given that you ran `ek9000ConfigureTerminal("EK9K1", "MyTerminal1", 1002, 1)` or something similar in your ioc init script, the records will initialize successfully.
 
 Once the record initializes, it associates some private data with itself which contains a pointer to the descriptor of the terminal and some other stuff.
 
@@ -198,5 +206,19 @@ Params:
 
 ----------------------------------------------------------
 ```
+
+## Contributing
+If you would like to contribute to the module, you can fork it, add your chanes and then open a pull request to this module. 
+Most changes are welcome and anybody is welcome to contribute.
+
+## Bugs
+If you find any bugs, you can report them on this repository. 
+
+When filing a bug report, please include a detailed description of the bug and any relevant logs. 
+Hopefully I'll be able to assist you ASAP.
+
+## Questions or Comments?
+Feel free to email me at jeremy.lorelli.1337@gmail.com or lorelli@slac.stanford.edu.
+
 ## Developers
 * Jeremy Lorelli (jeremy.lorelli.1337@gmail.com)
