@@ -48,29 +48,68 @@
 #define EL9XXX_STIRNG "EL9XXX"
 
 /* This device's error types */
-#define EK_EOK 0		 /* OK */
-#define EK_EERR 1		 /* Unspecified err */
-#define EK_EBADTERM 2	/* Bad terminal */
-#define EK_ENOCONN 3	 /* Bad connection */
-#define EK_EBADPARAM 4   /* Bad parameter passed */
-#define EK_EBADPTR 5	 /* Bad pointer */
-#define EK_ENODEV 6		 /* Bad device */
-#define EK_ENOENT 7		 /* No dir entry */
-#define EK_EWTCHDG 8	 /* Watchdog error */
-#define EK_EBADTYP 9	 /* Bad terminal type */
-#define EK_EBADIP 10	 /* Bad IP format */
-#define EK_EBADPORT 11   /* Bad port # */
-#define EK_EADSERR 12	/* ADS error */
-#define EK_ETERMIDMIS 13 /* Terminal id mismatch. e.g. term type is EL1124, but id is 2008 */
-#define EK_EBADMUTEX 14	/* Mutex error */
-#define EK_EMUTEXTIMEOUT 15
-#define EK_EBADTERMID 16 /* Invalid terminal id */
-#define EK_EMODBUSERR 17 /* Modbus error */
+#define EK_EOK 			0  /* OK */
+#define EK_EERR 		1  /* Unspecified err */
+#define EK_EBADTERM 		2  /* Bad terminal */
+#define EK_ENOCONN 		3  /* Bad connection */
+#define EK_EBADPARAM 		4  /* Bad parameter passed */
+#define EK_EBADPTR 		5  /* Bad pointer */
+#define EK_ENODEV 		6  /* Bad device */
+#define EK_ENOENT 		7  /* No dir entry */
+#define EK_EWTCHDG 		8  /* Watchdog error */
+#define EK_EBADTYP 		9  /* Bad terminal type */
+#define EK_EBADIP 		10 /* Bad IP format */
+#define EK_EBADPORT 		11 /* Bad port # */
+#define EK_EADSERR 		12 /* ADS error */
+#define EK_ETERMIDMIS 		13 /* Terminal id mismatch. e.g. term type is EL1124, but id is 2008 */
+#define EK_EBADMUTEX 		14 /* Mutex error */
+#define EK_EMUTEXTIMEOUT 	15 /* Mutex timeout */
+#define EK_EBADTERMID 		16 /* Invalid terminal id */
+#define EK_EMODBUSERR 		17 /* Modbus error */
 
 #define IMAGE_TYPE_BI 1
 #define IMAGE_TYPE_BO 2
 #define IMAGE_TYPE_AO 3
 #define IMAGE_TYPE_AI 4
+
+#define EL30XX_COMPACT_STR 			"compact"
+#define EL30XX_STANDARD_STR 			"standard"
+#define EL7047_VEL_CTRL_COMPACT_STR		"velocity control compact"
+#define EL7047_VEL_CTRL_COMPACT_INFO_STR 	"velocity control compact with info data"
+#define EL7047_VEL_CTRL_STR 			"velocity control"
+#define EL7047_POS_CTRL_STR 			"position control"
+#define EL7047_POS_INTERFACE_COMPACT_STR 	"positioning interface compact"
+#define EL7047_POS_INTERFACE_STR		"positioning interface"
+#define EL7047_POS_INTERFACE_INFO_STR		"positioning interface with info data"
+/* The sizes of the pdos of el7047 (bytes) */
+#define EL7047_VEL_CTRL_COMPACT_OSIZE		8
+#define EL7047_VEL_CTRL_COMPACT_ISIZE		8
+#define EL7047_VEL_CTRL_COMPACT_INFO_OSIZE	8
+#define EL7047_VEL_CTRL_COMPACT_INFO_ISIZE	12
+#define EL7047_VEL_CTRL_ISIZE			12
+#define EL7047_VEL_CTRL_OSIZE			10
+#define EL7047_POS_CTRL_ISIZE			12
+#define EL7047_POS_CTRL_OSIZE			12
+#define EL7047_POS_INTERFACE_COMPACT_ISIZE	14
+#define EL7047_POS_INTERFACE_COMPACT_OSIZE	14
+#define EL7047_POS_INTERFACE_ISIZE		24
+#define EL7047_POS_INTERFACE_OSIZE		22
+#define EL7047_POS_INTERFACE_INFO_ISIZE		28
+#define EL7047_POS_INTERFACE_INFO_OSIZE		22
+/* EL7047 pdo type ids */
+#define EL7047_VEL_CTRL_COMPACT_ID		1
+#define EL7047_VEL_CTRL_ID			2
+#define EL7047_VEL_CTRL_COMPACT_INFO_ID		3
+#define EL7047_POS_CTRL_ID			4
+#define EL7047_POS_INTERFACE_ID			5
+#define EL7047_POS_INTERFACE_COMPACT_ID		6
+#define EL7047_POS_INTERFACE_INFO_ID		7
+/* The sizes of the pdos of el3064 (bytes) */
+#define EL30XX_STANDARD_ISIZE			16
+#define EL30XX_COMPACT_ISIZE			
+/* EL30XX pdo IDs */
+#define EL30XX_STANDARD_ID			1
+#define EL30XX_COMPACT_ID			2
 
 /* Forward decls */
 class CEK9000Device;
@@ -123,9 +162,11 @@ struct STerminalProcessInfo
 	int m_nChannel;
 };
 
+/* Utils */
 void Info(const char* fmt, ...);
 void Warning(const char* fmt, ...);
 void Error(const char* fmt, ...);
+char* strlower(char* str);
 
 #define DevInfo(fmt, ...) if(g_bDebug) { Info(fmt, __VA_ARGS__); }
 #define DevWarn(fmt, ...) if(g_bDebug) { Warning(fmt, __VA_ARGS__); }
@@ -162,19 +203,21 @@ public:
 	/* the device */
 	CEK9000Device *m_pDevice = NULL;
 	/* Terminal id, aka the 1124 in EL1124 */
-	int m_nTerminalID = 0;
+	int m_nTerminalID	= 0;
 	/* Number of inputs */
-	int m_nInputs = 0;
+	int m_nInputs		= 0;
 	/* Number of outputs */
-	int m_nOutputs = 0;
+	int m_nOutputs		= 0;
 	/* Size of inputs */
-	int m_nInputSize = 0;
+	int m_nInputSize	= 0;
 	/* Size of outputs */
-	int m_nOutputSize = 0;
+	int m_nOutputSize	= 0;
 	/* input image start */
-	int m_nInputStart = 0;
+	int m_nInputStart	= 0;
 	/* Output image start */
-	int m_nOutputStart = 0;
+	int m_nOutputStart	= 0;
+	/* Specifically for terminals with multiple pdo types */
+	int m_nPdoID 		= 0;
 };
 
 template <class T>
@@ -515,6 +558,10 @@ public:
 
 	CTerminal *GetAllTerminals() { return m_pTerms; }
 
+	/* Remove a terminal */
+	int RemoveTerminal(const char* name);
+
+
 	/* Initializes a terminal (after it's been added). This should be called from the init_record routines */
 	int InitTerminal(int termindex);
 
@@ -541,6 +588,10 @@ public:
 public:
 	/* Find Pdo size of the specified terminal using CoE */
 	int FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int& rxpdo);
+
+	int FindRxPdoSize(int termtype, uint16_t termindex);
+
+	int FindTxPdoSize(int termtype, uint16_t termindex);
 	
 public:
 	/* Utils for reading/writing */
