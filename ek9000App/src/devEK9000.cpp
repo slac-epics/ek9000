@@ -9,11 +9,6 @@
 //		any leaks or other performance issues
 //	-
 // Notes:
-//	-	Performance could be improved by adding a hashmap
-//		type of structure instead of a simple doubly linked
-//		list (would use less memory too)
-//	-	All device support things are defined and implemented
-//		here
 //	-	For device specific indicies and such, refer to the docs:
 //		EL1XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el10xx_el11xxen.pdf
 //		EL2XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/EL20xx_EL2124en.pdf
@@ -23,6 +18,9 @@
 // Revisions:
 //	-	July 15, 2019: Improved error propagation and added
 //		new init routines.
+//	-	July-Now: Bugfixes, etc.
+//	-	August 29, 2019: Began rewrite to allow for different pdo
+//		type support.
 //======================================================//
 
 /* EPICS includes */
@@ -507,7 +505,7 @@ int CEK9000Device::FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int
 int CEK9000Device::InitTerminal(int term)
 {
 	if (term < 0 || term >= m_nTerms)
-		return ERR_INVALPARAM;
+		return EK_EBADPARAM;
 
 	/* Read ther terminal's id */
 	uint16_t tid = 0;
@@ -519,7 +517,7 @@ int CEK9000Device::InitTerminal(int term)
 	if (tid != terminal->m_nTerminalID)
 		return EK_ETERMIDMIS;
 
-	return ERR_OK;
+	return EK_EOK;
 }
 
 /* This will configure process image locations in each terminal */
@@ -1693,7 +1691,7 @@ void ek9000AddEL7047(const iocshArgBuf* args)
 	term->m_nPdoID = pdoid;
 }
 
-void ek9000AddAnalog(const icoshArgBuf* args)
+void ek9000AddAnalog(const iocshArgBuf* args)
 {
 	const char* ek 		= args[0].sval;
 	const char* rec		= args[1].sval;
