@@ -33,3 +33,5 @@ makelist.py
 maketemplate.py
 terminals.xml
 tparse\.py
+
+/*.xml

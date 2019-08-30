@@ -74,13 +74,17 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	pRecord = (boRecord*)record;
 	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
 	free(callback);
+	
+	/* Check for invalid */
+	if(!dpvt->m_pTerminal)
+		return;
 
 	/* Lock & verify mutex */
 	int status = dpvt->m_pDevice->Lock();
 	
 	if(status != epicsMutexLockOK)
 	{
-		dpvt->m_pDevice->ReportError(EK_EMUTEXTIMEOUT, "EL20XX_WriteCallback");
+		DevError("EL20XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		pRecord->pact = 0;
 		return;
 	}
@@ -100,10 +104,10 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	{
 		if(status > 0x100)
 		{
-			dpvt->m_pDevice->ReportError(EK_EMODBUSERR, "EL20XX_WriteCallback");
+			DevError("EL20XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
-		dpvt->m_pDevice->ReportError(status, "EL20XX_WriteCallback");
+		DevError("EL20XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		return;
 	}
 }
@@ -131,7 +135,7 @@ static long EL20XX_init_record(void* precord)
 	/* Verify terminal */
 	if(dpvt->m_pTerminal == NULL)
 	{
-		dbgprintf("Error while initializing record.\n");
+		Error("EL20XX_init_record(): Unable to find terminal for %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
@@ -141,7 +145,7 @@ static long EL20XX_init_record(void* precord)
 	/* Verify the connection */
 	if(!dpvt->m_pDevice->VerifyConnection())
 	{
-		dpvt->m_pDevice->ReportError(EK_ENOCONN, "EL20XX_init_record");
+		Error("EL20XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
@@ -151,7 +155,7 @@ static long EL20XX_init_record(void* precord)
 	/* Check mutex status */
 	if(status != epicsMutexLockOK)
 	{
-		dpvt->m_pDevice->ReportError(EK_EMUTEXTIMEOUT, "EL20XX_init_record");
+		Error("EL20XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		return 1;
 	}
 
@@ -163,7 +167,7 @@ static long EL20XX_init_record(void* precord)
 	/* Verify terminal ID */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
-		dpvt->m_pDevice->ReportError(EK_EBADTERM, "EL20XX_init_record");
+		Error("EL20XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 	return 0;
