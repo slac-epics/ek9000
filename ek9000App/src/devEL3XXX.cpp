@@ -107,7 +107,7 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	{
 		/* Compact analog is 16-bits per channel, completely adc value */
 		/* Some note on this: we only need to read 16-bits here, so m_nChannel just represents the register offset */
-		status = dpvt->m-pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel)-1), buf, 1);
+		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel)-1), buf, 1);
 	}
 	/* Set props */
 	pRecord->rval = buf[0];
@@ -128,7 +128,7 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	return;
 }
 
-static long	EL30XX_dev_report(int interest)
+static long EL30XX_dev_report(int interest)
 {
 	return 0;
 }
@@ -154,7 +154,7 @@ static long EL30XX_init_record(void *precord)
 	}
 	free(recname);
 	
-	dpvt->m_nPdoType = dpvt->m_pTerminal->m_nPdoType;
+	dpvt->m_nPdoType = dpvt->m_pTerminal->m_nPdoID;
 	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
 	dpvt->m_pDevice->Lock();
 
