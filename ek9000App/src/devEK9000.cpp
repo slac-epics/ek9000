@@ -1577,7 +1577,8 @@ void ek9000PDOTest(const iocshArgBuf* args)
 #else
 	dev->Lock();
 
-	printf("EL7047 Pdo: %u\n", dev->FindTxPdoSize(7047, 5));
+	//printf("EL7047 Pdo: %u\n",
+	//printf("EL7047 Pdo: %u\n", dev->FindTxPdoSize(7047, 5));
 
 	dev->Unlock();
 #endif
