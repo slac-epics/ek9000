@@ -26,7 +26,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <signal.h>
 
 #include "devEK9000.h"
 
@@ -79,13 +78,17 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	aiRecord* pRecord = (aiRecord*)record;
 	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
 	free(callback);
-	
+
+	/* Check for invalid */
+	if(!dpvt->m_pTerminal)
+		return;
+
 	/* Lock mutex */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 
 	if(status != epicsMutexLockOK)
 	{
-		dpvt->m_pDevice->ReportError(EK_EMUTEXTIMEOUT, "EL30XX_ReadCallback");
+		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
 	/* read analog input, 4 bytes each, first 16 bytes is the actual adc value */
@@ -102,10 +105,10 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	{
 		if(status > 0x100)
 		{
-			dpvt->m_pDevice->ReportError(EK_EMODBUSERR, "EL30XX_ReadCallback");			
+			DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
-		dpvt->m_pDevice->ReportError(status, "EL30XX_ReadCallback");
+		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		return;
 	}
 	return;
@@ -128,11 +131,11 @@ static long EL30XX_init_record(void *precord)
 	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
 
 	/* Get the terminal */
-	char* recname = 0;
+	char* recname = NULL;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
 	if(!dpvt->m_pTerminal)
 	{
-		dbgprintf("Failed to create terminal.")
+		Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
@@ -143,8 +146,7 @@ static long EL30XX_init_record(void *precord)
 	/* Check connection to terminal */
 	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
 	{
-		dpvt->m_pDevice->ReportError(EK_ENOCONN);
-		free(dpvt);
+		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		dpvt->m_pDevice->Unlock();
 		return 1;
 	}
@@ -154,21 +156,11 @@ static long EL30XX_init_record(void *precord)
 	dpvt->m_pTerminal->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
 	dpvt->m_pDevice->Unlock();
 
-	if(termid == 0)
+	if(termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
 	{
-		epicsStdoutPrintf("Error while reading terminal id for %s.", pRecord->name);
-		free(dpvt);
+		Error("EL30XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
-	if(termid != dpvt->m_pTerminal->m_nTerminalID)
-	{
-		epicsStdoutPrintf("Error: Slave #%u has configured ID %u, but the coupler reports it has ID %u.",
-			dpvt->m_pTerminal->m_nTerminalIndex, dpvt->m_pTerminal->m_nTerminalID, termid);
-		free(dpvt);
-		return 1;
-	}
-
-
 	return 0;
 }
 
@@ -197,26 +189,34 @@ static long EL30XX_linconv(void* precord, int after)
 	return 0;
 }
 
+static long EL31XX_linconv(void* precord, int after);
 
-#if 0
-//======================================================//
-//
-// EL30XX settings record type
-//
-//======================================================//
-static long recEL30XX_report(void* precord);
-static long recEL30XX_initialize();
-static long recEL30XX_init_record(void* precord, int pass);
-static long recEL30XX_process(void* precord);
-static long recEL30XX_cvt_dbaddr(dbAddr* paddr);
-static long recEL30XX_get_arr_info(dbAddr* paddr, long* nelems, long* offset);
-static long recEL30XX_get_units(dbAddr* paddr, char* punits);
-static long recEL30XX_get_precision(dbAddr* paddr, long* precision);
-static long recEL30XX_get_enum_str(dbAddr* paddr, char* p);
-static long recEL30XX_get_enum_strs(dbAddr* paddr, dbr_enumStrs* strs);
-static long recEL30XX_put_enum_str(dbAddr* paddr, char* p);
-static long recEL30XX_get_graphic_double(dbAddr* paddr, dbr_grDouble* dbl);
-static long recEL30XX_get_control_double(dbAddr* paddr, dbr_ctrlDouble* dbl);
-static long recEL30XX_get_alarm_double(dbAddr* paddr, dbr_alDouble* dbl);
+struct
+{
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN read_record;
+	DEVSUPFUN linconv;
+} devEL31XX = {
+	6,
+	(DEVSUPFUN)EL30XX_dev_report,
+	(DEVSUPFUN)EL30XX_init,
+	(DEVSUPFUN)EL30XX_init_record,
+	NULL,
+	(DEVSUPFUN)EL30XX_read_record,
+	(DEVSUPFUN)EL31XX_linconv,
+};
 
-#endif
+epicsExportAddress(dset, devEL31XX);
+
+static long EL31XX_linconv(void* precord, int after)
+{
+	aiRecord* pRecord = (aiRecord*)precord;
+	/* Max range is 32767 */
+	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 65535;
+	pRecord->roff = 0x0;
+	return 0;
+}

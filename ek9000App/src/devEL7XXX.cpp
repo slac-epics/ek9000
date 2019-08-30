@@ -29,11 +29,12 @@
 
 #include "devEK9000.h"
 
-static long Motor_dev_report(int after);
-static long Motor_init(int after);
-static long Motor_init_record(void* record);
-static long Motor_get_ioint_info(int cmd, struct dbCommon *precord, IOSCANPVT *ppvt);
-static long Motor_write_record(void* record);
+static long EL7047_dev_report(int after);
+static long EL7047_init(int after);
+static long EL7047_init_record(void* record);
+static long EL7047_get_ioint_info(int cmd, struct dbCommon *precord, IOSCANPVT *ppvt);
+static long EL7047_write_record(void* record);
+
 struct
 {
 	long num;
@@ -44,32 +45,35 @@ struct
 	DEVSUPFUN write_record;
 } devEL7XXX = {
 	5,
-	(DEVSUPFUN)Motor_dev_report,
-	(DEVSUPFUN)Motor_init,
-	(DEVSUPFUN)Motor_init_record,
-	(DEVSUPFUN)Motor_get_ioint_info,
-	(DEVSUPFUN)Motor_write_record,
+	(DEVSUPFUN)EL7047_dev_report,
+	(DEVSUPFUN)EL7047_init,
+	(DEVSUPFUN)EL7047_init_record,
+	(DEVSUPFUN)EL7047_get_ioint_info,
+	(DEVSUPFUN)EL7047_write_record,
 };
 
-epicsExportAddress(dset, devEL7XXX);
 
-static long Motor_dev_report(int after)
+static long EL7047_dev_report(int after)
 {
 	return 0;
 }
-static long Motor_init(int after)
+
+static long EL7047_init(int after)
 {
 	return 0;
 }
-static long Motor_init_record(void* record)
+
+static long EL7047_init_record(void* record)
 {
 	return 0;
 }
-static long Motor_get_ioint_info(int cmd, struct dbCommon *precord, IOSCANPVT *ppvt)
+
+static long EL7047_get_ioint_info(int cmd, struct dbCommon *precord, IOSCANPVT *ppvt)
 {
 	return 0;
 }
-static long Motor_write_record(void* record)
+
+static long EL7047_write_record(void* record)
 {
 	return 0;
 }

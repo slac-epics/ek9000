@@ -57,18 +57,16 @@
 #define POLL_DURATION 0.05
 #define TIMEOUT_COUNT 50
 
-//#define epicsPrintf epicsPrintf
-#define print_error epicsPrintf
-
 /* Forward decls */
 class CEK9000Device;
 class CDeviceMgr;
 
 /* Globals */
 CDeviceMgr *g_pDeviceMgr = 0;
+bool g_bDebug = false;
 epicsThreadId g_PollThread = 0;
 epicsMutexId g_ThreadMutex = 0;
-int g_nPollDelay = 1000;
+int g_nPollDelay = 250;
 
 //==========================================================//
 // Utils
@@ -86,24 +84,68 @@ void PollThreadFunc(void* param)
 {
 	while(true)
 	{
-		int status = epicsMutexLock(g_ThreadMutex);
-		if(status)
-			continue;
 		for(CEK9000Device* elem = g_pDeviceMgr->FirstDevice(); elem; elem = g_pDeviceMgr->NextDevice())
 		{
 			if(elem)
 			{
-				status = (elem)->Lock();
+				int status = elem->Lock();
+				/* check connection */
+				bool connected = elem->VerifyConnection();
+				if(!connected && elem->m_bConnected)
+				{
+					Warning("%s: Link status changed to DISCONNECTED\n", elem->m_pName);
+					elem->m_bConnected = false;
+				}
+				if(connected && !elem->m_bConnected)
+				{
+					Warning("%s: Link status changed to CONNECTED\n", elem->m_pName);
+					elem->m_bConnected = true;
+				}
 				if(status)
 					continue;
 				uint16_t buf = 0;
-				(elem)->doEK9000IO(0, 1, 1, &buf);
-				(elem)->Unlock();
+				elem->doEK9000IO(0, 1, 1, &buf);
+				elem->Unlock();
 			}
 		}
-		epicsThreadSleep(g_nPollDelay);
-		epicsMutexUnlock(g_ThreadMutex);
+		epicsThreadSleep(g_nPollDelay/1000.0f);
 	}
+}
+
+void Info(const char* fmt, ...)
+{
+	time_t clk = time(0);
+	tm _tm;
+	epicsTime_localtime(&clk, &_tm);
+	epicsPrintf("%i:%i ", _tm.tm_hour, _tm.tm_min);
+	va_list list;
+	va_start(list, fmt);
+	epicsVprintf(fmt, list);
+	va_end(list);
+}
+
+void Warning(const char* fmt, ...)
+{
+	time_t clk = time(0);
+	tm _tm;
+	epicsTime_localtime(&clk, &_tm);
+	epicsPrintf("%i/%i/%i %i:%i:%i [WARN] ", _tm.tm_mday, _tm.tm_mon, _tm.tm_year, _tm.tm_hour, _tm.tm_min, _tm.tm_sec);
+	va_list list;
+	va_start(list, fmt);
+	epicsVprintf(fmt, list);
+	va_end(list);
+}
+
+void Error(const char* fmt, ...)
+{
+	time_t clk = time(0);
+	tm _tm;
+	epicsTime_localtime(&clk, &_tm);
+	epicsPrintf("%i/%i/%i %i:%i:%i [ERROR] ", _tm.tm_mday, _tm.tm_mon, _tm.tm_year, _tm.tm_hour, _tm.tm_min, _tm.tm_sec);
+	va_list list;
+	va_start(list, fmt);
+	epicsVprintf(fmt, list);
+	va_end(list);
 }
 
 //==========================================================//
@@ -288,7 +330,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 
 	if (status)
 	{
-		dbgprintf("Unable to configure IP port.");
+		Error("CEK9000Device::Create(): Unable to configure drvAsynIPPort.");
 		return NULL;
 	}
 
@@ -296,7 +338,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 
 	if (status)
 	{
-		dbgprintf("Unable to configure modbus driver.");
+		Error("CEK9000Device::Create(): Unable to configure modbus driver.");
 		return NULL;
 	}
 
@@ -310,7 +352,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 
 	if (!conn)
 	{
-		dbgprintf("Error while connecting to device %s.", name);
+		Error("CEK9000Device::Create(): Error while connecting to device %s.", name);
 		return NULL;
 	}
 
@@ -339,6 +381,100 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 	}
 	return EK_EERR;
 }
+
+/* Finds PDO sizes for the specified terminal */
+int CEK9000Device::FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int& rxpdo)
+{
+	if(termtype >= 3000 && termtype < 5000 || 1)
+	{
+		/* Find TxPdo */
+		uint16_t buf = 0;
+		uint16_t index = 0, subindex = 0;
+		uint16_t buf32[2] = {0,0};
+		txpdo = 0;
+		rxpdo = 0;
+		/* Read the subindex of the mapping entry */
+		int status = doCoEIO(0, termindex, 0x1c13, 1, &buf, 0);
+		if(status)
+			return EK_EADSERR;
+		if(buf == 0)
+		{
+			txpdo = 0;
+			goto rxpdo;
+		}
+		/* Read 0x1c13:buf, aka the index of the txpdo mapping object */
+		status = doCoEIO(0, termindex, 0x1c13, 1, &index, buf);
+		if(status)
+			return EK_EADSERR;
+		if(buf == 0)
+		{
+			txpdo = 0;
+			goto rxpdo;
+		}
+		/* Read index:0 into subindex, this will be the max number of inputs */
+		status = doCoEIO(0, termindex, index, 1, &subindex, 0);
+		if(status)
+			return EK_EADSERR;
+		if(subindex == 0)
+		{
+			txpdo = 0;
+			goto rxpdo;
+		}
+		/* Each entry in this list is going to be the index of the pdo and the size */
+		for(int i = 1; i <= subindex; i++)
+		{
+			doCoEIO(0, termindex, index, 2, buf32, i);
+			txpdo += (buf32[0] & 0xFF);
+		}
+		/* Finally grab the number of channels */
+		status = doCoEIO(0, termindex, 0xF000, 1, &buf, 2);
+		if(status)
+			return EK_EADSERR;
+		txpdo *= buf;
+
+	rxpdo:
+		/* Read the subindex of the mapping entry */
+		status = doCoEIO(0, termindex, 0x1c12, 1, &buf, 0);
+		if(status)
+			return EK_EADSERR;
+		if(buf == 0)
+		{
+			rxpdo = 0;
+			return EK_EOK;
+		}
+		/* Read 0x1c13:buf, aka the index of the txpdo mapping object */
+		status = doCoEIO(0, termindex, 0x1c12, 1, &index, buf);
+		if(status)
+			return EK_EADSERR;
+		if(buf == 0)
+		{
+			rxpdo = 0;
+			return EK_EOK;
+		}
+		/* Read index:0 into subindex, this will be the max number of inputs */
+		status = doCoEIO(0, termindex, index, 1, &subindex, 0);
+		if(status)
+			return EK_EADSERR;
+		if(subindex == 0)
+		{
+			rxpdo = 0;
+			return EK_EOK;
+		}
+		/* Each entry in this list is going to be the index of the pdo and the size */
+		for(int i = 1; i <= subindex; i++)
+		{
+			doCoEIO(0, termindex, index, 2, buf32, i);
+			rxpdo += (buf32[0] & 0xFF);
+		}
+		/* Finally grab the number of channels */
+		status = doCoEIO(0, termindex, 0xF000, 1, &buf, 2);
+		if(status)
+			return EK_EADSERR;
+		rxpdo *= buf;
+		return EK_EOK;
+	}
+}
+
 
 /* Verifies that terminals have the correct ID */
 /* Sets the process image size */
@@ -444,23 +580,7 @@ int CEK9000Device::CoEVerifyConnection(uint16_t termid)
 	return 1;
 }
 
-void CEK9000Device::ReportError(int errcode, const char* _msg)
-{
-	const char* msg = this->ErrorToString(errcode);
-	const char* __msg = "";
-	if(_msg)
-		__msg = _msg;
-	if(m_bDebug)
-	{
-		time_t time;
-		tm _tm;
-		epicsTime_localtime(&time, &_tm);
-		epicsPrintf("%i/%i/%i %i:%i:%i CEK9000Device: %s: Error Ocurred: error=%x message=%s\n",
-			_tm.tm_year, _tm.tm_mon, _tm.tm_mday, _tm.tm_hour, _tm.tm_min, _tm.tm_sec, __msg,
-			errcode, msg);
-	}
-}
-
+/* 1 for write and 0 for read */
 int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex)
 {
 	/* write */
@@ -503,11 +623,15 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 				term,	 	/* 0x1401 = term id */
 				index,		/* 0x1402 = obj */
 				subindex, 	/* 0x1403 = subindex */
-				0,		  	/* 0x1404 = len = 0 */
+				0,	  		/* 0x1404 = len = 0 */
+				0,
+				0,
+				0,
+				0,
 			};
 
 		/* tell it what to do */
-		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, 5);
+		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, 9);
 
 		/* poll */
 		if (this->Poll(POLL_DURATION, TIMEOUT_COUNT))
@@ -521,9 +645,9 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 			}
 			return EK_EERR;
 		}
-
+		epicsThreadSleep(0.05);
 		/* read result */
-		this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1406, data, len);
+		int res = this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1406, data, len);
 		return EK_EOK;
 	}
 }
@@ -841,7 +965,7 @@ int CEK9000Device::Poll(float duration, int timeout)
 		timeout--;
 	} while ((dat | 0x200) == 0x200 && timeout > 0);
 
-	if (timeout == 0)
+	if (timeout <= 0)
 		return 1;
 	else
 		return 0;
@@ -861,35 +985,43 @@ const char *CEK9000Device::LastErrorString()
 
 const char *CEK9000Device::ErrorToString(int i)
 {
-	switch (i)
-	{
-	case EK_EOK:
-		return "No Error";
-	case EK_EBADIP:
-		return "Invalid IP format";
-	case EK_EBADPARAM:
+	if(i == EK_EADSERR)
+		return "ADS Error";
+	else if(i == EK_EBADIP)
+		return "Malformed IP address";
+	else if(i == EK_EBADMUTEX)
+		return "Invalid mutex";
+	else if(i == EK_EBADPARAM)
 		return "Invalid parameter";
-	case EK_EBADPORT:
-		return "Invalid port number";
-	case EK_EBADPTR:
+	else if(i == EK_EBADPORT)
+		return "Invalid port";
+	else if(i == EK_EBADPTR)
 		return "Invalid pointer";
-	case EK_EBADTERM:
-		return "Invalid terminal";
-	case EK_EBADTYP:
-		return "Invalid terminal type";
-	case EK_EERR:
+	else if(i == EK_EBADTERM)
+		return "Invalid terminal or slave";
+	else if(i == EK_EBADTERMID)
+		return "Invalid terminal id";
+	else if(i == EK_EBADTYP)
+		return "Invalid type";
+	else if(i == EK_EERR)
 		return "Unspecified error";
-	case EK_ENOCONN:
-		return "Bad connection";
-	case EK_ENODEV:
+	else if(i == EK_EMODBUSERR)
+		return "Modbus driver error";
+	else if(i == EK_EMUTEXTIMEOUT)
+		return "Mutex operation timeout";
+	else if(i == EK_ENOCONN)
+		return "No connection";
+	else if(i == EK_ENODEV)
 		return "Invalid device";
-	case EK_ENOENT:
-		return "No directory entry";
-	case EK_EWTCHDG:
+	else if(i == EK_ENOENT)
+		return "No entry";
+	else if(i == EK_EOK)
+		return "No error";
+	else if(i == EK_ETERMIDMIS)
+		return "Terminal id mismatch";
+	else if(i == EK_EWTCHDG)
 		return "Watchdog error";
-	default:
-		return "Invalid error code";
-	}
+	return "Invalid error code";
 }
 
 //==========================================================//
@@ -1175,11 +1307,9 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 	
 	if (status)
 	{
-		dbgprintf("Failed to create terminal.");
+		Error("ek9000ConfigureTerminal(): Failed to create terminal.");
 		return;
 	}
-
-	epicsPrintf("Created terminal \"%s\"\n", name);
 }
 
 void ek9000SetOption(const iocshArgBuf *args)
@@ -1203,7 +1333,11 @@ void ek9000SetOption(const iocshArgBuf *args)
 		return;
 	}
 
-	dev->SetOption(term, opt, val);
+	if(dev->SetOption(term, opt, val))
+	{
+		epicsPrintf("Invalid option!\n");
+		return;
+	}
 }
 
 void ek9000Stat(const iocshArgBuf *args)
@@ -1224,7 +1358,7 @@ void ek9000Stat(const iocshArgBuf *args)
 
 	if(dev->Lock())
 	{
-		dev->ReportError(EK_EMUTEXTIMEOUT, "ek9000Stat");
+		Error("ek9000Stat(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
 
@@ -1279,36 +1413,14 @@ void ek9000Stat(const iocshArgBuf *args)
 
 void ek9000EnableDebug(const iocshArgBuf* args)
 {
-	const char* ek9k = args[0].sval;
-	if(!ek9k)
-	{
-		epicsPrintf("Invalid parameter!\n");
-		return;
-	}
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
-	if(!dev)
-	{
-		epicsPrintf("No device by name: %s\n", ek9k);
-		return;
-	}
-	dev->EnableDebug(true);
+	g_bDebug = true;
+	epicsPrintf("Debug enabled.\n");
 }
 
 void ek9000DisableDebug(const iocshArgBuf* args)
 {
-	const char* ek9k = args[0].sval;
-	if(!ek9k)
-	{
-		epicsPrintf("Invalid parameter!\n");
-		return;
-	}
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
-	if(!dev)
-	{
-		epicsPrintf("No device by name: %s\n", ek9k);
-		return;
-	}
-	dev->EnableDebug(false);
+	g_bDebug = false;
+	epicsPrintf("Debug disabled.\n");
 }
 
 void ek9000List(const iocshArgBuf* args)
@@ -1320,8 +1432,51 @@ void ek9000List(const iocshArgBuf* args)
 	}
 }
 
+void ek9000PDOTest(const iocshArgBuf* args)
+{
+	const char* ek = args[0].sval;
+	if(!ek)
+		return;
+
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek);
+
+	dev->Lock();
+
+	for(int b = 0; b < 100; b++)
+	{
+	for(int i = 4; i <= dev->m_nTerms; i++)
+	{
+		uint16_t buf;
+		dev->doCoEIO(0, i, 0x1000, 1, &buf, 0);
+		//printf("Buf: %u\n", buf);
+		if(buf != 5001)
+			printf("ERROR.\n");
+	}
+	}
+
+	for(int i = 1; i <= dev->m_nTerms; i++)
+	{
+		printf("Term %u\n", i);
+		int txpdo, rxpdo;
+		int stat = dev->FindPdoSize(dev->m_pTerms[i].m_nTerminalID, i, txpdo, rxpdo);
+		if(stat)
+			printf("Error\n");
+		printf("TxPdo: %u bits\n", txpdo);
+	}
+	
+	dev->Unlock();
+}
+
 int ek9000RegisterFunctions()
 {
+	/* ek9000PDOTest(name) */
+	{
+		static const iocshArg arg1 = {"EK9k", iocshArgString};
+		static const iocshArg *const args[] = {&arg1};
+		static const iocshFuncDef func = {"ek9000PDOTest", 1, args};
+		iocshRegister(&func, ek9000PDOTest);
+	}
+
 	/* ek9000Configure(name, ip, termcount) */
 	{
 		static const iocshArg arg1 = {"Name", iocshArgString};
@@ -1356,9 +1511,7 @@ int ek9000RegisterFunctions()
 
 	/* ek9000Stat */
 	{
-		static const iocshArg arg1 = {"EK9k", iocshArgString};
-		static const iocshArg *const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000Stat", 1, args};
+		static const iocshFuncDef func = {"ek9000Stat", 0, NULL};
 		iocshRegister(&func, ek9000Stat);
 	}
 

@@ -72,11 +72,15 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	aoRecord* pRecord = (aoRecord*)record;
 	SEL40XXSupportData* dpvt = (SEL40XXSupportData*)pRecord->dpvt;
 	free(callback);
-	
+
+	/* Check for invalid */
+	if(!dpvt->m_pTerminal)
+		return;
+
 	/* Verify connection */
 	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
 	{
-		dbgprintf("Device not connected");
+		DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		pRecord->pact = 0;
 		return;
 	}
@@ -100,14 +104,14 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	{
 		if(status > 0x100)
 		{
-			dpvt->m_pDevice->ReportError(EK_EMODBUSERR);
+			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
 		else
 		{
-			dpvt->m_pDevice->ReportError(status);
-			return;
+			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		}
+		return;
 	}
 }
 
@@ -134,7 +138,7 @@ static long EL40XX_init_record(void* record)
 	/* Verify terminal */
 	if(!dpvt->m_pTerminal)
 	{
-		dbgprintf("Unable to create terminal %s.", pRecord->name);
+		Error("EL40XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(out);
@@ -145,7 +149,7 @@ static long EL40XX_init_record(void* record)
 	/* Verify it's error free */
 	if(status)
 	{
-		dpvt->m_pDevice->ReportError(EK_EMUTEXTIMEOUT, "EL40XX_init_record");
+		Error("EL40XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		return 1;
 	}
 
@@ -157,14 +161,9 @@ static long EL40XX_init_record(void* record)
 	dpvt->m_pDevice->Unlock();
 
 	/* Verify terminal ID */
-	if(termid == 0)
+	if(termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
 	{
-		dpvt->m_pDevice->ReportError(EK_EBADTERM, "EL40XX_init_record");
-		return 1;
-	}
-	if(termid != dpvt->m_pTerminal->m_nTerminalID)
-	{
-		dpvt->m_pDevice->ReportError(EK_ETERMIDMIS, "EL40XX_init_record");
+		Error("EL40XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 		
