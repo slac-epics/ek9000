@@ -1,5 +1,5 @@
 #
-# EL3052 template.
+# EL3022 template.
 #
 
 record(ai,"$(TERMINAL):1")
