@@ -1,4 +1,4 @@
-#!../../../../bin/linux-x86/ek9000Test
+#!../../../../bin/linux-x86_64/ek9000Test
 
 < envPaths
 dbLoadDatabase("../../../../dbd/ek9000Test.dbd")
@@ -9,21 +9,22 @@ cd "${TOP}"
 dbLoadDatabase "dbd/ek9000Test.dbd"
 ek9000Test_registerRecordDeviceDriver pdbbase
 
+# My testing rail looks like this:
+# slave #      1         2         3        4
+# ek9000 -> el2008 -> el1004 -> el2008 -> el3064 -> end of the rail
+
 # Configure the device
-ek9000Configure("EK9K1", "192.168.1.3", 502, 7)
-ek9000ConfigureTerminal("EK9K1", "TestTerm1-BI", "EL1004", 1)
-ek9000ConfigureTerminal("EK9K1", "TestTerm2-AI", "EL3064", 2)
-ek9000ConfigureTerminal("EK9K1", "TestTerm3-BO", "EL2008", 3)
-ek9000ConfigureTerminal("EK9K1", "TestTerm4-AI", "EL3054", 4)
-ek9000ConfigureTerminal("EK9K1", "TestTerm5-BO", "EL2008", 5)
-ek9000EnableDebug("EK9K1")
+# ek9000Configure takes 4 parameters: your *unique* device name, the IP of the device, the port number and the number of slaves you wish to access
+ek9000Configure("EK9K1", "192.168.1.3", 502, 4)
+# ek9000ConfigureTerminal takes 4 parameters: the name of the device which it's attached to, the record base name, the device type string, and the position on the rail.
+ek9000ConfigureTerminal("EK9K1", "TestTerm1", "EL2008", 1)
+ek9000ConfigureTerminal("EK9K1", "TestTerm2", "EL1004", 2)
+ek9000ConfigureTerminal("EK9K1", "TestTerm3", "EL2008", 3)
+ek9000ConfigureTerminal("EK9K1", "TestTerm4", "EL3064", 4)
 
 cd "${TOP}/src/ek9000/iocBoot/${IOC}"
 
-#dbLoadTemplate("EL4004.substitutions")
-dbLoadTemplate("EL2008.substitutions")
-dbLoadTemplate("EL3064.substitutions")
-dbLoadTemplate("EL3054.substitutions")
+# Load our example subs file 
+dbLoadTemplate("example1.substitutions")
 
-iocInit
 iocInit
