@@ -1,3 +1,12 @@
+/*
+ * This file is part of the EK9000 device support module. It is subject to 
+ * the license terms in the LICENSE.txt file found in the top-level directory 
+ * of this distribution and at: 
+ *    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+ * No part of the EK9000 device support module, including this file, may be 
+ * copied, modified, propagated, or distributed except according to the terms 
+ * contained in the LICENSE.txt file.
+*/
 //======================================================//
 // Name: devEL2XXX.cpp
 // Purpose: Device support for EL2xxx modules (digital out)
@@ -112,6 +121,19 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	}
 }
 
+static void EL20XX_ReadOutputs(void* precord)
+{
+	boRecord* pRecord = (boRecord*)precord;
+	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
+	if(!dpvt->m_pTerminal)
+		return;
+	uint16_t buf = 0;
+	/* Read from the device */
+	dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_COILS,
+			dpvt->m_pTerminal->m_nOutputStart + (dpvt->m_nChannel * 2), &buf, 1);
+	pRecord->rval = buf;
+}
+
 static long EL20XX_dev_report(int interest)
 {
 	return 0;
@@ -162,14 +184,17 @@ static long EL20XX_init_record(void* precord)
 	/* Read terminal ID */
 	uint16_t termid = 0;
 	dpvt->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
-	dpvt->m_pDevice->Unlock();
 
 	/* Verify terminal ID */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
 		Error("EL20XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		dpvt->m_pDevice->Unlock();
 		return 1;
 	}
+
+	dpvt->m_pDevice->Unlock();
+	//EL20XX_write_record(precord);
 	return 0;
 }
 

@@ -1,3 +1,12 @@
+/*
+ * This file is part of the EK9000 device support module. It is subject to 
+ * the license terms in the LICENSE.txt file found in the top-level directory 
+ * of this distribution and at: 
+ *    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+ * No part of the EK9000 device support module, including this file, may be 
+ * copied, modified, propagated, or distributed except according to the terms 
+ * contained in the LICENSE.txt file.
+*/
 //======================================================//
 // Name: devEL4XXX.cpp
 // Purpose: Device support for EL4xxx modules (analog out)
@@ -166,7 +175,7 @@ static long EL40XX_init_record(void* record)
 		Error("EL40XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
-		
+	//EL40XX_write_record(record);
 	return 0;
 }
 
@@ -191,3 +200,34 @@ static long EL40XX_linconv(void* precord, int after)
 	pRecord->roff = 0; /* NO offset is needed */
 	return 0;
 }
+
+/* EL41XX terminals have 16-bit precision instead */
+static long EL41XX_linconv(void* precord, int after)
+{
+	aoRecord* pRecord = (aoRecord*)precord;
+	/* No shift needed for the output */
+	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0xFFFF;
+	pRecord->roff = 0x0;
+	return 0;
+}
+
+struct
+{
+	long num;
+	DEVSUPFUN report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN ioint_info;
+	DEVSUPFUN write_record;
+	DEVSUPFUN linconv;
+} devEL41XX = {
+	6,
+	(DEVSUPFUN)EL40XX_dev_report,
+	(DEVSUPFUN)EL40XX_init,
+	(DEVSUPFUN)EL40XX_init_record,
+	NULL,
+	(DEVSUPFUN)EL40XX_write_record,
+	(DEVSUPFUN)EL41XX_linconv,
+};
+epicsExportAddress(dset, devEL41XX);
+
