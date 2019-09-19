@@ -6,7 +6,7 @@ If you don't know already, the EK9000 is a low-cost Modbus to EtherCAT coupler. 
 
 ## Building and Installing
 
-This device support module was built and tested with EPICS R3.14, but should function fine in EPICS 7 or any earlier versions of EPICS.
+This device support module was built and tested with EPICS R3.14, but should function fine in EPICS R3.15 or R7.
 
 This module depends on the EPICS modbus module (R3-0 or later) and subsequently requires the asyn driver.
 
