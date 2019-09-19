@@ -6,7 +6,7 @@ If you don't know already, the EK9000 is a low-cost Modbus to EtherCAT coupler. 
 
 ## Building and Installing
 
-This device support module was built and tested with EPICS R3.14, but should function fine in EPICS 7 or any earlier versions of EPICS.
+This device support module was built and tested with EPICS R3.14, but should function fine in EPICS R3.15 or R7.
 
 This module depends on the EPICS modbus module (R3-0 or later) and subsequently requires the asyn driver.
 
@@ -105,6 +105,7 @@ If you have an unsupported terminal, but want to use it on the same rail as othe
 * When placing an unsupported terminal on the same rail as other terminals to be accessed by an EPICS IOC, place it last on the rail.
 
 Here's a visual example of these rules:
+
 | Slave Number | Terminal Type | Accessible by EPICS IOC |
 |---|---|---|
 | 1 | EL3064 | Yes |
@@ -121,6 +122,7 @@ In the above example, slave 4, which is placed after the EL7047, will accidental
 Here's an example of how a rail and IOC might be set up.
 
 Lets assume the rail looks something like this:
+
 | Slave number | Terminal Type |
 |---|---|
 | 1 | EL3064 |
