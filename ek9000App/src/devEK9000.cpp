@@ -134,11 +134,12 @@ void Info(const char* fmt, ...)
 }
 
 void Warning(const char* fmt, ...)
-{
-	time_t clk = time(0);
-	tm _tm;
-	epicsTime_localtime(&clk, &_tm);
-	epicsPrintf("%i/%i/%i %i:%i:%i [WARN] ", _tm.tm_mday, _tm.tm_mon, _tm.tm_year, _tm.tm_hour, _tm.tm_min, _tm.tm_sec);
+{	
+	epicsTimeStamp stmp;
+	epicsTimeGetCurrent(&stmp);
+	char txt[40];
+	epicsTimeToStrftime(txt, 40, "%Y/%m/%d %H:%M:%S.%03f ", &stmp);
+	epicsPrintf("%s", txt);
 	va_list list;
 	va_start(list, fmt);
 	epicsVprintf(fmt, list);
@@ -147,10 +148,11 @@ void Warning(const char* fmt, ...)
 
 void Error(const char* fmt, ...)
 {
-	time_t clk = time(0);
-	tm _tm;
-	epicsTime_localtime(&clk, &_tm);
-	epicsPrintf("%i/%i/%i %i:%i:%i [ERROR] ", _tm.tm_mday, _tm.tm_mon, _tm.tm_year, _tm.tm_hour, _tm.tm_min, _tm.tm_sec);
+	epicsTimeStamp stmp;
+	epicsTimeGetCurrent(&stmp);
+	char txt[40];
+	epicsTimeToStrftime(txt, 40, "%Y/%m/%d %H:%M:%S.%03f ", &stmp);
+	epicsPrintf("%s", txt);
 	va_list list;
 	va_start(list, fmt);
 	epicsVprintf(fmt, list);
