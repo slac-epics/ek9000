@@ -5,7 +5,8 @@ Because it uses modbus, it's runnable on any IOC without needing a kernel module
 
 ## Dependencies
 
-This module depends on Mark River's modbus device support module/driver. You can grab that from here and make sure to grab it's dependencies too.
+* [modbus](https://github.com/epics-modules/modbus) R3-0 or later
+* [asyn](https://github.com/epics-modules/asyn) (R4-36 is recommended for modbus R3-0, but earlier versions may work)
 
 ## Building
 
