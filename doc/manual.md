@@ -105,6 +105,7 @@ If you have an unsupported terminal, but want to use it on the same rail as othe
 * When placing an unsupported terminal on the same rail as other terminals to be accessed by an EPICS IOC, place it last on the rail.
 
 Here's a visual example of these rules:
+
 | Slave Number | Terminal Type | Accessible by EPICS IOC |
 |---|---|---|
 | 1 | EL3064 | Yes |
@@ -121,6 +122,7 @@ In the above example, slave 4, which is placed after the EL7047, will accidental
 Here's an example of how a rail and IOC might be set up.
 
 Lets assume the rail looks something like this:
+
 | Slave number | Terminal Type |
 |---|---|
 | 1 | EL3064 |
