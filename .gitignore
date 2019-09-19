@@ -1,5 +1,5 @@
 # Ignore certain bad files
-#.vscode/
+.vscode/
 .vscode/ipch
 bin/
 lib/
