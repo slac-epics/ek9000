@@ -112,8 +112,8 @@ void PollThreadFunc(void* param)
 				}
 				if(status)
 					continue;
-				uint16_t buf = 0;
-				elem->doEK9000IO(0, 1, 1, &buf);
+				uint16_t buf = 1;
+				elem->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1121, &buf, 1);
 				elem->Unlock();
 			}
 		}
@@ -370,8 +370,8 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 	pek->m_pDriver = new drvModbusAsyn(pek->m_pName, pek->m_pPortName,
 									   0, 2, -1, 256, dataTypeUInt16, 150, "");
 
-	/* Disable wdt for now */
-	uint16_t buf = 2;
+	/* wdt =  */
+	uint16_t buf = 1;
 	pek->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
 
 	g_pDeviceMgr->Add(pek);
