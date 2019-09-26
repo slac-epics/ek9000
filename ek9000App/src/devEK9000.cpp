@@ -393,6 +393,16 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 	return EK_EERR;
 }
 
+int CEK9000Device::Lock()
+{
+	return this->m_pDriver->lock();
+}
+
+void CEK9000Device::Unlock()
+{
+	this->m_pDriver->unlock();
+}
+
 /* Finds PDO sizes for the specified terminal */
 int CEK9000Device::FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int& rxpdo)
 {
