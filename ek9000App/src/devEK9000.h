@@ -531,9 +531,9 @@ public:
 	int InitTerminals();
 
 	/* Grab mutex */
-	inline int Lock() { return epicsMutexLock(m_Mutex); };
+	int Lock();
 	/* Unlock it */
-	inline void Unlock() { return epicsMutexUnlock(m_Mutex); };
+	void Unlock();
 
 public:
 	/* Error handling functions */
