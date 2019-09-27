@@ -403,100 +403,6 @@ void CEK9000Device::Unlock()
 	this->m_pDriver->unlock();
 }
 
-/* Finds PDO sizes for the specified terminal */
-int CEK9000Device::FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int& rxpdo)
-{
-	if(termtype >= 3000 && termtype < 5000 || 1)
-	{
-		/* Find TxPdo */
-		uint16_t buf = 0;
-		uint16_t index = 0, subindex = 0;
-		uint16_t buf32[2] = {0,0};
-		txpdo = 0;
-		rxpdo = 0;
-		/* Read the subindex of the mapping entry */
-		int status = doCoEIO(0, termindex, 0x1c13, 1, &buf, 0);
-		if(status)
-			return EK_EADSERR;
-		if(buf == 0)
-		{
-			txpdo = 0;
-			goto rxpdo;
-		}
-		/* Read 0x1c13:buf, aka the index of the txpdo mapping object */
-		status = doCoEIO(0, termindex, 0x1c13, 1, &index, buf);
-		if(status)
-			return EK_EADSERR;
-		if(buf == 0)
-		{
-			txpdo = 0;
-			goto rxpdo;
-		}
-		/* Read index:0 into subindex, this will be the max number of inputs */
-		status = doCoEIO(0, termindex, index, 1, &subindex, 0);
-		if(status)
-			return EK_EADSERR;
-		if(subindex == 0)
-		{
-			txpdo = 0;
-			goto rxpdo;
-		}
-		/* Each entry in this list is going to be the index of the pdo and the size */
-		for(int i = 1; i <= subindex; i++)
-		{
-			doCoEIO(0, termindex, index, 2, buf32, i);
-			txpdo += (buf32[0] & 0xFF);
-		}
-		/* Finally grab the number of channels */
-		status = doCoEIO(0, termindex, 0xF000, 1, &buf, 2);
-		if(status)
-			return EK_EADSERR;
-		txpdo *= buf;
-
-	rxpdo:
-		/* Read the subindex of the mapping entry */
-		status = doCoEIO(0, termindex, 0x1c12, 1, &buf, 0);
-		if(status)
-			return EK_EADSERR;
-		if(buf == 0)
-		{
-			rxpdo = 0;
-			return EK_EOK;
-		}
-		/* Read 0x1c13:buf, aka the index of the txpdo mapping object */
-		status = doCoEIO(0, termindex, 0x1c12, 1, &index, buf);
-		if(status)
-			return EK_EADSERR;
-		if(buf == 0)
-		{
-			rxpdo = 0;
-			return EK_EOK;
-		}
-		/* Read index:0 into subindex, this will be the max number of inputs */
-		status = doCoEIO(0, termindex, index, 1, &subindex, 0);
-		if(status)
-			return EK_EADSERR;
-		if(subindex == 0)
-		{
-			rxpdo = 0;
-			return EK_EOK;
-		}
-		/* Each entry in this list is going to be the index of the pdo and the size */
-		for(int i = 1; i <= subindex; i++)
-		{
-			doCoEIO(0, termindex, index, 2, buf32, i);
-			rxpdo += (buf32[0] & 0xFF);
-		}
-		/* Finally grab the number of channels */
-		status = doCoEIO(0, termindex, 0xF000, 1, &buf, 2);
-		if(status)
-			return EK_EADSERR;
-		rxpdo *= buf;
-		return EK_EOK;
-	}
-}
-
-
 /* Verifies that terminals have the correct ID */
 /* Sets the process image size */
 int CEK9000Device::InitTerminal(int term)
@@ -926,56 +832,6 @@ int CEK9000Device::ReadTerminalID(uint16_t termid, uint16_t &out)
 	return EK_EOK;
 }
 
-int CEK9000Device::SetOption(int term, const char *opt, const char *val)
-{
-	if (!opt && !val)
-		return EK_EBADPARAM;
-	if (term < 0 || term > this->m_nTerms)
-		return EK_EBADTERM;
-
-	int stat = this->Lock();
-	if(stat)
-		return EK_EMUTEXTIMEOUT;
-	stat = EK_EBADPARAM;
-
-	if (strcmp(opt, "WatchdogTimer") == 0)
-	{
-		int i = atoi(val);
-		if (i >= 0 && i <= 1000)
-			stat = this->WriteWatchdogTime((uint16_t)i);
-		else
-			return EK_EBADPARAM;
-	}
-	else if (strcmp(opt, "WatchdogType") == 0)
-	{
-		int i = atoi(val);
-		if (i >= 0 && i <= 2)
-			stat =  this->WriteWatchdogType(i);
-	}
-	else if (strcmp(opt, "FallbackMode") == 0)
-	{
-		int i = atoi(val);
-		if (i >= 0 && i <= 2)
-			stat = this->WriteFallbackMode(i);
-	}
-	else if (strcmp(opt, "WriteLock") == 0)
-	{
-		int i = atoi(val);
-		if (i >= 0 && i <= 1)
-			stat = this->WriteWritelockMode(i);
-	}
-	else if(strcmp(opt, "PollTime") == 0)
-	{
-		int i = atoi(val);
-		if (i >= 10 && i < 10000)
-		{
-			stat = EK_EOK;
-			g_nPollDelay = i;
-		}
-	}
-	return EK_EOK;
-}
-
 int CEK9000Device::Poll(float duration, int timeout)
 {
 	ushort dat = 0;
@@ -1333,34 +1189,6 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 	}
 }
 
-void ek9000SetOption(const iocshArgBuf *args)
-{
-	const char *ek9k = args[0].sval;
-	int term = args[1].ival;
-	const char *opt = args[2].sval;
-	const char *val = args[3].sval;
-
-	if (!opt || !val || !ek9k)
-	{
-		epicsPrintf("Unable to set option: Invalid parameter passed.\n");
-		return;
-	}
-
-	CEK9000Device *dev = g_pDeviceMgr->FindDevice(ek9k);
-
-	if (!dev)
-	{
-		epicsPrintf("Invalid device.\n");
-		return;
-	}
-
-	if(dev->SetOption(term, opt, val))
-	{
-		epicsPrintf("Invalid option!\n");
-		return;
-	}
-}
-
 void ek9000Stat(const iocshArgBuf *args)
 {
 	const char *ek9k = args[0].sval;
@@ -1453,51 +1281,78 @@ void ek9000List(const iocshArgBuf* args)
 	}
 }
 
-void ek9000PDOTest(const iocshArgBuf* args)
+void ek9000SetWatchdogTime(const iocshArgBuf* args)
 {
-	const char* ek = args[0].sval;
-	if(!ek)
+	const char* ek9k = args[0].sval;
+	int time = args[1].ival;
+	if(!ek9k)
 		return;
+	if(time < 0 || time > 60000)
+		return;
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	if(!dev)
+		return;
+	dev->WriteWatchdogTime((uint16_t)time);
+}
 
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek);
-
-	dev->Lock();
-
-	for(int b = 0; b < 100; b++)
+void ek9000SetWatchdogType(const iocshArgBuf* args)
+{
+	const char* ek9k = args[0].sval;
+	int type = args[1].ival;
+	if(!ek9k)
+		return;
+	if(type < 0 || type > 2)
 	{
-	for(int i = 4; i <= dev->m_nTerms; i++)
-	{
-		uint16_t buf;
-		dev->doCoEIO(0, i, 0x1000, 1, &buf, 0);
-		//printf("Buf: %u\n", buf);
-		if(buf != 5001)
-			printf("ERROR.\n");
+		epicsPrintf("2 = disable watchdog\n");
+		epicsPrintf("1 = enable on telegram\n");
+		epicsPrintf("0 = enable on write\n");
+		return;
 	}
-	}
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	if(!dev) return;
+	dev->WriteWatchdogType(type);
+}
 
-	for(int i = 1; i <= dev->m_nTerms; i++)
-	{
-		printf("Term %u\n", i);
-		int txpdo, rxpdo;
-		int stat = dev->FindPdoSize(dev->m_pTerms[i].m_nTerminalID, i, txpdo, rxpdo);
-		if(stat)
-			printf("Error\n");
-		printf("TxPdo: %u bits\n", txpdo);
-	}
-	
-	dev->Unlock();
+void ek9000SetPollTime(const iocshArgBuf* args)
+{
+	const char* ek9k = args[0].sval;
+	int time = args[1].ival;
+	if(!ek9k) return;
+	if(time < 10 || time > 1000) return;
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	if(!dev) return;
+	g_nPollDelay = time;
 }
 
 int ek9000RegisterFunctions()
 {
-	/* ek9000PDOTest(name) */
+	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
-		static const iocshArg arg1 = {"EK9k", iocshArgString};
-		static const iocshArg *const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000PDOTest", 1, args};
-		iocshRegister(&func, ek9000PDOTest);
+		static const iocshArg arg1 = {"Name", iocshArgString};
+		static const iocshArg arg2 = {"Time", iocshArgInt};
+		static const iocshArg* const args[] = {&arg1, &arg2};
+		static const iocshFuncDef func = {"ek9000SetWatchdogTime", 2, args};
+		iocshRegister(&func, ek9000SetWatchdogTime);
 	}
 
+	/* ek9000SetWatchdogType(ek9k, type[int]) */
+	{
+		static const iocshArg arg1 = {"Name", iocshArgString};
+		static const iocshArg arg2 = {"Type", iocshArgInt};
+		static const iocshArg* const args[] = {&arg1, &arg2};
+		static const iocshFuncDef func = {"ek9000SetWatchdogType", 2, args};
+		iocshRegister(&func, ek9000SetWatchdogType);
+	}
+	
+	/* ek9000SetPollTime(ek9k, type[int]) */
+	{
+		static const iocshArg arg1 = {"Name", iocshArgString};
+		static const iocshArg arg2 = {"Type", iocshArgInt};
+		static const iocshArg* const args[] = {&arg1, &arg2};
+		static const iocshFuncDef func = {"ek9000SetPollTime", 2, args};
+		iocshRegister(&func, ek9000SetPollTime);
+	}
+	
 	/* ek9000Configure(name, ip, termcount) */
 	{
 		static const iocshArg arg1 = {"Name", iocshArgString};
@@ -1518,16 +1373,6 @@ int ek9000RegisterFunctions()
 		static const iocshArg *const args[] = {&arg1, &arg2, &arg3, &arg4};
 		static const iocshFuncDef func = {"ek9000ConfigureTerminal", 4, args};
 		iocshRegister(&func, ek9000ConfigureTerminal);
-	}
-
-	/* ek9000SetOption(ek9000, opt, value) */
-	{
-		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
-		static const iocshArg arg2 = {"Option", iocshArgString};
-		static const iocshArg arg3 = {"Value", iocshArgString};
-		static const iocshArg *const args[] = {&arg1, &arg2, &arg3};
-		static const iocshFuncDef func = {"ek9000SetOption", 3, args};
-		iocshRegister(&func, ek9000SetOption);
 	}
 
 	/* ek9000Stat */
