@@ -22,7 +22,7 @@
  * Below is a list of fields that are used for each Pdo type:
  *
  *
- */ 
+ */
 
 /* EPICS includes */
 #include <epicsExport.h>
@@ -47,6 +47,8 @@
 #include <motorRecord.h>
 #include <motordrvCom.h>
 #include <motor_interface.h>
+#include <asynMotorAxis.h>
+#include <asynMotorController.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -81,15 +83,15 @@ struct SVelocityControl_Input
 	uint32_t enc_lat_c_valid : 1;
 	uint32_t enc_ex_lat_valid : 1;
 	uint32_t enc_counter_done : 1;
-	uint32_t enc_counter_uf : 1; /* Underflow */
-	uint32_t enc_counter_of : 1; /* overflow */
-	uint32_t _r1 : 2; /* Just to align data to byte boundaries */
+	uint32_t enc_counter_uf : 1;   /* Underflow */
+	uint32_t enc_counter_of : 1;   /* overflow */
+	uint32_t _r1 : 2;			   /* Just to align data to byte boundaries */
 	uint32_t enc_extrap_stall : 1; /* Extrapolation stall */
-	uint32_t enc_stat_a : 1; /* status of input a */
+	uint32_t enc_stat_a : 1;	   /* status of input a */
 	uint32_t enc_stat_b : 1;
 	uint32_t enc_stat_c : 1;
-	uint32_t _r2 : 2; /* align */
-	uint32_t enc_ext_lat_stat : 1; /* external latch status */ 
+	uint32_t _r2 : 2;			   /* align */
+	uint32_t enc_ext_lat_stat : 1; /* external latch status */
 	uint32_t enc_sync_err : 1;
 	uint32_t _r3 : 1;
 	uint32_t enc_txpdo_toggle : 1;
@@ -103,8 +105,8 @@ struct SVelocityControl_Input
 	uint32_t stm_mov_pos : 1;
 	uint32_t stm_mov_neg : 1;
 	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1; /* Motor stall */
-	uint32_t _r4 : 3; /* Align */
+	uint32_t stm_stall : 1;		 /* Motor stall */
+	uint32_t _r4 : 3;			 /* Align */
 	uint32_t stm_sync_err : 1;
 	uint32_t _r5 : 1;
 	uint32_t stm_txpdo_toggle : 1;
@@ -122,7 +124,7 @@ struct SVelocityControlCompact_Output
 	uint32_t enc_enable_lat_epe : 1; /* extern latch on positive edge */
 	uint32_t enc_set_counter : 1;
 	uint32_t enc_enable_lat_ene : 1; /* extern on negative edge */
-	uint32_t _r1 : 12; /* Align */
+	uint32_t _r1 : 12;				 /* Align */
 	uint16_t enc_counter_val;
 	/* From Pdo at 0x1602 */
 	uint32_t stm_enable : 1;
@@ -141,15 +143,15 @@ struct SVelocityControlCompact_Input
 	uint32_t enc_lat_c_valid : 1;
 	uint32_t enc_ex_lat_valid : 1;
 	uint32_t enc_counter_done : 1;
-	uint32_t enc_counter_uf : 1; /* Underflow */
-	uint32_t enc_counter_of : 1; /* overflow */
-	uint32_t _r1 : 2; /* Just to align data to byte boundaries */
+	uint32_t enc_counter_uf : 1;   /* Underflow */
+	uint32_t enc_counter_of : 1;   /* overflow */
+	uint32_t _r1 : 2;			   /* Just to align data to byte boundaries */
 	uint32_t enc_extrap_stall : 1; /* Extrapolation stall */
-	uint32_t enc_stat_a : 1; /* status of input a */
+	uint32_t enc_stat_a : 1;	   /* status of input a */
 	uint32_t enc_stat_b : 1;
 	uint32_t enc_stat_c : 1;
-	uint32_t _r2 : 1; /* align */
-	uint32_t enc_sync_err : 1; /* external latch status */ 
+	uint32_t _r2 : 1;		   /* align */
+	uint32_t enc_sync_err : 1; /* external latch status */
 	uint32_t enc_stat_ex_lat : 1;
 	uint32_t _r3 : 1;
 	uint32_t enc_txpdo_toggle : 1;
@@ -163,15 +165,14 @@ struct SVelocityControlCompact_Input
 	uint32_t stm_mov_pos : 1;
 	uint32_t stm_mov_neg : 1;
 	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1; /* Motor stall */
-	uint32_t _r4 : 3; /* Align */
+	uint32_t stm_stall : 1;		 /* Motor stall */
+	uint32_t _r4 : 3;			 /* Align */
 	uint32_t stm_sync_err : 1;
 	uint32_t _r5 : 1;
 	uint32_t stm_txpdo_toggle : 1;
 	uint32_t _r6 : 1;
 	uint32_t stm_txpdo_toggle2 : 1;
 };
-
 
 /* For Velocity control w/ info data */
 /* RxPDOs: 0x1600 0x1602 0x1604
@@ -183,7 +184,7 @@ struct SVelocityControlCompactEx_Output
 	uint32_t enc_enable_lat_epe : 1; /* extern latch on positive edge */
 	uint32_t enc_set_counter : 1;
 	uint32_t enc_enable_lat_ene : 1; /* extern on negative edge */
-	uint32_t _r1 : 12; /* Align */
+	uint32_t _r1 : 12;				 /* Align */
 	uint16_t enc_counter_val;
 	/* Pdo at 0x1602 */
 	uint32_t stm_enable : 1;
@@ -202,15 +203,15 @@ struct SVelocityControlCompactEx_Input
 	uint32_t enc_lat_c_valid : 1;
 	uint32_t enc_ex_lat_valid : 1;
 	uint32_t enc_counter_done : 1;
-	uint32_t enc_counter_uf : 1; /* Underflow */
-	uint32_t enc_counter_of : 1; /* overflow */
-	uint32_t _r1 : 2; /* Just to align data to byte boundaries */
+	uint32_t enc_counter_uf : 1;   /* Underflow */
+	uint32_t enc_counter_of : 1;   /* overflow */
+	uint32_t _r1 : 2;			   /* Just to align data to byte boundaries */
 	uint32_t enc_extrap_stall : 1; /* Extrapolation stall */
-	uint32_t enc_stat_a : 1; /* status of input a */
+	uint32_t enc_stat_a : 1;	   /* status of input a */
 	uint32_t enc_stat_b : 1;
 	uint32_t enc_stat_c : 1;
-	uint32_t _r2 : 1; /* align */
-	uint32_t enc_sync_err : 1; /* external latch status */ 
+	uint32_t _r2 : 1;		   /* align */
+	uint32_t enc_sync_err : 1; /* external latch status */
 	uint32_t enc_stat_ex_lat : 1;
 	uint32_t _r3 : 1;
 	uint32_t enc_txpdo_toggle : 1;
@@ -224,8 +225,8 @@ struct SVelocityControlCompactEx_Input
 	uint32_t stm_mov_pos : 1;
 	uint32_t stm_mov_neg : 1;
 	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1; /* Motor stall */
-	uint32_t _r4 : 3; /* Align */
+	uint32_t stm_stall : 1;		 /* Motor stall */
+	uint32_t _r4 : 3;			 /* Align */
 	uint32_t stm_sync_err : 1;
 	uint32_t _r5 : 1;
 	uint32_t stm_txpdo_toggle : 1;
@@ -274,7 +275,7 @@ struct SPositionInterfaceCompact_Input
 	uint32_t stat_inp_c : 1;
 	uint32_t _r2 : 2;
 	uint32_t stat_ext_lat : 1;
-	uint32_t sync_err  :1;
+	uint32_t sync_err : 1;
 	uint32_t _r3 : 1;
 	uint32_t txpdo_toggle : 1;
 	uint32_t cntr_val;
@@ -287,8 +288,8 @@ struct SPositionInterfaceCompact_Input
 	uint32_t stm_mov_pos : 1;
 	uint32_t stm_mov_neg : 1;
 	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1; /* Motor stall */
-	uint32_t _r4 : 3; /* Align */
+	uint32_t stm_stall : 1;		 /* Motor stall */
+	uint32_t _r4 : 3;			 /* Align */
 	uint32_t stm_sync_err : 1;
 	uint32_t _r5 : 1;
 	uint32_t stm_txpdo_toggle : 1;
@@ -346,7 +347,7 @@ struct SPositionInterface_Input
 	uint32_t stat_inp_c : 1;
 	uint32_t _r2 : 2;
 	uint32_t stat_ext_lat : 1;
-	uint32_t sync_err  :1;
+	uint32_t sync_err : 1;
 	uint32_t _r3 : 1;
 	uint32_t txpdo_toggle : 1;
 	uint32_t cntr_val;
@@ -359,8 +360,8 @@ struct SPositionInterface_Input
 	uint32_t stm_mov_pos : 1;
 	uint32_t stm_mov_neg : 1;
 	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1; /* Motor stall */
-	uint32_t _r4 : 3; /* Align */
+	uint32_t stm_stall : 1;		 /* Motor stall */
+	uint32_t _r4 : 3;			 /* Align */
 	uint32_t stm_sync_err : 1;
 	uint32_t _r5 : 1;
 	uint32_t stm_txpdo_toggle : 1;
@@ -382,9 +383,9 @@ struct SPositionInterface_Input
 
 static long EL7047_dev_report(int after);
 static long EL7047_init(int after);
-static long EL7047_init_record(void* record);
+static long EL7047_init_record(void *record);
 static long EL7047_get_ioint_info(int cmd, struct dbCommon *precord, IOSCANPVT *ppvt);
-static long EL7047_write_record(void* record);
+static long EL7047_write_record(void *record);
 
 struct
 {
@@ -407,8 +408,8 @@ epicsExportAddress(dset, devEL70X7);
 
 typedef struct
 {
-	CTerminal* m_pTerminal;
-	CEK9000Device* m_pDevice;
+	CTerminal *m_pTerminal;
+	CEK9000Device *m_pDevice;
 	int m_nPdoType;
 } SEL70X7SupportData;
 
@@ -423,18 +424,18 @@ static long EL7047_init(int after)
 }
 
 /* Do initialization tasks here, such as finding the record and such */
-static long EL7047_init_record(void* record)
+static long EL7047_init_record(void *record)
 {
 
-	motorRecord* pRecord = (motorRecord*)record;
+	motorRecord *pRecord = (motorRecord *)record;
 	pRecord->dpvt = calloc(1, sizeof(SEL70X7SupportData));
-	SEL70X7SupportData* dpvt = (SEL70X7SupportData*)pRecord->dpvt;
+	SEL70X7SupportData *dpvt = (SEL70X7SupportData *)pRecord->dpvt;
 	/* Find terminal */
-	char* name = NULL;
+	char *name = NULL;
 	int tmp = 0;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, tmp, name);
 	/* Verify that its OK */
-	if(!dpvt->m_pTerminal)
+	if (!dpvt->m_pTerminal)
 	{
 		Error("EL70X7_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
@@ -444,7 +445,7 @@ static long EL7047_init_record(void* record)
 	dpvt->m_nPdoType = dpvt->m_pTerminal->m_nPdoID; /* Make sure to record pdo type */
 	/* Lock mutex */
 	int status = dpvt->m_pDevice->Lock();
-	if(status != epicsMutexLockOK)
+	if (status != epicsMutexLockOK)
 	{
 		Error("EL70X7_init_record(): %s\n", CEK9000Device::ErrorToString(status));
 		return 1;
@@ -454,11 +455,11 @@ static long EL7047_init_record(void* record)
 	dpvt->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
 	/* Unlock while we finish up */
 	dpvt->m_pDevice->Unlock();
-	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
+	if (termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
 		Error("EL70X7_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS),
-				pRecord->name,
-				termid);
+			  pRecord->name,
+			  termid);
 		return 1;
 	}
 	/* Finish up initialization of the motor record */
@@ -471,25 +472,37 @@ static long EL7047_get_ioint_info(int cmd, struct dbCommon *precord, IOSCANPVT *
 	return 0;
 }
 
-static long EL7047_write_record(void* record)
+static long EL7047_write_record(void *record)
 {
 	return 0;
 }
-
 
 /*
 
 The motor record requires a motor driver table
 
 */
-struct driver_table el70x7_access 
-{
+static int recv_mess(int, char *, int);
+static RTN_STATUS send_mess(int, const char *, const char *);
+static int set_status(int, int);
+static long report(int);
+static long init();
+static int motor_init();
+static void fillCmndInfo();
+static void query_done(int, int, struct mess_node *);
 
+struct driver_table el70x7_access
+{
+	motor_init,
+	motor_send,
+	motor_free,
+	motor_card_info,
+	motor_axis_info,
+	/* Finish */
 };
 
 static long drvEL70X7_report(int after);
 static long drvEl70X7_init(void);
-
 
 /*
 
@@ -499,8 +512,8 @@ For the EPICS driver support
 struct drvEL70X7_drvset
 {
 	long number;
-	long(*report)(int);
-	long(*init)(void);
+	long (*report)(int);
+	long (*init)(void);
 } drvEL70X7 = {
 	2,
 	drvEL70X7_report,
@@ -509,10 +522,18 @@ struct drvEL70X7_drvset
 
 static long drvEL70X7_report(int after)
 {
-
 }
 
 static long drvEl70X7_init(void)
 {
-
 }
+
+/*
+
+support for the el7047 and el7037 will be built using legacy 
+versions of the motor record device/driver support
+
+the device support is pretty simple and will just call down into the driver table
+
+
+*/
