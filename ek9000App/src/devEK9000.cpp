@@ -1108,6 +1108,16 @@ CEK9000Device *CDeviceMgr::FindDevice(const char *name) const
 	return NULL;
 }
 
+CEK9000Device* CDeviceMgr::FindDevice(int card) const
+{
+	for(CEK9000Device* dev = this->FirstDevice(); dev; dev = this->NextDevice())
+	{
+		if(dev->m_nCardNum == card)
+			return dev;
+	}
+	return NULL;
+}
+
 void CDeviceMgr::Add(CEK9000Device *dev)
 {
 	int status = epicsMutexLock(m_Mutex);

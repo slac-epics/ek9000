@@ -301,8 +301,6 @@ public:
 class CDeviceMgr
 {
 private:
-	//CSimpleList<CEK9000Device *> m_pDevices;
-
 	class Node
 	{
 	public:
@@ -344,6 +342,9 @@ public:
 
 	/* Find device by name */
 	CEK9000Device *FindDevice(const char *name) const;
+
+	/* Find device by card number */
+	CEK9000Device* FindDevice(int card) const;
 
 	/* Get first device */
 	CEK9000Device *FirstDevice() const;
@@ -394,6 +395,9 @@ public:
 	/* last device err */
 	int m_nError = EK_EOK;
 
+	/* The card number for the motor record */
+	int m_nCardNum = -1;
+
 public:
 	CEK9000Device();
 
@@ -412,7 +416,6 @@ public:
 
 	/* Remove a terminal */
 	int RemoveTerminal(const char* name);
-
 
 	/* Initializes a terminal (after it's been added). This should be called from the init_record routines */
 	int InitTerminal(int termindex);
@@ -444,6 +447,9 @@ public:
 	int FindRxPdoSize(int termtype, uint16_t termindex);
 
 	int FindTxPdoSize(int termtype, uint16_t termindex);
+
+public:
+	void AssignCardNum(int card) { this->m_nCardNum = card; }
 	
 public:
 	/* Utils for reading/writing */
