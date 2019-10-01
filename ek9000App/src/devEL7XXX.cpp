@@ -46,7 +46,9 @@
 #include <motor.h>
 #include <motorRecord.h>
 #include <motordrvCom.h>
+#include <motordevCom.h>
 #include <motor_interface.h>
+#include <motordrvComCode.h>
 #include <asynMotorAxis.h>
 #include <asynMotorController.h>
 
@@ -56,208 +58,30 @@
 
 #include "devEK9000.h"
 
-/* For Velocity control */
-/* RxPDOs: 0x1601 0x1602 0x1604
- * TxPDOs: 0x1A01 0x1A03 */
-/* Mapped to the holding regs, since this is an OUTPUT */
-struct SVelocityControl_Output
-{
-	/* From Pdo mapping ENC Control (Index 0x1601) */
-	uint8_t enc_enable_lat_c;
-	uint8_t enc_enable_lat_epe; /* extern on positive edge */
-	uint8_t enc_set_counter;
-	uint8_t enc_enable_lat_ene; /* extern on negative edge */
-	uint32_t enc_counter_val;
-	/* From Pdo mapping STM Control (Index 0x1602) */
-	uint8_t stm_enable;
-	uint8_t stm_reset;
-	uint8_t stm_reduce_torque;
-	uint8_t stm_digout1;
-	/* From pdo mapping STM Velocity */
-	uint16_t stm_velocity;
-};
-/* Inputs from the terminal for Velocity Control */
-struct SVelocityControl_Input
-{
-	/* From Pdo mapping ENC Status (Index 0x1A01) */
-	uint32_t enc_lat_c_valid : 1;
-	uint32_t enc_ex_lat_valid : 1;
-	uint32_t enc_counter_done : 1;
-	uint32_t enc_counter_uf : 1;   /* Underflow */
-	uint32_t enc_counter_of : 1;   /* overflow */
-	uint32_t _r1 : 2;			   /* Just to align data to byte boundaries */
-	uint32_t enc_extrap_stall : 1; /* Extrapolation stall */
-	uint32_t enc_stat_a : 1;	   /* status of input a */
-	uint32_t enc_stat_b : 1;
-	uint32_t enc_stat_c : 1;
-	uint32_t _r2 : 2;			   /* align */
-	uint32_t enc_ext_lat_stat : 1; /* external latch status */
-	uint32_t enc_sync_err : 1;
-	uint32_t _r3 : 1;
-	uint32_t enc_txpdo_toggle : 1;
-	uint32_t enc_counter_val;
-	uint32_t enc_latch_val;
-	/* From the Pdo mapping STM Status (Index 0x1A03) */
-	uint32_t stm_rdy_enable : 1; /* Ready to enable */
-	uint32_t stm_rdy : 1;
-	uint32_t stm_warn : 1;
-	uint32_t stm_err : 1;
-	uint32_t stm_mov_pos : 1;
-	uint32_t stm_mov_neg : 1;
-	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1;		 /* Motor stall */
-	uint32_t _r4 : 3;			 /* Align */
-	uint32_t stm_sync_err : 1;
-	uint32_t _r5 : 1;
-	uint32_t stm_txpdo_toggle : 1;
-	uint32_t _r6 : 1;
-	uint32_t stm_txpdo_toggle2 : 1;
-};
-
-/* For Velocity control compact */
-/* RxPDOs: 0x1600 0x1602 0x1604
- * TxPDOs: 0x1A00 0x1A03 */
-struct SVelocityControlCompact_Output
-{
-	/* From PDO at 0x1600 */
-	uint32_t enc_enable_lat_c : 1;
-	uint32_t enc_enable_lat_epe : 1; /* extern latch on positive edge */
-	uint32_t enc_set_counter : 1;
-	uint32_t enc_enable_lat_ene : 1; /* extern on negative edge */
-	uint32_t _r1 : 12;				 /* Align */
-	uint16_t enc_counter_val;
-	/* From Pdo at 0x1602 */
-	uint32_t stm_enable : 1;
-	uint32_t stm_reset : 1;
-	uint32_t stm_reduce_torque : 1;
-	uint32_t _r2 : 8; /* Align */
-	uint32_t stm_digout1 : 1;
-	uint32_t _r3 : 4; /* Align */
-	/* From PDO 0x1604 */
-	uint16_t stm_velocity;
-};
-
-struct SVelocityControlCompact_Input
-{
-	/* From PDO at 0x1A00 */
-	uint32_t enc_lat_c_valid : 1;
-	uint32_t enc_ex_lat_valid : 1;
-	uint32_t enc_counter_done : 1;
-	uint32_t enc_counter_uf : 1;   /* Underflow */
-	uint32_t enc_counter_of : 1;   /* overflow */
-	uint32_t _r1 : 2;			   /* Just to align data to byte boundaries */
-	uint32_t enc_extrap_stall : 1; /* Extrapolation stall */
-	uint32_t enc_stat_a : 1;	   /* status of input a */
-	uint32_t enc_stat_b : 1;
-	uint32_t enc_stat_c : 1;
-	uint32_t _r2 : 1;		   /* align */
-	uint32_t enc_sync_err : 1; /* external latch status */
-	uint32_t enc_stat_ex_lat : 1;
-	uint32_t _r3 : 1;
-	uint32_t enc_txpdo_toggle : 1;
-	uint16_t enc_counter_val;
-	uint16_t enc_latch_val;
-	/* From the Pdo mapping STM Status (Index 0x1A03) */
-	uint32_t stm_rdy_enable : 1; /* Ready to enable */
-	uint32_t stm_rdy : 1;
-	uint32_t stm_warn : 1;
-	uint32_t stm_err : 1;
-	uint32_t stm_mov_pos : 1;
-	uint32_t stm_mov_neg : 1;
-	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1;		 /* Motor stall */
-	uint32_t _r4 : 3;			 /* Align */
-	uint32_t stm_sync_err : 1;
-	uint32_t _r5 : 1;
-	uint32_t stm_txpdo_toggle : 1;
-	uint32_t _r6 : 1;
-	uint32_t stm_txpdo_toggle2 : 1;
-};
-
-/* For Velocity control w/ info data */
-/* RxPDOs: 0x1600 0x1602 0x1604
- * TxPDOs: 0x1A00 0x1A03 0x1A04 */
-struct SVelocityControlCompactEx_Output
-{
-	/* Pdo at 0x1600 */
-	uint32_t enc_enable_lat_c : 1;
-	uint32_t enc_enable_lat_epe : 1; /* extern latch on positive edge */
-	uint32_t enc_set_counter : 1;
-	uint32_t enc_enable_lat_ene : 1; /* extern on negative edge */
-	uint32_t _r1 : 12;				 /* Align */
-	uint16_t enc_counter_val;
-	/* Pdo at 0x1602 */
-	uint32_t stm_enable : 1;
-	uint32_t stm_reset : 1;
-	uint32_t stm_reduce_torque : 1;
-	uint32_t _r2 : 8; /* Align */
-	uint32_t stm_digout1 : 1;
-	uint32_t _r3 : 4; /* Align */
-	/* Pdo at 0x1604 */
-	uint16_t stm_velocity;
-};
-
-struct SVelocityControlCompactEx_Input
-{
-	/* Pdo at 0x1A00 */
-	uint32_t enc_lat_c_valid : 1;
-	uint32_t enc_ex_lat_valid : 1;
-	uint32_t enc_counter_done : 1;
-	uint32_t enc_counter_uf : 1;   /* Underflow */
-	uint32_t enc_counter_of : 1;   /* overflow */
-	uint32_t _r1 : 2;			   /* Just to align data to byte boundaries */
-	uint32_t enc_extrap_stall : 1; /* Extrapolation stall */
-	uint32_t enc_stat_a : 1;	   /* status of input a */
-	uint32_t enc_stat_b : 1;
-	uint32_t enc_stat_c : 1;
-	uint32_t _r2 : 1;		   /* align */
-	uint32_t enc_sync_err : 1; /* external latch status */
-	uint32_t enc_stat_ex_lat : 1;
-	uint32_t _r3 : 1;
-	uint32_t enc_txpdo_toggle : 1;
-	uint16_t enc_counter_val;
-	uint16_t enc_latch_val;
-	/* Pdo at 0x1A03 */
-	uint32_t stm_rdy_enable : 1; /* Ready to enable */
-	uint32_t stm_rdy : 1;
-	uint32_t stm_warn : 1;
-	uint32_t stm_err : 1;
-	uint32_t stm_mov_pos : 1;
-	uint32_t stm_mov_neg : 1;
-	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1;		 /* Motor stall */
-	uint32_t _r4 : 3;			 /* Align */
-	uint32_t stm_sync_err : 1;
-	uint32_t _r5 : 1;
-	uint32_t stm_txpdo_toggle : 1;
-	uint32_t _r6 : 1;
-	uint32_t stm_txpdo_toggle2 : 1;
-	/* Pdo at 0x1A04 */
-	uint16_t stm_info_dat1;
-	uint16_t stm_info_dat2;
-};
-
 /* For Positioning interface compact */
 /* RxPDOs: 0x1601 0x1602 0x1605 */
 /* TxPDOs: 0x1A01 0x1A03 0x1A06 */
 struct SPositionInterfaceCompact_Output
 {
 	/* 0x1601 */
-	uint8_t enc_enable_lat_c;
-	uint8_t enc_enable_lat_epe; /* extern on positive edge */
-	uint8_t enc_set_counter;
-	uint8_t enc_enable_lat_ene; /* extern on negative edge */
-	uint32_t enc_counter_val;
-	/* 0x1602 */
-	uint8_t stm_enable;
-	uint8_t stm_reset;
-	uint8_t stm_reduce_torque;
-	uint8_t stm_digout1;
-	/* 0x1605 */
-	uint32_t pos_output1 : 1;
-	uint32_t pos_emergency_stp : 1;
+	uint8_t enc_enable_lat_c : 1;	/* Enable latching thru the C track */
+	uint8_t enc_enable_lat_epe : 1; /* extern on positive edge */
+	uint8_t enc_set_counter : 1;	/* Set the counter value */
+	uint8_t enc_enable_lat_ene : 1; /* extern on negative edge */
+	uint16_t _r4 : 12;
+	uint32_t enc_counter_val;	/* The value to be set thru set counter */
+	/* 0x1602:0x7010 */
+	uint8_t stm_enable	: 1;			/* Enable output stage */
+	uint8_t stm_reset	: 1;			/* Reset and clear all errors */
+	uint8_t stm_reduce_torque : 1;		/* Recuded coil current is active */
+	uint8_t _r2;
+	uint8_t stm_digout1 : 1;		/* Digital output 1 */
+	uint8_t _r3 : 4;
+	/* 0x1605:0x7020 */
+	uint32_t pos_execute : 1;		/* Begin move with settings */
+	uint32_t pos_emergency_stp : 1;	/* Emergency stop */
 	uint32_t _r1 : 14;
-	uint32_t pos_tgt_pos;
+	uint32_t pos_tgt_pos;			/* Target position */
 };
 
 struct SPositionInterfaceCompact_Input
@@ -305,176 +129,214 @@ struct SPositionInterfaceCompact_Input
 	uint32_t stat_deaccel : 1;
 	uint32_t _r7 : 9;
 };
+/*
+Devices should be able to be accessed with O(1) time (this means using an array)
+Requiring a loop thru of all devices is a poor solution.
+*/
 
-/* For Positioning interface */
-/* RxPDOs: 0x1601 0x1602 0x1606 */
-/* TxPDOs: 0x1A01 0x1A03 0x1A07 */
-struct SPositionInterface_Output
-{
-	/* 0x1601 */
-	uint8_t enc_enable_lat_epe; /* extern on positive edge */
-	uint8_t enc_set_counter;
-	uint8_t enc_enable_lat_ene; /* extern on negative edge */
-	uint32_t enc_counter_val;
-	/* 0x1602 */
-	uint8_t stm_enable;
-	uint8_t stm_reset;
-	uint8_t stm_reduce_torque;
-	uint8_t stm_digout1;
-	/* 0x1606 */
-	uint32_t pos_exec : 1;
-	uint32_t pos_emergency_stop : 1;
-	uint32_t _r1 : 14;
-	uint32_t pos_tgt_pos;
-	uint16_t pos_vel;
-	uint16_t pos_start_typ;
-	uint16_t pos_accel;
-	uint32_t pos_deaccel;
+/* Copied from another deivce support... */
+static msg_types EL70X7_table[] = {
+	MOTION,	/* MOVE_ABS */
+	MOTION,	/* MOVE_REL */
+	MOTION,	/* HOME_FOR */
+	MOTION,	/* HOME_REV */
+	IMMEDIATE, /* LOAD_POS */
+	IMMEDIATE, /* SET_VEL_BASE */
+	IMMEDIATE, /* SET_VELOCITY */
+	IMMEDIATE, /* SET_ACCEL */
+	IMMEDIATE, /* GO */
+	IMMEDIATE, /* SET_ENC_RATIO */
+	INFO,	  /* GET_INFO */
+	MOVE_TERM, /* STOP_AXIS */
+	VELOCITY,  /* JOG */
+	IMMEDIATE, /* SET_PGAIN */
+	IMMEDIATE, /* SET_IGAIN */
+	IMMEDIATE, /* SET_DGAIN */
+	IMMEDIATE, /* ENABLE_TORQUE */
+	IMMEDIATE, /* DISABL_TORQUE */
+	IMMEDIATE, /* PRIMITIVE */
+	IMMEDIATE, /* SET_HIGH_LIMIT */
+	IMMEDIATE, /* SET_LOW_LIMIT */
+	VELOCITY   /* JOB_VELOCITY */
 };
 
-struct SPositionInterface_Input
+struct CoECmd
 {
-	/* 0x1A01 */
-	uint32_t latc_valid : 1;
-	uint32_t latc_ext_valid : 1;
-	uint32_t cntr_done : 1;
-	uint32_t cntr_underflow : 1;
-	uint32_t cntr_overflow : 1;
-	uint32_t _r1 : 2;
-	uint32_t extrap_stall : 1;
-	uint32_t stat_inp_a : 1;
-	uint32_t stat_inp_b : 1;
-	uint32_t stat_inp_c : 1;
-	uint32_t _r2 : 2;
-	uint32_t stat_ext_lat : 1;
-	uint32_t sync_err : 1;
-	uint32_t _r3 : 1;
-	uint32_t txpdo_toggle : 1;
-	uint32_t cntr_val;
-	uint32_t lat_val;
-	/* 0x1A03 */
-	uint32_t stm_rdy_enable : 1; /* Ready to enable */
-	uint32_t stm_rdy : 1;
-	uint32_t stm_warn : 1;
-	uint32_t stm_err : 1;
-	uint32_t stm_mov_pos : 1;
-	uint32_t stm_mov_neg : 1;
-	uint32_t stm_tor_reduce : 1; /* Reduced torque */
-	uint32_t stm_stall : 1;		 /* Motor stall */
-	uint32_t _r4 : 3;			 /* Align */
-	uint32_t stm_sync_err : 1;
-	uint32_t _r5 : 1;
-	uint32_t stm_txpdo_toggle : 1;
-	uint32_t _r6 : 1;
-	uint32_t stm_txpdo_toggle2 : 1;
-	/* 0x1A07 */
-	uint32_t stat_busy : 1;
-	uint32_t stat_in_tgt : 1;
-	uint32_t stat_warn : 1;
-	uint32_t stat_err : 1;
-	uint32_t stat_calibrated : 1;
-	uint32_t stat_accel : 1;
-	uint32_t stat_deaccel : 1;
-	uint32_t _r7 : 9;
-	uint32_t stat_pos;
-	uint16_t stat_vel;
-	uint32_t stat_drv_time;
+	uint16_t index;
+	uint16_t subindex;
+	uint16_t val;
 };
 
-static long EL7047_dev_report(int after);
-static long EL7047_init(int after);
-static long EL7047_init_record(void *record);
-static long EL7047_get_ioint_info(int cmd, struct dbCommon *precord, IOSCANPVT *ppvt);
-static long EL7047_write_record(void *record);
-
-struct
+struct SEL70X7MsgData
 {
-	long num;
-	DEVSUPFUN report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN ioint_info;
-	DEVSUPFUN write_record;
-} devEL70X7 = {
-	5,
-	(DEVSUPFUN)EL7047_dev_report,
-	NULL,
-	(DEVSUPFUN)EL7047_init_record,
-	(DEVSUPFUN)EL7047_get_ioint_info,
-	(DEVSUPFUN)EL7047_write_record,
+	SPositionInterfaceCompact_Output pout;
+	CoECmd cmds[32]; /* Modifications to values in CoE */
+	CEK9000Device* dev;
+	CTerminal* controller;
 };
 
-epicsExportAddress(dset, devEL70X7);
 
-typedef struct
-{
-	CTerminal *m_pTerminal;
-	CEK9000Device *m_pDevice;
-	int m_nPdoType;
-} SEL70X7SupportData;
+/*
 
-static long EL7047_dev_report(int after)
-{
-	return 0;
-}
+For the EPICS driver support
 
-static long EL7047_init(int after)
-{
-	return 0;
-}
+*/
+static long EL70X7_init(int after);
+static long EL70X7_init_record(void *precord);
+static long EL70X7_start_trans(struct motorRecord *precord);
+static RTN_STATUS EL70X7_build_trans(motor_cmnd cmd, double *param, struct motorRecord *precord);
+static RTN_STATUS EL70X7_end_trans(struct motorRecord *precord);
 
-/* Do initialization tasks here, such as finding the record and such */
-static long EL7047_init_record(void *record)
-{
-
-	motorRecord *pRecord = (motorRecord *)record;
-	pRecord->dpvt = calloc(1, sizeof(SEL70X7SupportData));
-	SEL70X7SupportData *dpvt = (SEL70X7SupportData *)pRecord->dpvt;
-	/* Find terminal */
-	char *name = NULL;
-	int tmp = 0;
-	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, tmp, name);
-	/* Verify that its OK */
-	if (!dpvt->m_pTerminal)
+struct motor_dset devEL70X7 =
 	{
-		Error("EL70X7_init_record(): Unable to find terminal for record %s\n", pRecord->name);
-		return 1;
-	}
-	free(name);
-	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
-	dpvt->m_nPdoType = dpvt->m_pTerminal->m_nPdoID; /* Make sure to record pdo type */
-	/* Lock mutex */
-	int status = dpvt->m_pDevice->Lock();
-	if (status != epicsMutexLockOK)
-	{
-		Error("EL70X7_init_record(): %s\n", CEK9000Device::ErrorToString(status));
-		return 1;
-	}
-	/* Read terminal id to make sure it matches */
-	uint16_t termid = 0;
-	dpvt->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
-	/* Unlock while we finish up */
-	dpvt->m_pDevice->Unlock();
-	if (termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
-	{
-		Error("EL70X7_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS),
-			  pRecord->name,
-			  termid);
-		return 1;
-	}
-	/* Finish up initialization of the motor record */
+		{8,
+		 NULL,
+		 (DEVSUPFUN)EL70X7_init,
+		 (DEVSUPFUN)EL70X7_init_record,
+		 NULL},
+		motor_update_values,
+		EL70X7_start_trans,
+		EL70X7_build_trans,
+		EL70X7_end_trans};
+epicsExportAddress(motor_dset, devEL70X7);
 
+/*===================================================================
+
+=====================================================================*/
+static long EL70X7_init(int after)
+{
+}
+/*===================================================================
+
+=====================================================================*/
+static long EL70X7_init_record(void *precord)
+{
+}
+/*===================================================================
+begins a transaction, which can then be added on to.
+This will grab current values from the EK9000 itself, and store them
+such that they can be modified and re-written to the device.
+=====================================================================*/
+static long EL70X7_start_trans(struct motorRecord *precord)
+{
+	motor_trans* trans = (motor_trans*)precord->dpvt;
+	mess_node* call = &trans->motor_call;
+	char* msg = call->message;
+	/* Allocate a new structure for actual processing... */
+	SEL70X7MsgData* dat = (SEL70X7MsgData*)malloc(sizeof(SEL70X7MsgData));
+	
+	sprintf(msg, "%llu", dat);
 	return 0;
 }
+/*===================================================================
+Builds a transaction string to pass to the underlying driver support.
+This is going to be as simple as possible since modbus itself is a simple
+protocol.
+Message reference:
+Strings are all null terminated.
 
-static long EL7047_get_ioint_info(int cmd, struct dbCommon *precord, IOSCANPVT *ppvt)
+A: Read holding registers
+B: Read input registers
+C: Read coils
+D: Read discrete inputs
+E: Write single holding register 
+F: Write multiple holding registers
+G: Write coils
+H: Force single coil
+"A<num> addresses..."
+"B<num> addresses..."
+"C<num> addresses..."
+"D<num> addresses..."
+"E<address> value"
+"F<address> values..."
+"G<address> values..."
+"H<address> value"
+=====================================================================*/
+static RTN_STATUS EL70X7_build_trans(motor_cmnd cmd, double *param, struct motorRecord *precord)
 {
-	return 0;
+	motor_trans *trans = (motor_trans *)precord->dpvt;
+	mess_node *call = &trans->motor_call;
+	char *msg = call->message;
+	int axis = call->signal;
+	int card = call->card;
+	CEK9000Device *dev = g_pDeviceMgr->FindDevice(card);
+	if (!dev || axis > dev->m_nTerms)
+	{
+		return RTN_VALUES::ERROR;
+	}
+	CTerminal *controller = &dev->m_pTerms[call->signal];
+	/* Until I find a way to share data between support functions */
+	SEL70X7MsgData* dat = NULL;
+	sscanf(msg, "%llu", dat);
+
+	/* Configure the structures and whatnot before building the message */
+	SPositionInterfaceCompact_Output pout;
+	if (controller->m_nTerminalID == 7047 || controller->m_nTerminalID == 7037)
+	{
+		/* Configure the current parameters */
+		
+		/* Build the transaction */
+		switch (cmd)
+		{
+		MOTION:	/* MOVE_ABS */
+		MOTION:	/* MOVE_REL */
+		MOTION:	/* HOME_FOR */
+		MOTION:	/* HOME_REV */
+		IMMEDIATE: /* LOAD_POS */
+		IMMEDIATE: /* SET_VEL_BASE */
+		IMMEDIATE: /* SET_VELOCITY */
+		IMMEDIATE: /* SET_ACCEL */
+		IMMEDIATE: /* EXECUTE! */
+		{
+			/* exectute order 66.. */
+		}
+		IMMEDIATE: /* SET_ENC_RATIO */
+		{
+			
+		}
+		INFO:	  /* GET_INFO */
+		MOVE_TERM: /* STOP_AXIS */
+		VELOCITY:  /* JOG */
+		IMMEDIATE: /* SET_PGAIN */
+		IMMEDIATE: /* SET_IGAIN */
+		IMMEDIATE: /* SET_DGAIN */
+		IMMEDIATE: /* ENABLE_TORQUE */
+		IMMEDIATE: /* DISABLE_TORQUE */
+		IMMEDIATE: /* PRIMITIVE */
+		IMMEDIATE: /* SET_HIGH_LIMIT */
+		IMMEDIATE: /* SET_LOW_LIMIT */
+		VELOCITY:  /* JOG_VELOCITY */
+		}
+	}
 }
 
-static long EL7047_write_record(void *record)
+/*===================================================================
+For the end transaction, we actually build the string and get it
+ready to be sent to the lower-level device driver. 
+=====================================================================*/
+static RTN_STATUS EL70X7_end_trans(struct motorRecord *precord)
 {
-	return 0;
+	motor_trans *trans = (motor_trans *)precord->dpvt;
+	mess_node *call = &trans->motor_call;
+	char *msg = call->message;
+	int axis = call->signal;
+	int card = call->card;
+	CEK9000Device *dev = g_pDeviceMgr->FindDevice(card);
+	if (!dev || axis > dev->m_nTerms)
+	{
+		return RTN_VALUES::ERROR;
+	}
+	CTerminal *controller = &dev->m_pTerms[call->signal];
+	SPositionInterfaceCompact_Output pout;
+
+	SEL70X7MsgData* dat = NULL;
+	sscanf(msg, "%llu", &dat);
+
+	/* Build the message from the pout struct */
+	uint16_t outstart = controller->m_nOutputStart;
+	sprintf(msg, "F%u", outstart); /* Write multiple holding registers */
+	for(int i = 0; i < sizeof(pout)/2; i++)
+		sprintf(msg, "%s %u", ((uint16_t*)&pout)[i]); /* Append to string */
 }
 
 /*
@@ -482,58 +344,243 @@ static long EL7047_write_record(void *record)
 The motor record requires a motor driver table
 
 */
-static int recv_mess(int, char *, int);
-static RTN_STATUS send_mess(int, const char *, const char *);
-static int set_status(int, int);
+static int recv_mess(int card, char *msg, int flags);
+static RTN_STATUS send_mess(int card, const char *msg, char *name);
+static int set_status(int card, int signal);
 static long report(int);
 static long init();
 static int motor_init();
 static void fillCmndInfo();
+static void start_status(int);
 static void query_done(int, int, struct mess_node *);
 
 struct driver_table el70x7_access
 {
 	motor_init,
-	motor_send,
-	motor_free,
-	motor_card_info,
-	motor_axis_info,
-	/* Finish */
+		motor_send,
+		motor_free,
+		motor_card_info,
+		motor_axis_info,
+		&mess_queue,
+		&queue_lock,
+		&free_list,
+		&freelist_lock,
+		&motor_sem,
+		&motor_state,
+		&total_cards,
+		&any_motor_in_motion,
+		send_mess,
+		recv_mess,
+		set_status,
+		query_done,
+		NULL,
+		&initialized,
+		NULL
 };
 
-static long drvEL70X7_report(int after);
-static long drvEl70X7_init(void);
-
-/*
-
-For the EPICS driver support
-
-*/
-struct drvEL70X7_drvset
-{
-	long number;
-	long (*report)(int);
-	long (*init)(void);
-} drvEL70X7 = {
-	2,
-	drvEL70X7_report,
-	drvEl70X7_init,
-};
-
-static long drvEL70X7_report(int after)
+/*===================================================================
+This function is used to send a signal to the specified card.
+msg is a string that represents the message to be sent.
+Because this driver uses modbus, this command will need 
+to parse and process the strings it's passed.
+=====================================================================*/
+static RTN_STATUS send_mess(int card, char *msg, char *name)
 {
 }
 
-static long drvEl70X7_init(void)
+/*===================================================================
+This function is called when a message should be received from 
+a motor terminal. It should process the modbus returned messages and
+turn it into a string.
+=====================================================================*/
+static int recv_mess(int card, char *msg, int flags)
 {
 }
 
-/*
+/*===================================================================
+This function should set the status of an axis. Card is the ID of the
+bus coupler. signal is the slave # of the motor terminal.
+=====================================================================*/
+static int set_status(int card, int signal)
+{
+}
+/*===================================================================
 
-support for the el7047 and el7037 will be built using legacy 
-versions of the motor record device/driver support
+=====================================================================*/
+static long report(int)
+{
+}
 
-the device support is pretty simple and will just call down into the driver table
+/*===================================================================
+
+=====================================================================*/
+static void query_done(int, int, struct mess_node *)
+{
+}
+
+class epicsShareClass el70x7Controller : public asynMotorController
+{
+public:
+	CEK9000Device* pcoupler;
+	CTerminal* pcontroller;
+	el70x7Axis** paxis;
+	uint32_t accel_forward;
+	uint32_t accel_back; /* Stopping accel basically */
+	uint32_t max_vel;
+	uint32_t min_vel;
+public:
+	el70x7Controller(CEK9000Device* dev, CTerminal* controller, const char* port, int numAxis);
+	
+	class el70x7Axis* getAxis(int num);
+	class el70x7Axis* getAxis(asynUser* axis);
+};
+
+class epicsShareClass el70x7Axis : public asynMotorAxis
+{
+private:
+	CEK9000Device* pcoupler;
+	CTerminal* pcontroller;
+	SPositionInterfaceCompact_Input input;
+	SPositionInterfaceCompact_Output output;
+public:
+	el70x7Axis(el70x7Controller* pC, int axisno);
+
+	/* Move to home */
+	asynStatus move(double pos, int rel, double min_vel, double max_vel, double accel);
+
+	/* Move with a velocity */
+	asynStatus moveVelocity(double min_vel, double max_vel, double accel);
+	
+	/* Move to home */
+	asynStatus home(double min_vel, double max_vel, double accel, int forwards);
+
+	/* Stop with accel */
+	asynStatus stop(double accel);
+	
+	/* Poll */
+	asynStatus poll(bool* moving);
+
+	/* Set the position target */
+	asynStatus setPosition(double pos);
+
+	/* Set if it's closed loop or not */
+	asynStatus setClosedLoop(bool closed);
+
+private:
+	void SetVelocity(double vel);
+	void SetAcceleration(double accel);
+	void UpdatePDO();
+	void Execute(); /* Execute a move */
+	/* Update CoE parameters */
+	/* 0 = all */
+	/* 1 = max_vel, 2 = min_vel, 3 = accel_forward, 4 = accel_back */
+	void UpdateParams(int params = 0);
+};
+
+el70x7Controller::el70x7Controller(CEK9000Device* dev, CTerminal* controller, const char* port, int numAxis) :
+	asynMotorController(port, numAxis, 0, 0, 0, ASYN_MULTIDEVICE, 0, 0, 0),
+	pcoupler(dev),
+	pcontroller(controller)
+{
+
+}
+
+el70x7Axis* el70x7Controller::getAxis(int num)
+{
+	return this->paxis[num];
+}
+
+el70x7Axis* el70x7Controller::getAxis(asynUser* usr)
+{
+}
+
+/*======================================================
+
+class EL70X7Axis
+
+========================================================*/
 
 
-*/
+el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) :
+	el70x7Axis(pC, axisnum)
+{
+	this->pcoupler = pC->pcoupler;
+	this->pcontroller = pC->pcontroller;
+	/* Read all pdo data from the device */
+	this->pcoupler->Lock();
+	/* Grab initial values */
+	this->pcoupler->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 
+		pcontroller->m_nOutputStart, (uint16_t*)&this->output, pcontroller->m_nOutputSize/2);
+	this->pcoupler->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS,
+		pcontroller->m_nInputStart, (uint16_t*)&this->input, pcontroller->m_nInputSize/2);
+	this->pcoupler->Unlock();
+}
+
+asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel, double accel)
+{
+	this->SetAcceleration(accel);
+	
+}
+
+asynStatus el70x7Axis::moveVelocity(double min_vel, double max_vel, double accel)
+{
+	this->SetAcceleration(accel);
+}
+
+asynStatus el70x7Axis::home(double min_vel, double max_vel, double accel, int forwards)
+{
+	this->SetAcceleration(accel);
+}
+
+asynStatus el70x7Axis::stop(double accel)
+{
+	/* TODO: Investigate if we have the time required to write a new accel value to the terminal */
+	
+}
+
+asynStatus el70x7Axis::poll(bool* moving)
+{
+	/* Polling thread implemented by the ek9000 driver itself */
+}
+
+asynStatus el70x7Axis::setPosition(double pos)
+{
+	/* Validate the parameters to ensure we aren't going to screw ourselves */
+	if(pos < 0)
+		return asynError;
+	this->output.pos_tgt_pos = (uint32_t)pos;
+	return asynSuccess;
+}
+
+asynStatus el70x7Axis::setClosedLoop(bool closed) 
+{
+
+}
+
+void el70x7Axis::UpdatePDO()
+{
+	this->pcoupler->Lock();
+	/* Update input pdos */
+	pcoupler->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, pcontroller->m_nInputStart,
+		(uint16_t*)&this->input, pcontroller->m_nInputSize/2);
+	/* Propagate changes from our internal pdo */
+	pcoupler->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, pcontroller->m_nOutputStart,
+		(uint16_t*)&this->output, pcontroller->m_nOutputSize/2);
+	this->pcoupler->Unlock();
+}
+
+void el70x7Axis::Execute()
+{
+	this->output.pos_execute = 1;
+	this->UpdatePDO();
+}
+
+void el70x7Axis::UpdateParams(int param)
+{
+	switch(param)
+	{
+		default:
+			
+			break;
+	}
+}
