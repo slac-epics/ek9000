@@ -22,6 +22,7 @@ ek9000Support_SRCS += devEL7XXX.cpp
 ek9000Support_LIBS += $(EPICS_BASE_IOC_LIBS)
 ek9000Support_LIBS += modbus
 ek9000Support_LIBS += asyn
+ek9000Support_LIBS += motor
 
 #PROD_IOC = ek9000
 
