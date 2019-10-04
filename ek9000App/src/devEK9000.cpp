@@ -402,6 +402,7 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 int CEK9000Device::Lock()
 {
 	this->m_pDriver->lock();
+	return 0;
 }
 
 int CEK9000Device::RemoveTerminal(const char* name)
