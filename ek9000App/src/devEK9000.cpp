@@ -540,7 +540,7 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 		uint16_t tmp_data[512] = 
 		{
 			1,
-			(term | (1<<15)), /* Bit 15 needs to be 1 to indicate a write */
+			(uint16_t)(term | (1<<15)), /* Bit 15 needs to be 1 to indicate a write */
 			index,
 			subindex,
 			len,
