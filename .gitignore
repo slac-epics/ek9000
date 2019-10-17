@@ -35,3 +35,7 @@ terminals.xml
 tparse\.py
 
 /*.xml
+
+# Ignore the release site
+RELEASE_SITE
+RELEASE_SITE.tmp
