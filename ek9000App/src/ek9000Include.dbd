@@ -1,6 +1,2 @@
 include "base.dbd"
-include "boRecord.dbd"
-include "biRecord.dbd"
-include "aoRecord.dbd"
-include "aiRecord.dbd"
 include "devEK9000.dbd"

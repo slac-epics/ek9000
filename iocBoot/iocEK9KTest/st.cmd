@@ -1,4 +1,4 @@
-#!../../../../bin/linux-x86/ek9000Test
+#!../../bin/rhel7-x86_64/ek9000Test
 
 < envPaths
 dbLoadDatabase("../../../../dbd/ek9000Test.dbd")

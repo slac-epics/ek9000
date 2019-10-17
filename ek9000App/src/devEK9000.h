@@ -1,3 +1,12 @@
+/*
+ * This file is part of the EK9000 device support module. It is subject to 
+ * the license terms in the LICENSE.txt file found in the top-level directory 
+ * of this distribution and at: 
+ *    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+ * No part of the EK9000 device support module, including this file, may be 
+ * copied, modified, propagated, or distributed except according to the terms 
+ * contained in the LICENSE.txt file.
+*/
 //======================================================//
 // Name: devEK9000.h
 // Purpose: Device support for EK9000 and it's associated
@@ -177,143 +186,6 @@ public:
 	int m_nOutputStart = 0;
 };
 
-template <class T>
-class CSimpleList
-{
-private:
-	template <class Z>
-	class Node
-	{
-	public:
-		Z val;
-		Node<Z> *m_pNext = NULL;
-		Node<Z> *m_pPrev = NULL;
-	};
-
-private:
-	size_t m_nCount = 0;
-	Node<T> *m_pRoot = NULL;
-	Node<T> *m_pEnd = NULL;
-	mutable Node<T>* m_pCtx = NULL;
-
-public:
-	CSimpleList()
-	{
-	}
-
-	~CSimpleList()
-	{
-		if (!m_pRoot)
-			return;
-
-		for (Node<T> *node = m_pRoot; node;)
-		{
-			Node<T> *tmp = node->m_pNext;
-			delete node;
-			node = tmp;
-		}
-	}
-
-public:
-	void Add(const T &t)
-	{
-		if (m_pRoot)
-		{
-			for (Node<T> *node = m_pRoot; node; node = node->m_pNext)
-			{
-				if (node->m_pNext == NULL)
-				{
-					node->m_pNext = new Node<T>();
-					node->m_pNext->val = t;
-					node->m_pNext->m_pPrev = node;
-					m_nCount++;
-					return;
-				}
-			}
-		}
-		else
-		{
-			m_pRoot = new Node<T>();
-			m_pRoot->val = t;
-			m_nCount++;
-		}
-	}
-
-	void Remove(const T &t)
-	{
-		if (m_pRoot)
-		{
-			for (Node<T> *node = m_pRoot; node; node = node->m_pNext)
-			{
-				if (node->val == t)
-				{
-					Node<T> *next = node->m_pNext;
-					Node<T> *prev = node->m_pPrev;
-					if (m_pRoot == node)
-						m_pRoot = next;
-					if (prev)
-						prev->m_pNext = next;
-					if (next)
-						prev->m_pPrev = prev;
-					delete node;
-					m_nCount--;
-				}
-			}
-		}
-	}
-
-	T *Get(int i) const
-	{
-		if (m_pRoot && i >= 0 && i < m_nCount)
-		{
-			for (Node<T> *node = m_pRoot; node; node = node->m_pNext, i--)
-			{
-				if (i <= 0)
-				{
-					return &node->val;
-				}
-			}
-		}
-		return NULL;
-	}
-
-	/* Find the index of an element, return -1 if not found */
-	int Find(const T &dev) const
-	{
-		if (m_pRoot)
-		{
-			int i = 0;
-			for (Node<T> *node = m_pRoot; node; node = node->m_pNext, i++)
-			{
-				if (node->val == dev)
-					return i;
-			}
-		}
-		return -1;
-	}
-
-	T* FirstNode() const
-	{
-		m_pCtx = m_pRoot;
-		return m_pCtx;
-	}
-
-	T* NextNode() const
-	{
-		if(m_pCtx)
-		{
-			m_pCtx = m_pCtx->m_pNext;
-			return m_pCtx;
-		}
-		else
-		{
-			return m_pCtx;
-		}
-	}
-
-	/* Find first item */
-};
-
 /* 
 
 class CTerminalList
@@ -406,8 +278,6 @@ public:
 class CDeviceMgr
 {
 private:
-	//CSimpleList<CEK9000Device *> m_pDevices;
-
 	class Node
 	{
 	public:
@@ -522,9 +392,9 @@ public:
 	int InitTerminals();
 
 	/* Grab mutex */
-	inline int Lock() { return epicsMutexLock(m_Mutex); };
+	int Lock();
 	/* Unlock it */
-	inline void Unlock() { return epicsMutexUnlock(m_Mutex); };
+	void Unlock();
 
 public:
 	/* Error handling functions */
@@ -537,11 +407,6 @@ public:
 
 	/* error to string */
 	static const char *ErrorToString(int err);
-
-public:
-	/* Find Pdo size of the specified terminal using CoE */
-	int FindPdoSize(int termtype, uint16_t termindex, int& txpdo, int& rxpdo);
-	
 public:
 	/* Utils for reading/writing */
 
@@ -650,11 +515,6 @@ public:
 	/* Try connect to terminal with CoE */
 	/* Returns 1 for connection, 0 for not */
 	int CoEVerifyConnection(uint16_t termid);
-
-public:
-	/* Option management */
-
-	int SetOption(int term, const char *opt, const char *val);
 
 public:
 	/* Process data interaction */
