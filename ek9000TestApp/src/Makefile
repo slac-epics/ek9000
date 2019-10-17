@@ -13,9 +13,7 @@ PROD_IOC = ek9000Test
 DBD += ek9000Test.dbd
 
 # ek9000Test.dbd will be made up from these files:
-ek9000Test_DBD += base.dbd
-ek9000Test_DBD += boRecord.dbd
-ek9000Test_DBD += devEK9000.dbd
+ek9000Test_DBD += ek9000.dbd
 
 # Include dbd files from all support applications:
 

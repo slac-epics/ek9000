@@ -7,9 +7,7 @@ include $(TOP)/configure/CONFIG
 # Build an IOC support library
 LIBRARY_IOC += ek9000Support
 
-DBD += devEK9000.dbd
 DBD += ek9000.dbd
-DBD += ek9000Include.dbd
 
 # Records/Device support sources
 ek9000Support_SRCS += devEK9000.cpp
