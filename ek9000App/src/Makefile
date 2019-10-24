@@ -6,6 +6,7 @@ include $(TOP)/configure/CONFIG
 
 # Build an IOC support library
 LIBRARY_IOC += ek9000Support
+USR_CXXFLAGS += --std=c++11
 
 DBD += ek9000.dbd
 
