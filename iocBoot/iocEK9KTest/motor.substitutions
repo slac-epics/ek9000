@@ -1,0 +1,10 @@
+# Field descriptions:
+#	DTYP -	Device type
+#	N	 -	
+
+file "../../../motor/db/basic_asyn_motor.db"
+{
+	pattern
+	{P, N,          M, DTYP,		PORT,		ADDR,		DESC,		EGU,	DIR,		VELO,		VBAS,		ACCL,		BDST,		BVEL,		BACC,		MRES,		PREC,		DHLM,		DLLM,		INIT}
+	{IOC:, 1, "m$(N)","asynMotor", "EK9K1_MOTOR_PORT", 0,		"Test Motor", mm,	Pos,		10.0,		1,			0.5,		0,			0.1,		1.0,		0.1,		2,			0.99,		0.01,		""}
+}
