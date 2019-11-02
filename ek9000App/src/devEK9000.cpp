@@ -333,12 +333,9 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 	pek->m_pName = strdup(name);
 
 	/* Create terminal name */
-	size_t prefixlen = strlen(PORT_PREFIX);
 	size_t len = strlen(name) + strlen(PORT_PREFIX) + 1;
 	pek->m_pPortName = (char *)malloc(len);
-	memcpy(pek->m_pPortName, PORT_PREFIX, prefixlen); /* Should be optimized? */
-	memcpy(pek->m_pPortName + prefixlen, name, strlen(name) + 1);
-	pek->m_pPortName[len - 1] = '\0';
+	sprintf(pek->m_pPortName, "%s%s", PORT_PREFIX, name);
 
 	/* Copy IP */
 	pek->m_pIP = strdup(ip);
@@ -401,8 +398,13 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 
 int CEK9000Device::Lock()
 {
-	this->m_pDriver->lock();
-	return 0;
+	//return this->m_pDriver->lock();
+	return epicsMutexLock(this->m_Mutex);
+}
+
+int CEK9000Device::TryLock()
+{
+	return epicsMutexTryLock(this->m_Mutex);
 }
 
 int CEK9000Device::RemoveTerminal(const char* name)
@@ -424,7 +426,8 @@ int CEK9000Device::RemoveTerminal(const char* name)
 
 void CEK9000Device::Unlock()
 {
-	this->m_pDriver->unlock();
+	//this->m_pDriver->unlock();
+	epicsMutexUnlock(this->m_Mutex);
 }
 
 /* Verifies that terminals have the correct ID */
@@ -1355,163 +1358,6 @@ void ek9000SetPollTime(const iocshArgBuf* args)
 	g_nPollDelay = time;
 }
 
-void ek9000AddEL7047(const iocshArgBuf* args)
-{
-	const char* ek 		= args[0].sval;
-	const char*rec 		= args[1].sval;
-	int pos 		= args[2].ival;
-	const char* pdotyp	= args[3].sval;
-	
-	if(!ek)
-	{
-		epicsPrintf("Name of the ek9000 has not been specified\n");
-		return;
-	}
-
-	if(!rec)
-	{
-		epicsPrintf("Name of the terminal record has not been specified.\n");
-		return;
-	}
-	if(!pdotyp)
-	{
-		epicsPrintf("Name of the pdo type has not been specified.\n");
-		return;
-	}
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek);
-	if(!dev)
-	{
-		epicsPrintf("Could not find the specified device.\n");
-		return;
-	}
-	if(pos > dev->m_nTerms || pos < 0)
-	{
-		epicsPrintf("Invalid slave number.\n");
-		return;
-	}
-	
-	/* Check the pdo types */
-	char* pdo = strlower(strdup(pdotyp));
-	int isize=0,osize=0,pdoid=0; /* pdo sizes */
-	if(strcmp(EL7047_VEL_CTRL_COMPACT_STR, pdo) == 0)
-	{
-		pdoid = EL7047_VEL_CTRL_COMPACT_ID;
-		isize = EL7047_VEL_CTRL_COMPACT_ISIZE;
-		osize = EL7047_VEL_CTRL_COMPACT_OSIZE;
-	}
-	else if(strcmp(EL7047_VEL_CTRL_COMPACT_INFO_STR, pdo) == 0)
-	{
-		pdoid = EL7047_VEL_CTRL_COMPACT_INFO_ID;
-		isize = EL7047_VEL_CTRL_COMPACT_INFO_ISIZE;
-		osize = EL7047_VEL_CTRL_COMPACT_INFO_OSIZE;
-	}
-	else if(strcmp(EL7047_VEL_CTRL_STR, pdo) == 0)
-	{
-		pdoid = EL7047_VEL_CTRL_ID;
-		isize = EL7047_VEL_CTRL_ISIZE;
-		osize = EL7047_VEL_CTRL_OSIZE;
-	}
-	else if(strcmp(EL7047_POS_CTRL_STR, pdo) == 0)
-	{
-		pdoid = EL7047_POS_CTRL_ID;
-		isize = EL7047_POS_CTRL_ISIZE;
-		osize = EL7047_POS_CTRL_OSIZE;
-	}
-	else if(strcmp(EL7047_POS_INTERFACE_COMPACT_STR, pdo) == 0)
-	{
-		pdoid = EL7047_POS_INTERFACE_COMPACT_ID;
-		isize = EL7047_POS_INTERFACE_COMPACT_ISIZE;
-		osize = EL7047_POS_INTERFACE_COMPACT_OSIZE;
-	}
-	else if(strcmp(EL7047_POS_INTERFACE_STR, pdo) == 0)
-	{
-		pdoid = EL7047_POS_INTERFACE_ID;
-		isize = EL7047_POS_INTERFACE_ISIZE;
-		osize = EL7047_POS_INTERFACE_OSIZE;
-	}
-	else if(strcmp(EL7047_POS_INTERFACE_INFO_STR, pdo) == 0)
-	{
-		pdoid = EL7047_POS_INTERFACE_INFO_ID;
-		isize = EL7047_POS_INTERFACE_INFO_ISIZE;
-		osize = EL7047_POS_INTERFACE_INFO_OSIZE;
-	}
-	else
-	{
-		epicsPrintf("Invalid Pdo type: %s. Valid options: \n", pdo);
-		epicsPrintf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
-				EL7047_VEL_CTRL_COMPACT_STR,
-				EL7047_VEL_CTRL_COMPACT_INFO_STR,
-				EL7047_VEL_CTRL_STR,
-				EL7047_POS_CTRL_STR,
-				EL7047_POS_INTERFACE_COMPACT_STR,
-				EL7047_POS_INTERFACE_STR,
-				EL7047_POS_INTERFACE_INFO_STR);
-		free(pdo);
-		return;
-	}
-	/* add a terminal */
-	int status = dev->AddTerminal(rec, 7047, pos);
-	CTerminal* term = dev->GetTerminal(rec);
-	if(status || !term)
-	{
-		epicsPrintf("Unable to create terminal %s.\n", rec);
-		return;
-	}
-	/* pdo sizes */
-	term->m_nInputSize = isize;
-	term->m_nOutputSize = osize;
-	term->m_nPdoID = pdoid;
-}
-
-void ek9000AddAnalog(const iocshArgBuf* args)
-{
-	const char* ek 		= args[0].sval;
-	const char* rec		= args[1].sval;
-	int typ			= args[2].ival;
-	int pos			= args[3].ival;
-	const char* pdotyp	= args[4].sval;
-	if(!ek || !rec || !typ || !pdotyp)
-	{
-		epicsPrintf("Invalid type passed.\n");
-		return;
-	}
-
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek);
-	if(!dev)
-	{
-		epicsPrintf("Invalid device: %s\n", ek);
-		return;
-	}
-	char* pdo = strlower(strdup(pdotyp));
-	int isize=0,pdoid=0;
-	if(strcmp(EL30XX_STANDARD_STR, pdo))
-	{
-		pdoid = EL30XX_STANDARD_ID;	
-		isize = EL30XX_STANDARD_ISIZE;
-	}
-	else if(strcmp(EL30XX_COMPACT_STR, pdo))
-	{
-		pdoid = EL30XX_COMPACT_ID;
-		pdoid = EL30XX_COMPACT_ISIZE;
-	}
-	else
-	{
-		epicsPrintf("Invalid pdo mapping type: %s\nValid options are:\n", pdotyp);
-		epicsPrintf("\t%s\n\t%s\n", EL30XX_STANDARD_STR, EL30XX_COMPACT_STR);
-		return;
-	}
-	int status = dev->AddTerminal(rec, typ, pos);
-	CTerminal* term = dev->GetTerminal(rec);
-	if(status || !term)
-	{
-		epicsPrintf("Error while creating terminal.\n");
-		return;
-	}
-	term->m_nOutputSize = 0;
-	term->m_nInputSize = isize;
-	term->m_nPdoID = pdoid;
-}
-
 int ek9000RegisterFunctions()
 {
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
@@ -1552,29 +1398,6 @@ int ek9000RegisterFunctions()
 		iocshRegister(&func, ek9000Configure);
 	}
 
-	/* ek9000AddAnalog(ek9000, name, type, position, pdomaptype) */
-	{
-		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
-		static const iocshArg arg2 = {"Terminal record name", iocshArgString};
-		static const iocshArg arg3 = {"Type", iocshArgString};
-		static const iocshArg arg4 = {"Position", iocshArgInt};
-		static const iocshArg arg5 = {"Pdo mapping type", iocshArgString};
-		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4, &arg5};
-		static const iocshFuncDef func = {"ek9000AddAnalog", 5, args};
-		iocshRegister(&func, ek9000AddAnalog);
-	}
-
-
-	/* ek9000AddEL7047(ek9000, name, position, pdomaptype) */
-	{
-		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
-		static const iocshArg arg2 = {"Terminal Record Name", iocshArgString};
-		static const iocshArg arg3 = {"Position", iocshArgInt};
-		static const iocshArg arg4 = {"Pdo Mapping Type", iocshArgString};
-		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"ek9000AddEL7047", 4, args};
-		iocshRegister(&func, ek9000AddEL7047);
-	}
 	/* ek9000ConfigureTerminal(ek9000, name, type, position) */
 	{
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};

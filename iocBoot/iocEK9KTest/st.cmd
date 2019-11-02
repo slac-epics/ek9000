@@ -1,7 +1,7 @@
-#!../../../../bin/linux-x86_64/ek9000Test
+#!../../bin/linux-x86_64/ek9000Test
 
 < envPaths
-dbLoadDatabase("../../../../dbd/ek9000Test.dbd")
+dbLoadDatabase("../../dbd/ek9000Test.dbd")
 
 cd "${TOP}"
 
@@ -22,7 +22,7 @@ ek9000ConfigureTerminal("EK9K1", "TestTerm2", "EL1004", 2)
 ek9000ConfigureTerminal("EK9K1", "TestTerm3", "EL2008", 3)
 ek9000ConfigureTerminal("EK9K1", "TestTerm4", "EL3064", 4)
 
-cd "${TOP}/src/ek9000/iocBoot/${IOC}"
+cd "${TOP}/iocBoot/${IOC}"
 
 # Load our example subs file 
 dbLoadTemplate("example1.substitutions")

@@ -436,6 +436,8 @@ public:
 	int Lock();
 	/* Unlock it */
 	void Unlock();
+	/* Try lock */
+	int TryLock();
 
 public:
 	/* Error handling functions */
