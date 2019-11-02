@@ -1,5 +1,6 @@
 # SNL programs or functions to be invoked from iocsh
 registrar(ek9000RegisterFunctions)
+registrar(el7047_Register)
 
 # Basically just for init
 device(bo,INST_IO,devEK9000,"EK9000")
@@ -17,3 +18,4 @@ device(ai,INST_IO,devEL31XX, "EL31XX")
 # EL40XX devices
 device(ao,INST_IO,devEL40XX, "EL40XX")
 device(ao,INST_IO,devEL41XX, "EL41XX")
+
