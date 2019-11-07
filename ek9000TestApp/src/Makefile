@@ -14,13 +14,16 @@ DBD += ek9000Test.dbd
 
 # ek9000Test.dbd will be made up from these files:
 ek9000Test_DBD += base.dbd
-ek9000Test_DBD += boRecord.dbd
 ek9000Test_DBD += devEK9000.dbd
+ek9000Test_DBD += motorSupport.dbd
+ek9000Test_DBD += asyn.dbd
 
 # Include dbd files from all support applications:
 
 # Add all the support libraries needed by this IOC
 ek9000Test_LIBS += ek9000Support
+ek9000Test_LIBS += motor 
+ek9000Test_LIBS += asyn
 
 # ek9000Test_registerRecordDeviceDriver.cpp derives from ek9000Test.dbd
 ek9000Test_SRCS += ek9000Test_registerRecordDeviceDriver.cpp
