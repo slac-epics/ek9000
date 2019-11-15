@@ -348,7 +348,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 		return NULL;
 	}
 
-	status = modbusInterposeConfig(pek->m_pPortName, modbusLinkTCP, 5000, 0);
+	status = modbusInterposeConfig(pek->m_pPortName, modbusLinkTCP, 500, 0);
 
 	if (status)
 	{
@@ -398,13 +398,14 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 
 int CEK9000Device::Lock()
 {
-	//return this->m_pDriver->lock();
-	return epicsMutexLock(this->m_Mutex);
+	return this->m_pDriver->lock();
+	//return epicsMutexLock(this->m_Mutex);
 }
 
 int CEK9000Device::TryLock()
 {
-	return epicsMutexTryLock(this->m_Mutex);
+	//return epicsMutexTryLock(this->m_Mutex);
+	return this->m_pDriver->lock();
 }
 
 int CEK9000Device::RemoveTerminal(const char* name)
@@ -426,8 +427,8 @@ int CEK9000Device::RemoveTerminal(const char* name)
 
 void CEK9000Device::Unlock()
 {
-	//this->m_pDriver->unlock();
-	epicsMutexUnlock(this->m_Mutex);
+	this->m_pDriver->unlock();
+	//epicsMutexUnlock(this->m_Mutex);
 }
 
 /* Verifies that terminals have the correct ID */
@@ -864,7 +865,7 @@ int CEK9000Device::Poll(float duration, int timeout)
 		this->m_pDriver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
 		epicsThreadSleep(duration);
 		timeout--;
-	} while ((dat & 0x200) == 0x200 && timeout > 0);
+	} while ((dat & 0x200) && timeout > 0);
 
 	if (timeout <= 0)
 		return 1;

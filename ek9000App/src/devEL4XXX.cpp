@@ -28,6 +28,7 @@
 #include <aoRecord.h>
 #include <iocsh.h>
 #include <callback.h>
+#include <atomic>
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -36,6 +37,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "asynDriver.h"
 #include "devEK9000.h"
 
 struct SEL40XXSupportData
@@ -111,13 +113,10 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	/* Check error */
 	if(status)
 	{
-		if(status > 0x100)
-		{
+		if(status > 0x100) {
 			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
-			return;
 		}
-		else
-		{
+		else {
 			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		}
 		return;
@@ -133,6 +132,7 @@ static long EL40XX_init(int after)
 {
 	return 0;
 }
+
 
 static long EL40XX_init_record(void* record)
 {
@@ -152,7 +152,7 @@ static long EL40XX_init_record(void* record)
 	}
 	free(out);
 	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
-	
+
 	/* Lock mutex for IO */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 	/* Verify it's error free */
@@ -175,7 +175,6 @@ static long EL40XX_init_record(void* record)
 		Error("EL40XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
-	//EL40XX_write_record(record);
 	return 0;
 }
 

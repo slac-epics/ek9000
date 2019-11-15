@@ -28,7 +28,29 @@ struct SPositionInterfaceCompact_Output
 	uint8_t enc_set_counter : 1;	/* Set the counter value */
 	uint8_t enc_enable_lat_ene : 1; /* extern on negative edge */
 	uint16_t _r4 : 12;
-	uint32_t enc_counter_val;	/* The value to be set thru set counter */
+	union
+	{
+		uint16_t enc_counter_val[2];	/* The value to be set thru set counter */
+		struct
+		{
+			uint16_t enc_counter_val_high;
+			uint16_t enc_counter_val_low;
+		};
+	};
+	/* 0x1605:0x7020 */
+	uint32_t pos_execute : 1;		/* Begin move with settings */
+	uint32_t pos_emergency_stp : 1;	/* Emergency stop */
+	uint32_t _r1 : 14;
+	union
+	{
+		uint16_t pos_tgt_pos[2];			/* Target position */
+		struct  
+		{
+			uint16_t pos_tgt_pos_high;
+			uint16_t pos_tgt_pos_low;
+		};
+	};
+
 	/* 0x1602:0x7010 */
 	uint8_t stm_enable	: 1;			/* Enable output stage */
 	uint8_t stm_reset	: 1;			/* Reset and clear all errors */
@@ -36,11 +58,6 @@ struct SPositionInterfaceCompact_Output
 	uint8_t _r2;
 	uint8_t stm_digout1 : 1;		/* Digital output 1 */
 	uint8_t _r3 : 4;
-	/* 0x1605:0x7020 */
-	uint32_t pos_execute : 1;		/* Begin move with settings */
-	uint32_t pos_emergency_stp : 1;	/* Emergency stop */
-	uint32_t _r1 : 14;
-	uint32_t pos_tgt_pos;			/* Target position */
 };
 
 struct SPositionInterfaceCompact_Input
@@ -96,7 +113,7 @@ class EL70X7Axis
 ========================================================*/
 class epicsShareClass el70x7Axis : public asynMotorAxis
 {
-private:
+public:
 	class CouplerLock
 	{
 		el70x7Axis* axis;
@@ -163,6 +180,12 @@ public:
 
 	/* Report all detected motor axes */
 	void report(FILE* fd, int lvl);
+
+	/* Does locks the driver */
+	void lock();
+
+	/* Unlocks the driver */
+	void unlock();
 
 private:
 	asynStatus UpdatePDO(bool locked = false);
