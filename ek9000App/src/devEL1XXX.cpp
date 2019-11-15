@@ -28,6 +28,7 @@
 #include <biRecord.h>
 #include <iocsh.h>
 #include <callback.h>
+#include <atomic>
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>

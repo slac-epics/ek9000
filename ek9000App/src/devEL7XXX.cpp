@@ -41,9 +41,12 @@
 #include <string.h>
 #include <vector>
 
+#include "asynDriver.h"
 #include "devEK9000.h"
 #include "devEL7XXX.h"
+#include "errlog.h"
 
+#define BREAK() /* asm("int3\n\t") */
 
 std::vector<el70x7Controller*> controllers;
 
@@ -95,7 +98,7 @@ el70x7Controller::el70x7Controller(CEK9000Device* dev, CTerminal* controller, co
 	this->paxis = (el70x7Axis**)calloc(sizeof(el70x7Axis*), numAxis);
 	for(int i = 0; i < numAxis; i++)
 		this->paxis[i] = new el70x7Axis(this, i);
-	startPoller(100, 100, 0);
+	startPoller(0.25, 0.25, 0);
 	if(!dev->VerifyConnection())
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "Unable to connect to device.\n");
 }
@@ -138,10 +141,10 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) :
 	printf("el70x7Axis\n");
 	uint16_t spd;
 	pC_= pC;
-	this->pC_->pcoupler->Lock();
 	this->pcoupler = pC->pcoupler;
 	this->pcontroller = pC->pcontroller;
 	this->pdrv = pC->pcoupler->m_pDriver;
+	this->lock();
 	/* Set previous params to random values */
 	/* Grab initial values */
 	int status = this->pcoupler->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 
@@ -152,42 +155,59 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) :
 	/* Read the configured speed */
 	spd = 0;
 	this->pcoupler->doCoEIO(0, pcontroller->m_nTerminalIndex, 0x8012, 1, &spd, 0x05);
+	/* THIS IS IMPORTANT: Set everything to zero initially */
+	this->curr_param.back_accel = 0.0;
+	this->curr_param.forward_accel = 0.0;
+	this->curr_param.max_vel = 0.0;
+	this->curr_param.min_vel = 0.0;
+	/* ALSO set these to zero or else it will be full of junk values that'll get possibly written to the device if there is an input error */
+	memset(&this->input, 0, sizeof(SPositionInterfaceCompact_Input));
+	memset(&this->output, 0, sizeof(SPositionInterfaceCompact_Output));
 	switch(spd)
 	{
-		case 0:
-			speed = 1000;
-			break;
-		case 1:
-			speed = 2000;
-			break;
-		case 2:
-			speed = 4000;
-			break;
-		case 3:
-			speed = 8000;
-			break;
-		case 4:
-			speed = 16000;
-			break;
-		case 5:
-			speed = 32000;
-			break;
-		default:
-			speed = 1000;
-			break;
+		case 0:		speed = 1000;	break;
+		case 1:		speed = 2000;	break;
+		case 2:		speed = 4000;	break;
+		case 3:		speed = 8000;	break;
+		case 4:		speed = 16000;	break;
+		case 5:		speed = 32000;	break;
+		default:	speed = 1000; 	break;
 	}
-	this->pcoupler->Unlock();
+	this->unlock();
+	return;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Modbus IO error. Error=%u\n",
 		__FUNCTION__, __LINE__, status);
+	this->unlock();
+}
+
+void el70x7Axis::lock()
+{
+	if(this->pdrv->lock()) 
+		asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to grab mutex.\n",
+				__FUNCTION__, __LINE__);
+	else
+		asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Grabbed mutex.\n", 
+				__FUNCTION__, __LINE__);
+}
+
+void el70x7Axis::unlock()
+{
+	if(this->pdrv->unlock())
+		asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to unlock mutex.\n", 
+				__FUNCTION__, __LINE__);
+	else
+		asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Unlocked mutex.\n",
+				__FUNCTION__, __LINE__);
 }
 
 asynStatus el70x7Axis::setMotorParameters(uint16_t min_start_vel,
 		uint16_t max_coil_current, uint16_t reduced_coil_currrent, uint16_t nominal_voltage,
 		uint16_t internal_resistance, uint16_t full_steps, uint16_t enc_inc)
 {
-	/* We assume the device is not locked */
-	CouplerLock lck = CouplerLock(this);
+	printf("MOTOR UPDATE PARAM\n");
+	BREAK();
+	this->lock();
 	uint16_t tid = pcontroller->m_nTerminalIndex;
 	int stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &max_coil_current, 0x1);
 	if(stat) goto error;
@@ -203,16 +223,20 @@ asynStatus el70x7Axis::setMotorParameters(uint16_t min_start_vel,
 	if(stat) goto error;
 	stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &min_start_vel, 0x9);
 	if(stat) goto error;
+	this->unlock();
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to propagate CoE params error=%u\n",
 		__FUNCTION__, __LINE__, stat);
+	this->unlock();
 	return asynError;
 }
 
 asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel, double accel)
 {
-	CouplerLock lck = CouplerLock(this);
+	printf("MOVE\n");
+	BREAK();
+	this->lock();
 	/* Set the params */
 	this->curr_param.max_vel = max_vel;
 	this->curr_param.min_vel = min_vel;
@@ -221,18 +245,26 @@ asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel,
 	if(stat) goto error;
 	if(rel)
 	{
-		output.pos_tgt_pos = (uint32_t)(input.cntr_val + pos);
+		uint32_t tmp = (uint32_t)(input.cntr_val + pos);
+		output.pos_tgt_pos_low = tmp & 0xFFFF;
+		output.pos_tgt_pos_high = (tmp & 0xFFFF0000) >> 15;
 	}
 	else
-		output.pos_tgt_pos = (uint32_t)pos;
-	output.enc_set_counter = 1; /* set to 1 to set counter */
+	{
+		//output.pos_tgt_pos = (uint32_t)pos;
+		output.pos_tgt_pos_low = (uint32_t)pos & 0xFFFF;
+		output.pos_tgt_pos_high = ((uint32_t)pos & 0xFFFF0000) >> 15;
+	}
+	output.pos_execute = 1; /* set to 1 to set counter */
 	/* Execute move */
 	stat = Execute();
 	if(stat) goto error;
+	this->unlock();
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to perform move.\n",
 		__FUNCTION__, __LINE__);
+	this->unlock();
 	return asynError;
 }
 
@@ -244,17 +276,21 @@ accel is the acceleration of the motor in steps/s^2
 */
 asynStatus el70x7Axis::moveVelocity(double min_vel, double max_vel, double accel)
 {
-	CouplerLock lck = CouplerLock(this);
+	printf("MOVE VEL\n");
+	BREAK();
+	this->lock();
 	this->curr_param.max_vel = max_vel;
 	this->curr_param.min_vel = min_vel;
 	this->curr_param.forward_accel = accel;
 	int stat = this->UpdateParams();
 	if(stat) goto error;
 	/* Set velocity params */
+	this->unlock();
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to set move velocity.\n",
 		__FUNCTION__, __LINE__);
+	this->unlock();
 	return asynError;
 }
 
@@ -263,7 +299,9 @@ Move the motor to it's home position
 */
 asynStatus el70x7Axis::home(double min_vel, double max_vel, double accel, int forwards)
 {
-	CouplerLock lck = CouplerLock(this);
+	printf("HOME\n");
+	BREAK();
+	this->lock();
 	this->curr_param.max_vel = max_vel;
 	this->curr_param.min_vel = min_vel;
 	if(forwards)
@@ -273,19 +311,24 @@ asynStatus el70x7Axis::home(double min_vel, double max_vel, double accel, int fo
 	int stat = this->UpdateParams();
 	if(stat) goto error;
 	/* Home is just going to be 0 for now */
-	output.pos_tgt_pos = 0;
+	output.pos_tgt_pos[0] = 0;
+	output.pos_tgt_pos[1] = 0;
 	stat = Execute();
 	if(stat) goto error;
+	this->unlock();
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to go to home position.\n",
 		__FUNCTION__,__LINE__);
+	this->unlock();
 	return asynError;
 }
 
 asynStatus el70x7Axis::stop(double accel)
 {
-	CouplerLock lck = CouplerLock(this);
+	printf("STOP\n");
+	BREAK();
+	this->lock();
 	/* TODO: Investigate if we have the time required to write a new accel value to the terminal */
 	this->curr_param.back_accel = accel;
 	int stat = this->UpdateParams();
@@ -294,21 +337,29 @@ asynStatus el70x7Axis::stop(double accel)
 	output.pos_emergency_stp = 1;
 	stat = Execute();
 	if(stat) goto error;
+	this->unlock();
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to stop motor.\n",
 		__FUNCTION__,__LINE__);
+	this->unlock();
 	return asynError;
 }
 
 asynStatus el70x7Axis::poll(bool* moving)
 {
-	printf("POLL\n");
-	pC_->pcoupler->Lock();
+	if(!this->pcoupler->VerifyConnection())
+	{
+		epicsPrintf("BRO!!!!\n");
+		return asynSuccess;
+	}
+	this->lock();
 	/* This will read params from the motor controller */
 	int stat = this->UpdatePDO();
+	//int stat = 0;
 	if(stat) goto error;
-	this->setIntegerParam(pC_->motorEncoderPosition_, input.cntr_val);
+	/* encoderposition is double */
+	this->setDoubleParam(pC_->motorEncoderPosition_, (double)input.cntr_val);
 	this->setIntegerParam(pC_->motorStatusDone_, input.stat_in_tgt);
 	this->setIntegerParam(pC_->motorStatusDirection_, input.stm_mov_pos);
 	this->setIntegerParam(pC_->motorStatusSlip_, input.stm_stall);
@@ -320,42 +371,52 @@ asynStatus el70x7Axis::poll(bool* moving)
 	if(input.stm_err)
 		epicsPrintf("el7047Axis::poll(): Stepper motor error detected!\n");
 	*moving = input.stat_busy != 0;
-	pC_->pcoupler->Unlock();
-	printf("END POLL\n");
+	this->unlock();
 	return asynSuccess;
 error:
-	printf("END POLL\n");
-	pC_->pcoupler->Unlock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to poll device.\n",
 		__FUNCTION__,__LINE__);
+	this->unlock();
 	return asynError;
 }
 
 asynStatus el70x7Axis::setPosition(double pos)
 {
-	CouplerLock lck = CouplerLock(this);
-	output.enc_counter_val = (uint32_t)pos;
-	output.enc_set_counter = 1;
+	BREAK();
+	this->lock();
+	printf("setPosition\n");
+	uint32_t rpos = (uint32_t)pos;
+	output.pos_tgt_pos[0] = ((uint16_t*)&rpos)[0];
+	output.pos_tgt_pos[1] = ((uint16_t*)&rpos)[1];
+	output.pos_execute = 1;
 	int stat = UpdatePDO();
 	if(stat) goto error;
+	this->unlock();
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Error while setting tgt pos.\n",
 		__FUNCTION__, __LINE__);
+	this->unlock();
 	return asynError;
 }
 
 asynStatus el70x7Axis::setEncoderPosition(double pos)
 {
-	CouplerLock lck = CouplerLock(this);
-	output.enc_counter_val = (uint32_t)pos;
+	BREAK();
+	this->lock();
+	printf("setEncoderPosition\n");
+	uint32_t rpos = (uint32_t)pos;
+	output.enc_counter_val[0] = ((uint16_t*)&rpos)[0];
+	output.enc_counter_val[1] = ((uint16_t*)&rpos)[1];
 	output.enc_set_counter = 1;
 	int stat = UpdatePDO();
 	if(stat) goto error;
+	this->unlock();
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Error while setting encoder position.\n",
 		__FUNCTION__, __LINE__);
+	this->unlock();
 	return asynError;
 }
 
@@ -366,18 +427,28 @@ asynStatus el70x7Axis::setClosedLoop(bool closed)
 
 asynStatus el70x7Axis::UpdatePDO(bool locked)
 {
+	const char* pStep = "UPDATE_PDO";
+	SPositionInterfaceCompact_Input old_input = this->input;
+	SPositionInterfaceCompact_Output old_output = this->output;
+	this->output.stm_digout1 = 1;	
 	/* Update input pdos */
-	int stat = pcoupler->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, pcontroller->m_nInputStart,
+	int stat = pcoupler->m_pDriver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, pcontroller->m_nInputStart,
 		(uint16_t*)&this->input, pcontroller->m_nInputSize/2);
 	if(stat) goto error;
+	pStep = "PROPAGATE_PDO";
 	/* Propagate changes from our internal pdo */
 	stat = pcoupler->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, pcontroller->m_nOutputStart,
 		(uint16_t*)&this->output, pcontroller->m_nOutputSize/2);
 	if(stat) goto error;
 	return asynSuccess;
 error:
-	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Error while updating PDOs. Error=%u\n",
-		__FUNCTION__, __LINE__, stat);
+	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Error while updating PDOs. Error=%u Step=%s Input Start=%u"
+			" Input size=%u Output Start=%u Output Size=%u\n",
+		__FUNCTION__, __LINE__, stat, pStep, pcontroller->m_nInputStart, pcontroller->m_nInputSize/2,
+		pcontroller->m_nOutputStart, pcontroller->m_nOutputSize/2);
+	/* Reset to previous on error */
+	this->input = old_input;
+	this->output = old_output;
 	return asynError;
 }
 
@@ -408,10 +479,14 @@ Update the specified parameters
 */
 asynStatus el70x7Axis::UpdateParams()
 {
+	printf("Param update\n");
 	int res = 0;
 	/* Check which params have changed and then propagate changes */
+	const char* step = "";
 	if(curr_param.forward_accel != prev_param.forward_accel)
 	{
+		step = "Update_Forward_Accel";
+		printf("%s\n", step);
 		/* the 7047 takes accel in the units of ms, but the motor record gives it to us in steps/s^2 */
 		uint32_t data = (uint32_t)((curr_param.max_vel-curr_param.min_vel)/curr_param.forward_accel);
 		res = pcoupler->doCoEIO(1, pcontroller->m_nTerminalIndex, 0x8020, 2, (uint16_t*)&data, 3);
@@ -420,6 +495,8 @@ asynStatus el70x7Axis::UpdateParams()
 	}
 	if(curr_param.back_accel != prev_param.back_accel)
 	{
+		step = "Update_Back_Accel";
+		printf("%s\n", step);
 		/* same as forward accel */
 		uint32_t data = (uint32_t)((curr_param.max_vel-curr_param.min_vel)/curr_param.back_accel);
 		res = pcoupler->doCoEIO(1, pcontroller->m_nTerminalIndex, 0x8020, 2, (uint16_t*)&data, 4);
@@ -428,6 +505,8 @@ asynStatus el70x7Axis::UpdateParams()
 	}
 	if(curr_param.max_vel != prev_param.max_vel)
 	{
+		step = "Update_Max_Vel";
+		printf("%s\n", step);
 		/* The speed is set on init of this axis, and it should not change during operation */
 		/* The el7047 takes speed in terms of the percentage of the max velocity, multiplied by 10,000 (it likes integers) */
 		uint32_t data = (uint32_t)((curr_param.max_vel/(double)this->speed)*10000);
@@ -437,6 +516,8 @@ asynStatus el70x7Axis::UpdateParams()
 	}
 	if(curr_param.min_vel != prev_param.min_vel)
 	{
+		step = "Update_Min_Vel";
+		printf("%s\n", step);
 		uint32_t data = (uint32_t)((curr_param.min_vel/(double)this->speed)*10000);
 		res = pcoupler->doCoEIO(1, pcontroller->m_nTerminalIndex, 0x8020, 2, (uint16_t*)&data, 1);
 		if(res) goto error;
@@ -446,8 +527,8 @@ asynStatus el70x7Axis::UpdateParams()
 	}
 	return asynSuccess;
 error:
-	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to update params. Error=%u\n",
-		__FUNCTION__, __LINE__, res);
+	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to update params. Error=%u Step=%s\n",
+		__FUNCTION__, __LINE__, res, step);
 	return asynError;
 }
 
@@ -459,13 +540,14 @@ void el7047_Configure(const iocshArgBuf* args)
 {
 	const char* ek9k = args[0].sval;
 	const char* port = args[1].sval;
-	int slaveid = args[2].ival;
+	const char* rec = args[2].sval;
+	int slaveid = args[3].ival;
 	if(!ek9k)
 	{
 		epicsPrintf("Please provide an ek9000 name.\n");
 		return;
 	}
-	if(!port)
+	if(!port || !rec)
 	{
 		epicsPrintf("Please provide a port name.\n");
 		return;
@@ -478,9 +560,120 @@ void el7047_Configure(const iocshArgBuf* args)
 		return;
 	}
 	CTerminal* term = &dev->m_pTerms[slaveid-1];
+	dev->AddTerminal(rec, 7047, slaveid);
+	term->m_nInputSize = 14;
+	term->m_nOutputSize = 14;
 	el70x7Controller* pctl = new el70x7Controller(dev, term, port, 1);
 	printf("Created port %s\n", port);
 	controllers.push_back(pctl);
+}
+
+void el7047_Stat(const iocshArgBuf* args)
+{
+	const char* ek9k = args[0].sval;
+	if(!ek9k)
+	{
+		epicsPrintf("Please provide an ek9000 name.\n");
+		return;
+	}
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	if(!dev)
+	{
+		epicsPrintf("Invalid device.\n");
+		return;
+	}
+	for(auto x : controllers)
+	{
+		for(int i = 0; ; i++)
+		{
+			el70x7Axis* axis = x->getAxis(i);
+			if(!axis) break;
+			epicsPrintf("%s\n", x->pcontroller->m_pRecordName);
+			epicsPrintf("\tSpeed [steps/s]:      %u\n", axis->speed);
+			epicsPrintf("\tEncoder pos:          %u\n", axis->enc_pos);
+		}
+	}
+}
+
+void el70x7SetParam(const iocshArgBuf* args)
+{
+	const char* ek9k = args[0].sval;
+	const char* port = args[1].sval;
+	const char* param = args[2].sval;
+	const char* val = args[3].sval;
+	if(!ek9k || !port || !param || !val)
+	{
+		printf("maximal-current reduced-current nominal-voltage coil-resistance motor-emf motor-fullsteps motor-inductance");
+		return;
+	}
+	for(el70x7Controller* x : controllers)
+	{
+		if(strcmp(port, x->portName) == 0)
+		{
+			x->pcoupler->Lock();
+
+			if(strcmp(param, "maximal-current") == 0)
+			{
+				uint16_t v = atoi(param);
+				int status = x->pcoupler->doCoEIO(1, x->pcontroller->m_nTerminalIndex, 0x8010, 0x1, &v, 0x1);
+				if(status)
+					printf("Could not set %s. Error=%u\n", param, status);
+				else 
+					printf("Set %s to %s", param, val);
+			}
+			else if(strcmp(param, "reduced-current") == 0)
+			{
+
+			}
+			else if(strcmp(param, "nominal-voltage") == 0)
+			{
+
+			}
+			else if(strcmp(param, "coil-resistance") == 0)
+			{
+
+			}
+			else if(strcmp(param, "motor-emf") == 0)
+			{
+
+			}
+			else if(strcmp(param, "motor-fullsteps") == 0)
+			{
+
+			}
+			else if(strcmp(param, "motor-inductance") == 0)
+			{
+
+			}
+			x->pcoupler->Unlock();
+			return;
+		}
+	}
+	printf("not found.\n");
+
+}
+
+void el70x7PrintMessages(const iocshArgBuf* args)
+{
+	const char* port = args[0].sval;
+	for(auto x : controllers)
+	{
+		if(strcmp(x->portName, port) == 0)
+		{
+			x->pcoupler->Lock();
+			uint16_t string[15];
+			x->pcoupler->doCoEIO(0, x->pcontroller->m_nTerminalIndex, 0x1008, 5, string, 0);
+			string[5] = 0;
+			printf("%s\n", string);
+			for(int i = 0x6; i < 0x38; i++)
+			{
+				x->pcoupler->doCoEIO(0, x->pcontroller->m_nTerminalIndex, 0x10f3, 14, string, i);
+				string[14] = 0;
+				printf("#%u: %s\n", i-0x6, (const char*)string);
+			}
+			x->pcoupler->Unlock();
+		}
+	}
 }
 
 void el7047_Register()
@@ -489,10 +682,35 @@ void el7047_Register()
 	{
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg arg2 = {"Port Name", iocshArgString};
-		static const iocshArg arg3 = {"SLave position", iocshArgInt};
-		static const iocshArg* const args[] = {&arg1, &arg2, &arg3};
-		static const iocshFuncDef func = {"el70x7Configure", 3, args};
+		static const iocshArg arg3 = {"Record", iocshArgString};
+		static const iocshArg arg4 = {"Slave position", iocshArgInt};
+		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
+		static const iocshFuncDef func = {"el70x7Configure", 4, args};
 		iocshRegister(&func, el7047_Configure);
+	}
+	/* el70x7Stat */
+	{
+		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
+		static const iocshArg* const args[] = {&arg1};
+		static const iocshFuncDef func = {"el70x7Stat", 1, args};
+		iocshRegister(&func, el7047_Stat);
+	}
+	/* el70x7SetParam */
+	{
+		static const iocshArg arg0 = {"EK9000 Name", iocshArgString};
+		static const iocshArg arg1 = {"EL70x7 Port Name", iocshArgString};
+		static const iocshArg arg2 = {"Param Name", iocshArgString};
+		static const iocshArg arg3 = {"Value", iocshArgString};
+		static const iocshArg* const args[] = {&arg0, &arg1, &arg2, &arg3};
+		static const iocshFuncDef func = {"el70x7SetParam", 4, args};
+		iocshRegister(&func, el70x7SetParam);
+	}
+	/* el70x7PrintMessages */
+	{
+		static const iocshArg arg1 = {"Port", iocshArgString};
+		static const iocshArg* const args[] = {&arg1};
+		static const iocshFuncDef func = {"el70x7PrintMessages", 1, args};
+		iocshRegister(&func, el70x7PrintMessages);
 	}
 }
 

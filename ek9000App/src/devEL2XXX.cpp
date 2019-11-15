@@ -28,6 +28,7 @@
 #include <mbboRecord.h>
 #include <iocsh.h>
 #include <callback.h>
+#include <atomic>
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -121,19 +122,6 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	}
 }
 
-static void EL20XX_ReadOutputs(void* precord)
-{
-	boRecord* pRecord = (boRecord*)precord;
-	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
-	if(!dpvt->m_pTerminal)
-		return;
-	uint16_t buf = 0;
-	/* Read from the device */
-	dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_COILS,
-			dpvt->m_pTerminal->m_nOutputStart + (dpvt->m_nChannel * 2), &buf, 1);
-	pRecord->rval = buf;
-}
-
 static long EL20XX_dev_report(int interest)
 {
 	return 0;
@@ -149,7 +137,7 @@ static long EL20XX_init_record(void* precord)
 	boRecord* pRecord = (boRecord*)precord;
 	pRecord->dpvt = malloc(sizeof(SEL20XXSupportData));
 	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
-	
+
 	/* Grab terminal info */
 	char* recname = NULL;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
@@ -170,7 +158,7 @@ static long EL20XX_init_record(void* precord)
 		Error("EL20XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
-
+	
 	/* Lock mutex for modbus */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 
@@ -192,9 +180,7 @@ static long EL20XX_init_record(void* precord)
 		dpvt->m_pDevice->Unlock();
 		return 1;
 	}
-
 	dpvt->m_pDevice->Unlock();
-	//EL20XX_write_record(precord);
 	return 0;
 }
 
@@ -211,3 +197,5 @@ static long EL20XX_write_record(void* precord)
 
 	return 0;
 }
+
+
