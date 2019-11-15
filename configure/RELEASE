@@ -1,11 +1,11 @@
 #RELEASE Location of external products
 
-SUPPORT=~/epics-r3-14/base/modules
+SUPPORT=~/epics-r3-14/extensions/src/
 -include $(TOP)/../configure/SUPPORT.$(EPICS_HOST_ARCH)
 
 # Make sure to clone the drvAsynIPPort branch.
 MODBUS=$(SUPPORT)/modbus
-
+ASYN=$(SUPPORT)/asyn
 #  EPICS_BASE 3.14 or later is required
 EPICS_BASE=~/epics-r3-14/base
 -include $(TOP)/../configure/EPICS_BASE.$(EPICS_HOST_ARCH)
