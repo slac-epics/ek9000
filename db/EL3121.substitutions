@@ -1,9 +1,0 @@
-file EL3121.template
-{ 	pattern 
-	{
-		TERMINAL,	
-		DESC1,	SCAN1,	ADEL1,	EGUF1,	EGUL1,	HIGH1,	HIHI1,	HOPR1,	HYST1,	LOLO1,	LOPR1,	LOW1,	MDEL1,	SMOO1,	UNIT1	
-	}
-	{
-	}
-}

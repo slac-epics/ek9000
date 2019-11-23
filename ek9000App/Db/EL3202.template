@@ -1,11 +1,11 @@
 #
-# EL3042 template.
+# EL3202 template.
 #
 
 record(ai,"$(TERMINAL):1")
 {
 	field(DESC,  "$(DESC1)")
-	field(DTYP,  "EL30XX")
+	field(DTYP,  "EL31XX")
 	field(SCAN,  "$(SCAN1)")
 	field(ADEL,  "$(ADEL1)")
 	field(EGUF,  "$(EGUF1)")
@@ -26,7 +26,7 @@ record(ai,"$(TERMINAL):1")
 record(ai,"$(TERMINAL):2")
 {
 	field(DESC,  "$(DESC2)")
-	field(DTYP,  "EL30XX")
+	field(DTYP,  "EL31XX")
 	field(SCAN,  "$(SCAN2)")
 	field(ADEL,  "$(ADEL2)")
 	field(EGUF,  "$(EGUF2)")

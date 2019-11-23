@@ -33,6 +33,7 @@
 #include <callback.h>
 #include <epicsStdio.h>
 #include <errlog.h>
+#include <epicsMessageQueue.h> 
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -40,6 +41,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+
+#include <functional>
 
 #define PORT_PREFIX "PORT_"
 
@@ -369,6 +372,9 @@ public:
 	/* last device err */
 	int m_nError = EK_EOK;
 
+	/* Message queue */
+	epicsMessageQueue* queue;
+
 public:
 	CEK9000Device();
 
@@ -376,6 +382,10 @@ public:
 	~CEK9000Device();
 
 public:
+	void QueueCallback(void(*callback)(void*), void* rec);
+
+	void ExecuteCallbacks();
+
 	/* Allows for better error handling (instead of using print statements to indicate error) */
 	static CEK9000Device *Create(const char *name, const char *ip, int terminal_count);
 
@@ -552,6 +562,63 @@ public:
 	bool operator==(const CEK9000Device &other) const
 	{
 		return (strcmp(this->m_pName, other.m_pName) == 0);
+	}
+};
+
+#include <type_traits>
+#include <typeinfo>
+
+template<class...Args>
+class iocshFunction
+{
+	iocshArg* args;
+	iocshFuncDef funcdef;
+	int nargs;
+	std::function<void(Args...)> func;
+public:
+	iocshFunction(const char* name, std::initializer_list<const char*> list, std::function<void(Args...)> fn) :
+		func(fn)
+	{
+		nargs = list.size();
+		if(nargs > 0)
+			args = (iocshArg*)malloc(list.size() * sizeof(iocshArg));
+		/* Use this to determine types */
+		std::vector<Args...> argbuf;
+	
+		/* Handle all of the types, probably in the worst way possible */
+		int i = 0;
+		for(auto x : list)
+		{
+			iocshArgType argtype = getArgType(typeid(argbuf[i]));
+			args[i] = {x,argtype};
+			i++;
+		}
+		/* Register the function */
+		funcdef = {name, nargs, this->args};
+		iocshRegister(&this->funcdef, fn);
+	}
+
+	~iocshFunction()
+	{
+		free(args);
+	}
+
+private:
+	void wrapper(const iocshArgBuf* argbuf)
+	{
+	}
+
+	iocshArgType getArgType(const std::type_info& info) const
+	{
+		if(info == typeid(int) || info == typeid(unsigned))
+			return iocshArgInt;
+		else if(info == typeid(float) || info == typeid(double) || info == typeid(long double))
+			return iocshArgDouble;
+		else if(info == typeid(const char*) || info == typeid(char*))
+			return iocshArgString;
+		else if(info == typeid(pdbbase))
+			return iocshArgPdbbase;
+		return iocshArgString;
 	}
 };
 

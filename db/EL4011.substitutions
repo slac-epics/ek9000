@@ -1,9 +1,0 @@
-file EL4011.template
-{ 	pattern 
-	{
-		TERMINAL,	
-		DESC1,	SCAN1,	ADEL1,	EGUF1,	EGUL1,	DRVH1,	DRVL1,	HOPR1,	LOPR1,	LOLO1,	LOPR1,	PINI1	
-	}
-	{
-	}
-}

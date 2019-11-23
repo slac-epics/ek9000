@@ -28,6 +28,8 @@
 #include <aiRecord.h>
 #include <iocsh.h>
 #include <callback.h>
+#include <alarm.h>
+#include <recGbl.h>
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -78,6 +80,7 @@ struct SEL30XXSupportData
 	int m_nChannel;
 	/* Compact or standard PDO used */
 	bool m_bCompactPDO;
+	bool isSigned;
 };
 
 static void EL30XX_ReadCallback(CALLBACK* callback)
@@ -97,21 +100,28 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 
 	if(status != epicsMutexLockOK)
 	{
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
-	/* read analog input, 4 bytes each, first 16 bytes is the actual adc value */
+	/* read analog input, 4 bytes each, first 16 bits is the actual adc value */
 	uint16_t buf[2];
 	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
 		((dpvt->m_nChannel-1) * 2), buf, 2);
 	/* Set props */
-	pRecord->rval = buf[0];
-	pRecord->pact = 0;
+	pRecord->rval = (uint16_t)buf[0];
+	if(dpvt->isSigned)
+		pRecord->val = (epicsFloat64)((int16_t)buf[0]);
+	else
+		pRecord->val = (epicsFloat64)((uint16_t)buf[0]);
+	pRecord->pact = FALSE;
+	pRecord->udf = FALSE;
 	dpvt->m_pTerminal->m_pDevice->Unlock();
 
 	/* Check for error */
 	if(status)
 	{
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		if(status > 0x100)
 		{
 			DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
@@ -176,8 +186,6 @@ static long EL30XX_init_record(void *precord)
 static long EL30XX_read_record(void *precord)
 {
 	aiRecord* pRecord = (aiRecord*)precord;
-	/* indicate processing */
-	pRecord->pact = 1;
 	/* Allocate and set callback */
 	CALLBACK *callback = (CALLBACK *)malloc(sizeof(CALLBACK));
 	*callback = *(CALLBACK*)EL30XX_ReadCallback;
