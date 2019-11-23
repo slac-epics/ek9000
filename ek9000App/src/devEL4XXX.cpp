@@ -28,6 +28,8 @@
 #include <aoRecord.h>
 #include <iocsh.h>
 #include <callback.h>
+#include <recGbl.h>
+#include <alarm.h> 
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -89,6 +91,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	/* Verify connection */
 	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
 	{
+		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		pRecord->pact = 0;
 		return;
@@ -98,7 +101,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	dpvt->m_pTerminal->m_pDevice->Lock();
 	
 	/* Set buffer & do write */
-	uint16_t buf = pRecord->rval;
+	uint16_t buf = (uint16_t)pRecord->val;
 	int status = dpvt->m_pTerminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS, dpvt->m_pTerminal->m_nOutputStart + 
 		(dpvt->m_nChannel-1), &buf, 1);
 	
@@ -106,11 +109,12 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	dpvt->m_pTerminal->m_pDevice->Unlock();
 
 	/* No more processing */
-	pRecord->pact = 0;
-
+	pRecord->pact = FALSE;
+	pRecord->udf = FALSE;
 	/* Check error */
 	if(status)
 	{
+		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		if(status > 0x100)
 		{
 			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
@@ -187,7 +191,6 @@ static long EL40XX_write_record(void* record)
 	callbackSetCallback(EL40XX_WriteCallback, callback);
 	callbackSetUser(pRecord, callback);
 	callbackSetPriority(priorityHigh, callback);
-	pRecord->pact = 1;
 	callbackRequest(callback);
 	return 0;
 }

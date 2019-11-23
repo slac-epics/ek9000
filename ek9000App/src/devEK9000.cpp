@@ -113,7 +113,7 @@ void PollThreadFunc(void* param)
 				if(status)
 					continue;
 				uint16_t buf = 1;
-				elem->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1121, &buf, 1);
+				elem->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1);
 				elem->Unlock();
 			}
 		}
@@ -290,6 +290,7 @@ CEK9000Device::CEK9000Device()
 	m_pPortName = (char *)malloc(1);
 	m_pPortName[0] = '\0';
 	this->m_Mutex = epicsMutexCreate();
+	this->queue = new epicsMessageQueue(500, sizeof(void*));
 }
 
 CEK9000Device::~CEK9000Device()
@@ -860,6 +861,29 @@ const char *CEK9000Device::LastErrorString()
 	return ErrorToString(LastError());
 }
 
+struct SMsg_t
+{
+	void* rec;
+	void(*callback)(void*);
+};
+
+void CEK9000Device::QueueCallback(void(*callback)(void*), void* rec)
+{
+	SMsg_t* msg = new SMsg_t;
+//	this->queue->trySend(&msg, sizeof(callback));
+}
+
+void CEK9000Device::ExecuteCallbacks()
+{
+	this->Lock();
+	SMsg_t* msg;
+	while(this->queue->tryReceive(&msg, sizeof(msg)))
+	{
+		msg->callback(msg->rec);
+	}
+	this->Unlock();
+}
+
 const char *CEK9000Device::ErrorToString(int i)
 {
 	if(i == EK_EADSERR)
@@ -1192,7 +1216,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 void ek9000Stat(const iocshArgBuf *args)
 {
 	const char *ek9k = args[0].sval;
-	if (!ek9k)
+	if (!ek9k || !g_pDeviceMgr)
 	{
 		epicsPrintf("Invalid parameter.\n");
 		return;
@@ -1233,10 +1257,10 @@ void ek9000Stat(const iocshArgBuf *args)
 		epicsPrintf("\tStatus: NOT CONNECTED\n");
 	epicsPrintf("\tIP: %s\n", dev->m_pIP);
 	epicsPrintf("\tAsyn Port Name: %s\n", dev->m_pPortName);
-	epicsPrintf("\tAO size: %u\n", ao);
-	epicsPrintf("\tAI size: %u\n", ai);
-	epicsPrintf("\tBI size: %u\n", bi);
-	epicsPrintf("\tBO size: %u\n", bo);
+	epicsPrintf("\tAO size: %u [bytes]\n", ao);
+	epicsPrintf("\tAI size: %u [bytes]\n", ai);
+	epicsPrintf("\tBI size: %u [bits]\n", bi);
+	epicsPrintf("\tBO size: %u [bits]\n", bo);
 	epicsPrintf("\tTCP connections: %u\n", tcp);
 	epicsPrintf("\tSerial number: %u\n", sn);
 	epicsPrintf("\tHardware Version: %u\n", hver);
@@ -1278,6 +1302,7 @@ void ek9000List(const iocshArgBuf* args)
 	{
 		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_pName, dev->m_nTerms);
 		epicsPrintf("\tIP: %s\n", dev->m_pIP);
+		epicsPrintf("\tConnected: %s\n", dev->VerifyConnection() ? "TRUE" : "FALSE");
 	}
 }
 
@@ -1377,7 +1402,9 @@ int ek9000RegisterFunctions()
 
 	/* ek9000Stat */
 	{
-		static const iocshFuncDef func = {"ek9000Stat", 0, NULL};
+		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
+		static const iocshArg*const args[] = {&arg1};
+		static const iocshFuncDef func = {"ek9000Stat", 1, args};
 		iocshRegister(&func, ek9000Stat);
 	}
 

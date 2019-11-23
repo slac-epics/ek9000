@@ -14,7 +14,6 @@ DBD += ek9000Test.dbd
 
 # ek9000Test.dbd will be made up from these files:
 ek9000Test_DBD += ek9000.dbd
-
 # Include dbd files from all support applications:
 
 # Add all the support libraries needed by this IOC
