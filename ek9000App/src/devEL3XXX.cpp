@@ -111,9 +111,9 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	/* Set props */
 	pRecord->rval = (uint16_t)buf[0];
 	if(dpvt->isSigned)
-		pRecord->val = (epicsFloat64)((int16_t)buf[0]);
+		pRecord->rval = (epicsFloat64)((int16_t)buf[0]);
 	else
-		pRecord->val = (epicsFloat64)((uint16_t)buf[0]);
+		pRecord->rval = (epicsFloat64)((uint16_t)buf[0]);
 	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
 	dpvt->m_pTerminal->m_pDevice->Unlock();

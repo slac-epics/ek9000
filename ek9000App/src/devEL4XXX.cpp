@@ -101,7 +101,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	dpvt->m_pTerminal->m_pDevice->Lock();
 	
 	/* Set buffer & do write */
-	uint16_t buf = (uint16_t)pRecord->val;
+	uint16_t buf = (uint16_t)pRecord->rval;
 	int status = dpvt->m_pTerminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS, dpvt->m_pTerminal->m_nOutputStart + 
 		(dpvt->m_nChannel-1), &buf, 1);
 	
