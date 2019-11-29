@@ -32,6 +32,7 @@ EK9000_MODULE_VERSION=R1.0.2
 ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
 MODBUS=$(EPICS_MODULES)/modbus/$(MODBUS_MODULE_VERSION)
 EK9000=$(EPICS_MODULES)/ek9000/$(EK9000_MODULE_VERSION)
+#EK9000=/reg/neh/home/lorelli/ek9000-release/ek9000-slac-R1.0.3/
 
 # ============================================================
 #  Module Location

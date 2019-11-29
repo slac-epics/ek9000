@@ -107,13 +107,12 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	/* read analog input, 4 bytes each, first 16 bits is the actual adc value */
 	uint16_t buf[2];
 	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
-		((dpvt->m_nChannel-1) * 2), buf, 2);
+		((dpvt->m_nChannel-1) * 2), buf, 1);
 	/* Set props */
-	pRecord->rval = (uint16_t)buf[0];
 	if(dpvt->isSigned)
-		pRecord->rval = (epicsFloat64)((int16_t)buf[0]);
+		pRecord->rval = ((int16_t)buf[0]);
 	else
-		pRecord->rval = (epicsFloat64)((uint16_t)buf[0]);
+		pRecord->rval = ((uint16_t)buf[0]);
 	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
 	dpvt->m_pTerminal->m_pDevice->Unlock();
@@ -180,6 +179,10 @@ static long EL30XX_init_record(void *precord)
 		Error("EL30XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
+	if(termid == 3174 || termid == 3102 || termid == 3142)
+		dpvt->isSigned = true;
+	else
+		dpvt->isSigned = false;
 	return 0;
 }
 
