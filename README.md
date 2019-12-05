@@ -24,8 +24,8 @@ If you have any questions or comments about the module, you can reach me at jere
 
 The EK9000 doesn't really make figuring out a register map easy, so please keep these things in mind:
 
-* If you install an unsupported terminal, the device support module may fail to correctly determine the register map, resulting in weirdness and stuff.
-* If you place an unsupported analog ONLY terminal AFTER all other slaves on the EK9000, the register map will be correct. This is because the device maps all analog terminals in order of their position on the rail. Digital terminals are mapped to coils, and therefore, not affected by weirdness in the holding/input register space.
+* If you install an unsupported terminal, the device support module may fail to correctly determine the register map.
+* If you place an unsupported analog only terminal (e.g. EL3064, EL4004, etc.) AFTER all other slaves on the EK9000, the register map will be correct. This is because the device maps all analog terminals in order of their position on the rail. Digital terminals are mapped to coils, and therefore, not affected by bad register maps in the holding/input register space.
 * If you place an unsupported digital ONLY terminal AFTER all other slaves on the EK9000, the register map will also be correct.
 * If you change the Pdo mapping for analog input terminals to something other than standard, the analog IO AND register mapping will not work correctly.
 To recap:
