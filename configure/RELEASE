@@ -21,7 +21,7 @@
 # ==========================================================
 ASYN_MODULE_VERSION=R4.32-1.0.1
 MODBUS_MODULE_VERSION=R3.0.0-0.2.0
-EK9000_MODULE_VERSION=R1.0.2
+EK9000_MODULE_VERSION=R1.0.3
 
 # ==========================================================
 # Define module paths using pattern
