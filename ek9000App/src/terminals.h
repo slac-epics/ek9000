@@ -877,10 +877,19 @@ static const STerminalInfoConst_t EL4034_Info = {EL4034_STRING, EL4034_ID, EL403
 static const STerminalInfoConst_t EL4038_Info = {EL4038_STRING, EL4038_ID, EL4038_OUTPUT_SIZE, EL4038_INPUT_SIZE};
 
 //=========================================================//
+// EL7047
+//=========================================================//
+#define	EL7047_STRING	"EL7047"
+#define	EL7047_ID	7047
+#define	EL7047_OUTPUT_SIZE	14
+#define	EL7047_INPUT_SIZE	14
+static const STerminalInfoConst_t EL7047_Info = {EL7047_STRING, EL7047_ID, EL7047_OUTPUT_SIZE, EL7047_INPUT_SIZE};
+
+//=========================================================//
 // Array of terminal info structures
 //=========================================================//
-#define	NUM_TERMINALS	96
-static const STerminalInfoConst_t* g_pTerminalInfos[96] = {
+#define	NUM_TERMINALS	97
+static const STerminalInfoConst_t* g_pTerminalInfos[97] = {
 	&EL1001_Info,
 	&EL1002_Info,
 	&EL1004_Info,
@@ -977,4 +986,5 @@ static const STerminalInfoConst_t* g_pTerminalInfos[96] = {
 	&EL4032_Info,
 	&EL4034_Info,
 	&EL4038_Info,
+	&EL7047_Info,
 };

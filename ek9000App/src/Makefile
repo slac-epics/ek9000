@@ -11,6 +11,11 @@ DBD += devEK9000.dbd
 DBD += ek9000.dbd
 DBD += ek9000Include.dbd
 
+USR_CXXFLAGS += --std=c++11
+
+# Used for code improvement purposes
+#USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic
+
 # Records/Device support sources
 ek9000Support_SRCS += devEK9000.cpp
 ek9000Support_SRCS += devEL1XXX.cpp
