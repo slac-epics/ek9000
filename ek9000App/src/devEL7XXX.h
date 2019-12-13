@@ -1,9 +1,10 @@
-/*
+//================================================================
+// Driver for the EL70XX motor terminals
+// using the asyn API
+//
+// EL7047 Docuentation: https://download.beckhoff.com/download/document/io/ethercat-terminals/el70x7en.pdf
+//================================================================
 
-Driver for the EL70XX motor terminals
-using the asyn API
-
-*/
 #ifndef _DEVEL7XXX_H_
 #define _DEVEL7XXX_H_
 
@@ -18,9 +19,10 @@ using the asyn API
 #include "devEK9000.h"
 
 /* For Positioning interface compact */
-/* RxPDOs: 0x1601 0x1602 0x1605 */
-/* TxPDOs: 0x1A01 0x1A03 0x1A06 */
-struct SPositionInterfaceCompact_Output
+/* RxPDOs : 0x1601 0x1602 0x1605 (things written to terminal by epics) */
+/* TxPDOs: 0x1A01 0x1A03 0x1A06 (things read from terminal by epics) */
+
+struct __attribute__((__packed__)) SPositionInterfaceCompact_Output
 {
 	/* 0x1601 */
 	uint8_t enc_enable_lat_c : 1;	/* Enable latching thru the C track */
@@ -28,39 +30,25 @@ struct SPositionInterfaceCompact_Output
 	uint8_t enc_set_counter : 1;	/* Set the counter value */
 	uint8_t enc_enable_lat_ene : 1; /* extern on negative edge */
 	uint16_t _r4 : 12;
-	union
-	{
-		uint16_t enc_counter_val[2];	/* The value to be set thru set counter */
-		struct
-		{
-			uint16_t enc_counter_val_high;
-			uint16_t enc_counter_val_low;
-		};
-	};
-	/* 0x1605:0x7020 */
-	uint32_t pos_execute : 1;		/* Begin move with settings */
-	uint32_t pos_emergency_stp : 1;	/* Emergency stop */
-	uint32_t _r1 : 14;
-	union
-	{
-		uint16_t pos_tgt_pos[2];			/* Target position */
-		struct  
-		{
-			uint16_t pos_tgt_pos_high;
-			uint16_t pos_tgt_pos_low;
-		};
-	};
+	uint32_t enc_counter_val;	/* The value to be set thru set counter */
 
 	/* 0x1602:0x7010 */
 	uint8_t stm_enable	: 1;			/* Enable output stage */
 	uint8_t stm_reset	: 1;			/* Reset and clear all errors */
 	uint8_t stm_reduce_torque : 1;		/* Recuded coil current is active */
-	uint8_t _r2;
+	uint8_t _r2 : 8;
 	uint8_t stm_digout1 : 1;		/* Digital output 1 */
 	uint8_t _r3 : 4;
+
+	/* 0x1605:0x7020 */
+	uint8_t pos_execute : 1;		/* Begin move with settings */
+	uint8_t pos_emergency_stp : 1;	/* Emergency stop */
+	uint16_t _r1 : 14;
+	uint32_t pos_tgt_pos;			/* Target position */
+
 };
 
-struct SPositionInterfaceCompact_Input
+struct __attribute__((__packed__)) SPositionInterfaceCompact_Input
 {
 	/* 0x1A01, 0x6000 */
 	uint32_t latc_valid : 1; /* Latch c valid */
@@ -106,11 +94,13 @@ struct SPositionInterfaceCompact_Input
 	uint32_t _r7 : 9;
 };
 
-/*======================================================
+/*
+========================================================
 
 class EL70X7Axis
 
-========================================================*/
+========================================================
+*/
 class epicsShareClass el70x7Axis : public asynMotorAxis
 {
 public:
@@ -181,7 +171,7 @@ public:
 	/* Report all detected motor axes */
 	void report(FILE* fd, int lvl);
 
-	/* Does locks the driver */
+	/* Locks the driver */
 	void lock();
 
 	/* Unlocks the driver */
