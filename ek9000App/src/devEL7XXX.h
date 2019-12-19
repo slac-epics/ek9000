@@ -21,8 +21,8 @@
 /* For Positioning interface compact */
 /* RxPDOs : 0x1601 0x1602 0x1605 (things written to terminal by epics) */
 /* TxPDOs: 0x1A01 0x1A03 0x1A06 (things read from terminal by epics) */
-
-struct __attribute__((__packed__)) SPositionInterfaceCompact_Output
+#pragma pack(1)
+struct SPositionInterfaceCompact_Output
 {
 	/* 0x1601 */
 	uint8_t enc_enable_lat_c : 1;	/* Enable latching thru the C track */
@@ -48,7 +48,7 @@ struct __attribute__((__packed__)) SPositionInterfaceCompact_Output
 
 };
 
-struct __attribute__((__packed__)) SPositionInterfaceCompact_Input
+struct SPositionInterfaceCompact_Input
 {
 	/* 0x1A01, 0x6000 */
 	uint32_t latc_valid : 1; /* Latch c valid */
@@ -93,6 +93,7 @@ struct __attribute__((__packed__)) SPositionInterfaceCompact_Input
 	uint32_t stat_deaccel : 1; /* Motor is slowing down */
 	uint32_t _r7 : 9;
 };
+#pragma pack()
 
 /*
 ========================================================
