@@ -350,7 +350,7 @@ asynStatus el70x7Axis::poll(bool* moving)
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::poll\n",
 		__FUNCTION__,__LINE__);
 	/* This will read params from the motor controller */
-	int stat = 0;//this->UpdatePDO();
+	int stat = this->UpdatePDO();
 	if(stat) goto error;
 	/* encoderposition is double */
 	this->setDoubleParam(pC_->motorEncoderPosition_, (double)input.cntr_val);
@@ -360,10 +360,12 @@ asynStatus el70x7Axis::poll(bool* moving)
 	this->setIntegerParam(pC_->motorStatusProblem_, input.stm_err);
 	/* Check for counter overflow or underflow */
 	if(input.cntr_overflow || input.cntr_underflow)
-		epicsPrintf("el7047Axis::poll(): Counter overflow/underflow condition detected.\n");
+		asynPrint(this->pasynUser_, ASYN_TRACE_WARNING, "%s: Stepper motor counter overflow/underflow detected.\n",
+			__FUNCTION__);
 	/* Checo for other error condition */
 	if(input.stm_err)
-		epicsPrintf("el7047Axis::poll(): Stepper motor error detected!\n");
+		asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s: Stepper motor error detected.\n",
+			__FUNCTION__);
 	*moving = input.stat_busy != 0;
 	this->unlock();
 	return asynSuccess;
@@ -614,22 +616,6 @@ void el7047_Stat(const iocshArgBuf* args)
 }
 
 /* Configuration param support */
-struct coe_param_t
-{
-	const char* name;
-	const char* unit;
-	int index;
-	int subindex;
-	enum
-	{
-		COE_PARAM_INT16,
-		COE_PARAM_INT32,
-		COE_PARAM_FLOAT32,
-		COE_PARAM_STRING,
-	} type;
-	int len;
-};
-
 static coe_param_t coe_params[] = {
 	{"maximal-current",  "mA",          0x8010, 0x1, coe_param_t::COE_PARAM_INT16, -1},
 	{"reduced-current",  "mA",          0x8010, 0x2, coe_param_t::COE_PARAM_INT16, -1},
@@ -637,23 +623,25 @@ static coe_param_t coe_params[] = {
 	{"coil-resistance",  "10mOhm",      0x8010, 0x4, coe_param_t::COE_PARAM_INT16, -1},
 	{"motor-emf",        "1mv/(rad/s)", 0x8010, 0x5, coe_param_t::COE_PARAM_INT16, -1},
 	{"motor-fullsteps",  "steps",       0x8010, 0x6, coe_param_t::COE_PARAM_INT16, -1},
-	{"motor-inductance", "0.01mH",      0x8010, 0xA, coe_param_t::COE_PARAM_INT16, -1}
+	{"motor-inductance", "0.01mH",      0x8010, 0xA, coe_param_t::COE_PARAM_INT16, -1},
+	{"target-window",    "no unit",     0x8020, 0xB, coe_param_t::COE_PARAM_INT16, -1},
+	{"velocity-max",     "steps/s",     0x8020, 0x2, coe_param_t::COE_PARAM_INT16, -1},
+	{"velocity-min",     "steps/s",     0x8020, 0x1, coe_param_t::COE_PARAM_INT16, -1},
+	{} /* Needed to terminate the list */
 };
 
 
 /* Read from CoE object */
 void el70x7ReadCoE(const iocshArgBuf* args)
 {
-const char* ek9k = args[0].sval;
+	const char* ek9k = args[0].sval;
 	const char* port = args[1].sval;
 	int index = args[2].ival;
 	int subindex = args[3].ival;
 	int len = args[4].ival;
 
 	if(!ek9k || !port || index < 0 || index > 65535 || subindex < 0 || subindex > 65535 || len < 0)
-	{
 		return;
-	}
 
 	for(el70x7Controller* x : controllers)
 	{
@@ -705,23 +693,26 @@ void el70x7GetParam(const iocshArgBuf* args)
 							status = x->pcoupler->doCoEIO(0,
 								x->pcontroller->m_nTerminalIndex, cparam.index, 1, &tmpval,
 								cparam.subindex);
+								epicsPrintf("%s: %u\n", cparam.name, tmpval);
 							if(status)
-								epicsPrintf("Could not get %s to %u\n", cparam.name, tmpval);
-							break;
+								epicsPrintf("Could not get %s \n", cparam.name);
+							goto end;
 						case coe_param_t::COE_PARAM_INT32:
 							tmpval32[0] = 0;
 							status = x->pcoupler->doCoEIO(0,
-								x->pcontroller->m_nTerminalIndex, cparam.index, 1, tmpval32,
+								x->pcontroller->m_nTerminalIndex, cparam.index, 4, tmpval32,
 								cparam.subindex);
+								epicsPrintf("%s: %u\n", cparam.name, tmpval32[0]);
 							if(status)
-								epicsPrintf("Could not get %s to %u\n", cparam.name, tmpval32[0]);
-							break;
+								epicsPrintf("Could not get %s\n", cparam.name);
+							goto end;
 						case coe_param_t::COE_PARAM_STRING:
 						case coe_param_t::COE_PARAM_FLOAT32:
-						default: break;
+						default: goto end;
 					}
 				}
 			}
+		end:
 			x->pcoupler->Unlock();
 			return;
 		}
@@ -763,7 +754,7 @@ void el70x7SetParam(const iocshArgBuf* args)
 								cparam.subindex);
 							if(status)
 								epicsPrintf("Could not set %s to %u\n", cparam.name, tmpval);
-							break;
+							goto end;
 						case coe_param_t::COE_PARAM_INT32:
 							tmpval32[0] = args[3].ival;
 							status = x->pcoupler->doCoEIO(1,
@@ -771,13 +762,14 @@ void el70x7SetParam(const iocshArgBuf* args)
 								cparam.subindex);
 							if(status)
 								epicsPrintf("Could not set %s to %u\n", cparam.name, tmpval32[0]);
-							break;
+							goto end;
 						case coe_param_t::COE_PARAM_STRING:
 						case coe_param_t::COE_PARAM_FLOAT32:
-						default: break;
+						default: goto end;
 					}
 				}
 			}
+		end:
 			x->pcoupler->Unlock();
 			return;
 		}
@@ -806,6 +798,16 @@ void el70x7PrintMessages(const iocshArgBuf* args)
 			x->pcoupler->Unlock();
 		}
 	}
+}
+
+/* Reset the motor from error state */
+void el70x7ResetMotor(const iocshArgBuf* args)
+{
+	const char* port = args[0].sval;
+	if(!port) return;
+	for(auto x : controllers)
+		if(strcmp(x->portName, port) == 0)
+			x->getAxis(0)->output.stm_reset = 1; 
 }
 
 void el7047_Register()
@@ -853,6 +855,13 @@ void el7047_Register()
 		static const iocshArg* const args[] = {&arg0, &arg1, &arg2, &arg3};
 		static const iocshFuncDef func = {"el70x7GetParam", 4, args};
 		iocshRegister(&func, el70x7GetParam);
+	}
+	/* el70x7Reset */
+	{
+		static const iocshArg arg0 = {"EL70x7 Port Name", iocshArgString};
+		static const iocshArg* const args[] = {&arg0};
+		static const iocshFuncDef func = {"el70x7Reset", 1, args};
+		iocshRegister(&func, el70x7ResetMotor);
 	}
 }
 
