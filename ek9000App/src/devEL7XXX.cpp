@@ -20,6 +20,8 @@
 #include <boRecord.h>
 #include <iocsh.h>
 #include <callback.h>
+#include <epicsEndian.h>
+#include <epicsGuard.h>
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -803,8 +805,14 @@ void el70x7ResetMotor(const iocshArgBuf* args)
 	const char* port = args[0].sval;
 	if(!port) return;
 	for(auto x : controllers)
+	{
 		if(strcmp(x->portName, port) == 0)
-			x->getAxis(0)->output.stm_reset = 1; 
+		{
+			el70x7Axis* axis = x->getAxis(0);
+			axis->output.pos_execute = 0;
+			axis->output.stm_reset = 1; 
+		}
+	}
 }
 
 void el7047_Register()
