@@ -443,7 +443,6 @@ asynStatus el70x7Axis::UpdatePDO(bool locked)
 		__FUNCTION__, __LINE__, pStep);
 	int stat = pcoupler->m_pDriver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, pcontroller->m_nInputStart,
 		(uint16_t*)&this->input, 7);
-	
 	if(stat) goto error;
 	pStep = "PROPAGATE_PDO";
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n",
@@ -663,10 +662,9 @@ void el70x7ReadCoE(const iocshArgBuf* args)
 
 void el70x7GetParam(const iocshArgBuf* args)
 {
-	const char* ek9k = args[0].sval;
-	const char* port = args[1].sval;
-	const char* param = args[2].sval;
-	if(!ek9k || !port || !param)
+	const char* port = args[0].sval;
+	const char* param = args[1].sval;
+	if(!port || !param)
 	{
 		for(unsigned i = 0; i < sizeof(coe_params) / sizeof(coe_param_t); i++)
 			epicsPrintf("\t%s [%s]\n", coe_params[i].name, coe_params[i].unit);
@@ -722,10 +720,9 @@ void el70x7GetParam(const iocshArgBuf* args)
 
 void el70x7SetParam(const iocshArgBuf* args)
 {
-	const char* ek9k = args[0].sval;
-	const char* port = args[1].sval;
-	const char* param = args[2].sval;
-	if(!ek9k || !port || !param)
+	const char* port = args[0].sval;
+	const char* param = args[1].sval;
+	if(!port || !param)
 	{
 		for(unsigned i = 0; i < sizeof(coe_params) / sizeof(coe_param_t); i++)
 			epicsPrintf("\t%s [%s]\n", coe_params[i].name, coe_params[i].unit);
@@ -831,12 +828,11 @@ void el7047_Register()
 	}
 	/* el70x7SetParam */
 	{
-		static const iocshArg arg0 = {"EK9000 Name", iocshArgString};
 		static const iocshArg arg1 = {"EL70x7 Port Name", iocshArgString};
 		static const iocshArg arg2 = {"Param Name", iocshArgString};
 		static const iocshArg arg3 = {"Value", iocshArgInt};
-		static const iocshArg* const args[] = {&arg0, &arg1, &arg2, &arg3};
-		static const iocshFuncDef func = {"el70x7SetParam", 4, args};
+		static const iocshArg* const args[] = {&arg1, &arg2, &arg3};
+		static const iocshFuncDef func = {"el70x7SetParam", 3, args};
 		iocshRegister(&func, el70x7SetParam);
 	}
 	/* el70x7PrintMessages */
@@ -848,12 +844,11 @@ void el7047_Register()
 	}
 	/* el70x7GetParam */
 	{
-		static const iocshArg arg0 = {"EK9000 Name", iocshArgString};
 		static const iocshArg arg1 = {"EL70x7 Port Name", iocshArgString};
 		static const iocshArg arg2 = {"Param Name", iocshArgString};
 		static const iocshArg arg3 = {"Value", iocshArgInt};
-		static const iocshArg* const args[] = {&arg0, &arg1, &arg2, &arg3};
-		static const iocshFuncDef func = {"el70x7GetParam", 4, args};
+		static const iocshArg* const args[] = {&arg1, &arg2, &arg3};
+		static const iocshFuncDef func = {"el70x7GetParam", 3, args};
 		iocshRegister(&func, el70x7GetParam);
 	}
 	/* el70x7Reset */
