@@ -1431,7 +1431,7 @@ int ek9000RegisterFunctions()
 	{
 		static const iocshArg arg1 = {"EK9K", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000DisableDebig", 1, args};
+		static const iocshFuncDef func = {"ek9000DisableDebug", 1, args};
 		iocshRegister(&func, ek9000DisableDebug);
 	}
 
