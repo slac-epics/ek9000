@@ -189,6 +189,21 @@ public:
 	/* Do EK9000 IO */
 	int doEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
 
+	/*
+	===========================================
+
+	COE API 
+
+	===========================================
+	*/
+	void WriteCoEInt16(const char* param, uint16_t v);
+	void WriteCoEInt32(const char* param, uint32_t v);
+	void WriteCoEFloat32(const char* param, float v);
+	void WriteCoEString(const char* param, const char* string);
+	uint16_t ReadCoEInt16(const char* param);
+	uint32_t ReadCoEInt32(const char* param);
+	float ReadCoEFloat32(const char* param);
+	char* ReadCoEString(const char* param);
 public:
 	/* Name of record */
 	char *m_pRecordName = NULL;
@@ -576,5 +591,45 @@ public:
 		return (strcmp(this->m_pName, other.m_pName) == 0);
 	}
 };
+
+/*
+===========================================
+
+CoE API
+
+===========================================
+*/
+typedef struct coe_param_s
+{
+	const char* name; 
+	const char* unit;
+	int index;
+	int subindex; 
+	enum 
+	{
+		COE_PARAM_INT16,
+		COE_PARAM_INT32,
+		COE_PARAM_FLOAT32,
+		COE_PARAM_STRING,
+	} type;
+	int len;
+} coe_param_t;
+
+void WriteCoEParameterInt16(coe_param_t* paramlist, CEK9000Device* device, const char* name, uint16_t val);
+void WriteCoEParameterInt32(coe_param_t* paramlist, CEK9000Device* device, const char* name, uint32_t val);
+void WriteCoEParameterFloat(coe_param_t* paramlist, CEK9000Device* device,const char* name, float val);
+void WriteCoEParameterDouble(coe_param_t* paramlist, CEK9000Device* device,const char* name, double val);
+void WriteCoEParameterString(coe_param_t* paramlist, CEK9000Device* device,const char* name, const char* val);
+
+uint16_t ReadCoEParameterInt16(coe_param_t* paramlist, CEK9000Device* device,const char* name);
+uint32_t ReadCoEParameterInt32(coe_param_t* paramlist, CEK9000Device* device,const char* name);
+float ReadCoEParameterFloat(coe_param_t* paramlist, CEK9000Device* device,const char* name);
+double ReadCoEParameterDouble(coe_param_t* paramlist, CEK9000Device* device,const char* name);
+char* ReadCoEParameterString(coe_param_t* paramlist, CEK9000Device* device,const char* name);
+
+coe_param_t* FindCoEParameter(coe_param_t* paramlist, const char* name);
+
+
+
 
 #endif

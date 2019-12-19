@@ -541,23 +541,23 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 	/* write */
 	if (rw)
 	{
-
 		uint16_t tmp_data[512] = 
 		{
 			1,
-			(uint16_t)(term | (1<<15)), /* Bit 15 needs to be 1 to indicate a write */
+			(uint16_t)(term | 0x8000), /* Bit 15 needs to be 1 to indicate a write */
 			index,
 			subindex,
 			len,
+			0, /* Error code */
 		};
-		memcpy(tmp_data+6, data, len*sizeof(uint16_t));
+		memcpy(tmp_data+7, data, len*sizeof(uint16_t));
 		/* Write tmp data */
-		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, len);
-
-		if(this->Poll(0.005, TIMEOUT_COUNT))
+		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x14FF, tmp_data, len+7);
+		if (!this->Poll(0.005, TIMEOUT_COUNT))
 		{
 			this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, tmp_data, 6);
-			if(tmp_data[0] != 0)
+			epicsPrintf("Tmpdat %u %u\n", tmp_data[0], tmp_data[5]);
+			if((tmp_data[0] & 0x400) != 0x400)
 				return EK_EADSERR;
 		}
 		else
@@ -859,16 +859,19 @@ int CEK9000Device::ReadTerminalID(uint16_t termid, uint16_t &out)
 
 int CEK9000Device::Poll(float duration, int timeout)
 {
-	ushort dat = 0;
+	ushort dat[6];
+	dat[0] = 0;
 	do
 	{
-		this->m_pDriver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
+		this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, dat, 6);
 		epicsThreadSleep(duration);
 		timeout--;
-	} while ((dat & 0x200) && timeout > 0);
+	} while ((dat[0] & 0x200) && timeout > 0);
 
-	if (timeout <= 0)
+	if (timeout <= 0 || (dat[0] & 0x100) == 0x100) {
+		epicsPrintf("ADS err code: %u\n", dat[5]);
 		return 1;
+	}
 	else
 		return 0;
 }
@@ -1493,4 +1496,76 @@ static long ek9000_init_record(void *prec)
 	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
 	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
 	return 0;
+}
+
+void WriteCoEParameterInt16(coe_param_t* paramlist, CEK9000Device* device, const char* name, uint16_t val)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return;
+	//device->doCoEIO(1, )
+}
+
+void WriteCoEParameterInt32(coe_param_t* paramlist, CEK9000Device* device, const char* name, uint32_t val)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return;
+}
+
+void WriteCoEParameterFloat(coe_param_t* paramlist, CEK9000Device* device, const char* name, float val)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return;
+}
+
+void WriteCoEParameterDouble(coe_param_t* paramlist, CEK9000Device* device, const char* name, double val)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return;
+}
+
+void WriteCoEParameterString(coe_param_t* paramlist, CEK9000Device* device, const char* name, const char* val)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return;
+}
+
+uint16_t ReadCoEParameterInt16(coe_param_t* paramlist, CEK9000Device* device, const char* name)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return 0;
+}
+
+uint32_t ReadCoEParameterInt32(coe_param_t* paramlist, CEK9000Device* device, const char* name)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return 0;
+}
+
+float ReadCoEParameterFloat(coe_param_t* paramlist, CEK9000Device* device, const char* name)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return 0.0f;
+}
+
+double ReadCoEParameterDouble(coe_param_t* paramlist, CEK9000Device* device, const char* name)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return 0.0;
+}
+
+char* ReadCoEParameterString(coe_param_t* paramlist, CEK9000Device* device, const char* name)
+{
+	coe_param_t* param;
+	if(!(param = FindCoEParameter(paramlist, name))) return NULL;
+}
+
+coe_param_t* FindCoEParameter(coe_param_t* paramlist, const char* name)
+{
+	for(int i = 0;;i++)
+	{
+		if(!paramlist[i].name) break;
+		if(strcmp(paramlist[i].name, name) == 0)
+			return &paramlist[i];
+	}
+	return NULL;
 }
