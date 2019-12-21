@@ -365,8 +365,11 @@ asynStatus el70x7Axis::poll(bool* moving)
 		asynPrint(this->pasynUser_, ASYN_TRACE_WARNING, "%s: Stepper motor counter overflow/underflow detected.\n",
 			__FUNCTION__);
 	/* Checo for other error condition */
-	if(input.stm_err)
-		asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s: Stepper motor error detected.\n",
+	if(input.stm_err || input.stat_err || input.sync_err || input.stm_sync_err)
+		asynPrint(this->pasynUser_, ASYN_TRACE_WARNING, "%s: Stepper motor error detected.\n",
+			__FUNCTION__);
+	if(input.stm_warn || input.stm_warn)
+		asynPrint(this->pasynUser_, ASYN_TRACE_WARNING, "%s: Stepper motor warning.\n",
 			__FUNCTION__);
 	*moving = input.stat_busy != 0;
 	this->unlock();
@@ -681,6 +684,7 @@ void el70x7GetParam(const iocshArgBuf* args)
 			for(unsigned i = 0; i < sizeof(coe_params)/sizeof(coe_param_t); i++)
 			{
 				coe_param_t cparam = coe_params[i];
+				if(!cparam.name) break;
 				if(strcmp(param, cparam.name) == 0)
 				{
 					uint16_t tmpval;
@@ -732,13 +736,14 @@ void el70x7SetParam(const iocshArgBuf* args)
 	}
 	for(el70x7Controller* x : controllers)
 	{
-		if(strcmp(port, x->portName) == 0)
+		if(x->portName && strcmp(port, x->portName) == 0)
 		{
 			x->pcoupler->Lock();
 
 			for(unsigned i = 0; i < sizeof(coe_params)/sizeof(coe_param_t); i++)
 			{
 				coe_param_t cparam = coe_params[i];
+				if(!cparam.name) break;
 				if(strcmp(param, cparam.name) == 0)
 				{
 					uint16_t tmpval;
