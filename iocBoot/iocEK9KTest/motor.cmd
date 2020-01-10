@@ -1,5 +1,4 @@
-dbpf IOC:m1.SPMG 1
-dbpf IOC:m1.SSET 1
-dbpf IOC:m1.SET 1
-dbpf IOC:m1.DVAL 420
-dbpf IOC:m1.SPMG 3
+el70x7Reset EK9K1_MOTOR_PORT
+el70x7PrintDiag EK9K1_MOTOR_PORT
+#el70x7GetParam EK9K1_MOTOR_PORT motor-supply-voltage
+#el70x7GetParam EK9K1_MOTOR_PORT control-voltage
