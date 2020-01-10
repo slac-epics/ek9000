@@ -547,18 +547,19 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 			(uint16_t)(term | 0x8000), /* Bit 15 needs to be 1 to indicate a write */
 			index,
 			subindex,
-			len,
+			(uint16_t)(len*2),
 			0, /* Error code */
 		};
-		memcpy(tmp_data+7, data, len*sizeof(uint16_t));
-		/* Write tmp data */
-		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x14FF, tmp_data, len+7);
+
+		memcpy(tmp_data+6, data, len*sizeof(uint16_t));
+		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, len+7);
 		if (!this->Poll(0.005, TIMEOUT_COUNT))
 		{
 			this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, tmp_data, 6);
-			epicsPrintf("Tmpdat %u %u\n", tmp_data[0], tmp_data[5]);
-			if((tmp_data[0] & 0x400) != 0x400)
+			/* Write tmp data */		
+			if((tmp_data[0] & 0x400) != 0x400) {
 				return EK_EADSERR;
+			}
 		}
 		else
 			return EK_EERR;
@@ -863,15 +864,13 @@ int CEK9000Device::Poll(float duration, int timeout)
 	dat[0] = 0;
 	do
 	{
-		this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, dat, 6);
+		this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, dat, 7);
 		epicsThreadSleep(duration);
 		timeout--;
 	} while ((dat[0] & 0x200) && timeout > 0);
 
-	if (timeout <= 0 || (dat[0] & 0x100) == 0x100) {
-		epicsPrintf("ADS err code: %u\n", dat[5]);
+	if (timeout <= 0 || (dat[0] & 0x100) == 0x100)
 		return 1;
-	}
 	else
 		return 0;
 }

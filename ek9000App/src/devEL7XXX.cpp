@@ -5,7 +5,9 @@
 // Authors: Jeremy L.
 // Date Created: July 17, 2019
 //======================================================//
-
+// Planned features/notes:
+//	-	Motor reset from epics
+//======================================================//
 /* EPICS includes */
 #include <epicsExport.h>
 #include <epicsMath.h>
@@ -200,6 +202,12 @@ void el70x7Axis::unlock()
 	this->pcoupler->Unlock();
 }
 
+void el70x7Axis::ResetIfRequired()
+{
+	if(this->input.stm_err)
+		this->output.stm_reset = 1;
+}
+
 asynStatus el70x7Axis::setMotorParameters(uint16_t min_start_vel,
 		uint16_t max_coil_current, uint16_t reduced_coil_currrent, uint16_t nominal_voltage,
 		uint16_t internal_resistance, uint16_t full_steps, uint16_t enc_inc)
@@ -236,6 +244,7 @@ asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel,
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::move\n",
 		__FUNCTION__, __LINE__);
+	this->ResetIfRequired();
 	/* Set the params */
 	this->curr_param.max_vel = max_vel;
 	this->curr_param.min_vel = min_vel;
@@ -271,6 +280,7 @@ asynStatus el70x7Axis::moveVelocity(double min_vel, double max_vel, double accel
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::moveVelocity\n",
 		__FUNCTION__,__LINE__);
+	this->ResetIfRequired();
 	/* Update relevant parameters */
 	this->curr_param.max_vel = max_vel;
 	this->curr_param.min_vel = min_vel;
@@ -295,6 +305,7 @@ asynStatus el70x7Axis::home(double min_vel, double max_vel, double accel, int fo
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::home\n",
 		__FUNCTION__,__LINE__);
+	this->ResetIfRequired();
 	this->curr_param.max_vel = max_vel;
 	this->curr_param.min_vel = min_vel;
 	if(forwards)
@@ -322,6 +333,7 @@ asynStatus el70x7Axis::stop(double accel)
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::stop\n",
 		__FUNCTION__, __LINE__);
+	this->ResetIfRequired();
 	/* TODO: Investigate if we have the time required to write a new accel value to the terminal */
 	this->curr_param.back_accel = accel;
 	int stat = this->UpdateParams();
@@ -631,6 +643,9 @@ static coe_param_t coe_params[] = {
 	{"target-window",    "no unit",     0x8020, 0xB, coe_param_t::COE_PARAM_INT16, -1},
 	{"velocity-max",     "steps/s",     0x8020, 0x2, coe_param_t::COE_PARAM_INT16, -1},
 	{"velocity-min",     "steps/s",     0x8020, 0x1, coe_param_t::COE_PARAM_INT16, -1},
+	{"max-diag-messages","n/a",         0x10F3, 0x1, coe_param_t::COE_PARAM_INT16, -1},
+	{"motor-supply-voltage", "1mV",     0xF900, 0x5, coe_param_t::COE_PARAM_INT16, -1},
+	{"control-voltage",  "1mV",         0xF900, 0x4, coe_param_t::COE_PARAM_INT16, -1},
 	{} /* Needed to terminate the list */
 };
 
@@ -663,6 +678,53 @@ void el70x7ReadCoE(const iocshArgBuf* args)
 		}
 	}
 	epicsPrintf("Port not found.\n");
+}
+
+struct diag_info_t
+{
+	const char* name;
+	uint16_t index;
+	uint16_t subindex;
+};
+
+static diag_info_t diag_info[] = {
+	{"saturated", 0xA010, 0x1},
+	{"over-temp", 0xA010, 0x2},
+	{"torque-overload", 0xA010, 0x3},
+	{"under-voltage", 0xA010, 0x4},
+	{"over-voltage", 0xA010, 0x5},
+	{"short", 0xA010, 0x6},
+	{"no-control-pwr", 0xA010, 0x8},
+	{"misc-err", 0xA010, 0x9},
+	{"conf", 0xA010, 0xA},
+	{"stall", 0xA010, 0xB},
+	{}
+};
+
+void el70x7PrintDiag(const iocshArgBuf* args)
+{
+	const char* port = args[0].sval;
+	if(!port)
+	{
+		epicsPrintf("No such port.\n");
+		return;
+	}
+	for(el70x7Controller* x : controllers)
+	{
+		if(strcmp(port, x->portName) == 0)
+		{
+			x->pcoupler->Lock();
+			uint16_t data = 0;
+			int i = 0;
+			for(diag_info_t info = diag_info[0]; info.name; info = diag_info[++i])
+			{
+				x->pcoupler->doCoEIO(0, x->pcontroller->m_nTerminalIndex, 
+					info.index, 1, &data, info.subindex);
+				epicsPrintf("\t%s: %s\n", info.name, data == 0 ? "false" : "true");
+			}
+			x->pcoupler->Unlock();
+		}
+	}
 }
 
 void el70x7GetParam(const iocshArgBuf* args)
@@ -752,20 +814,24 @@ void el70x7SetParam(const iocshArgBuf* args)
 					switch(coe_params[i].type)
 					{
 						case coe_param_t::COE_PARAM_INT16:
-							tmpval = args[3].ival;
+							tmpval = args[2].ival;
 							status = x->pcoupler->doCoEIO(1,
 								x->pcontroller->m_nTerminalIndex, cparam.index, 1, &tmpval,
 								cparam.subindex);
 							if(status)
 								epicsPrintf("Could not set %s to %u\n", cparam.name, tmpval);
+							else
+								epicsPrintf("Set %s to %u\n", cparam.name, tmpval);
 							goto end;
 						case coe_param_t::COE_PARAM_INT32:
-							tmpval32[0] = args[3].ival;
+							tmpval32[0] = args[2].ival;
 							status = x->pcoupler->doCoEIO(1,
 								x->pcontroller->m_nTerminalIndex, cparam.index, 1, tmpval32,
 								cparam.subindex);
 							if(status)
 								epicsPrintf("Could not set %s to %u\n", cparam.name, tmpval32[0]);
+							else
+								epicsPrintf("Set %s to %u\n", cparam.name, tmpval32[0]);
 							goto end;
 						case coe_param_t::COE_PARAM_STRING:
 						case coe_param_t::COE_PARAM_FLOAT32:
@@ -815,7 +881,10 @@ void el70x7ResetMotor(const iocshArgBuf* args)
 		{
 			el70x7Axis* axis = x->getAxis(0);
 			axis->output.pos_execute = 0;
-			axis->output.stm_reset = 1; 
+			axis->output.stm_reset = 0;
+			axis->UpdatePDO();
+			axis->output.stm_reset = 1;
+			axis->UpdatePDO(); 
 		}
 	}
 }
@@ -870,6 +939,13 @@ void el7047_Register()
 		static const iocshArg* const args[] = {&arg0};
 		static const iocshFuncDef func = {"el70x7Reset", 1, args};
 		iocshRegister(&func, el70x7ResetMotor);
+	}
+	/* el70x7PrintDiag */
+	{
+		static const iocshArg arg0 = {"EL70x7 Port Name", iocshArgString};
+		static const iocshArg* const args[] = { &arg0 };
+		static const iocshFuncDef func = {"el70x7PrintDiag", 1, args};
+		iocshRegister(&func, el70x7PrintDiag);
 	}
 }
 

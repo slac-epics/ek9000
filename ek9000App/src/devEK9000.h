@@ -120,6 +120,8 @@
 #define EL30XX_STANDARD_ID			1
 #define EL30XX_COMPACT_ID			2
 
+#define EK9000_REGISTER_BASE 0x1400
+
 /* Forward decls */
 class CEK9000Device;
 class CDeviceMgr;

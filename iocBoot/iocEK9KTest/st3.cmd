@@ -25,3 +25,5 @@ dbLoadTemplate("Test3.substitutions")
 dbLoadTemplate("motor.substitutions")
 
 iocInit
+
+#el70x7SetParam EK9K1_MOTOR_PORT maximal-current 100

@@ -45,7 +45,6 @@ struct SPositionInterfaceCompact_Output
 	uint8_t pos_emergency_stp : 1;	/* Emergency stop */
 	uint16_t _r1 : 14;
 	uint32_t pos_tgt_pos;			/* Target position */
-
 };
 
 struct SPositionInterfaceCompact_Input
@@ -61,7 +60,7 @@ struct SPositionInterfaceCompact_Input
 	uint32_t stat_inp_a : 1; /* status of input a */
 	uint32_t stat_inp_b : 1; /* status of inp b */
 	uint32_t stat_inp_c : 1; /* Status of inp c */
-	uint32_t _r2 : 2;
+	uint32_t _r2 : 1; /* 2 bits or one??? */
 	uint32_t stat_ext_lat : 1; /* Status of extern latch */
 	uint32_t sync_err : 1;	/* Sync error */
 	uint32_t _r3 : 1;
@@ -178,10 +177,11 @@ public:
 	/* Unlocks the driver */
 	void unlock();
 
-private:
+public:
 	asynStatus UpdatePDO(bool locked = false);
 	asynStatus Execute(bool locked = false); /* Execute a move */
 	asynStatus UpdateParams();
+	void ResetIfRequired();
 	class el70x7Controller* pC_;
 	friend class el70x7Controller;
 };
