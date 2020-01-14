@@ -28,6 +28,7 @@ O.*
 compile_commands.json
 
 *.tar 
+*.swp
 
 ek.txt
 makelist.py
@@ -36,3 +37,4 @@ terminals.xml
 tparse\.py
 
 /*.xml
+.clangd
