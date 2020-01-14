@@ -40,6 +40,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <vector>
 
 #define PORT_PREFIX "PORT_"
 
@@ -128,10 +129,12 @@ class CDeviceMgr;
 class CTerminalList;
 template <class T>
 class CSimpleList;
-struct CTerminal;
+class CTerminal;
+
+extern class CDeviceMgr devices;
 
 /* Globals */
-extern CDeviceMgr *g_pDeviceMgr;
+//extern CDeviceMgr *g_pDeviceMgr;
 extern bool g_bDebug;
 
 /* Terminal types */
@@ -616,22 +619,5 @@ typedef struct coe_param_s
 	} type;
 	int len;
 } coe_param_t;
-
-void WriteCoEParameterInt16(coe_param_t* paramlist, CEK9000Device* device, const char* name, uint16_t val);
-void WriteCoEParameterInt32(coe_param_t* paramlist, CEK9000Device* device, const char* name, uint32_t val);
-void WriteCoEParameterFloat(coe_param_t* paramlist, CEK9000Device* device,const char* name, float val);
-void WriteCoEParameterDouble(coe_param_t* paramlist, CEK9000Device* device,const char* name, double val);
-void WriteCoEParameterString(coe_param_t* paramlist, CEK9000Device* device,const char* name, const char* val);
-
-uint16_t ReadCoEParameterInt16(coe_param_t* paramlist, CEK9000Device* device,const char* name);
-uint32_t ReadCoEParameterInt32(coe_param_t* paramlist, CEK9000Device* device,const char* name);
-float ReadCoEParameterFloat(coe_param_t* paramlist, CEK9000Device* device,const char* name);
-double ReadCoEParameterDouble(coe_param_t* paramlist, CEK9000Device* device,const char* name);
-char* ReadCoEParameterString(coe_param_t* paramlist, CEK9000Device* device,const char* name);
-
-coe_param_t* FindCoEParameter(coe_param_t* paramlist, const char* name);
-
-
-
 
 #endif

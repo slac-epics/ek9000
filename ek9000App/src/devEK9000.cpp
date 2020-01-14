@@ -8,7 +8,7 @@
  * contained in the LICENSE.txt file.
 */
 //======================================================//
-// Name: devEK9000.c
+// Name: devEK9000.cpp
 // Purpose: Device support for EK9000 and it's associated
 // devices
 // Authors: Jeremy L.
@@ -23,7 +23,6 @@
 //		EL2XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/EL20xx_EL2124en.pdf
 //		EL3XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el30xxen.pdf
 //		EL4XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el40xxen.pdf
-//		EL7XXX:
 // Revisions:
 //	-	July 15, 2019: Improved error propagation and added
 //		new init routines.
@@ -50,6 +49,7 @@
 #include <epicsTime.h>
 #include <epicsGeneralTime.h>
 #include <ctype.h>
+#include <vector>
 
 /* Modbus or asyn includes */
 #include <drvModbusAsyn.h>
@@ -70,7 +70,8 @@ class CEK9000Device;
 class CDeviceMgr;
 
 /* Globals */
-CDeviceMgr *g_pDeviceMgr = 0;
+//CDeviceMgr *g_pDeviceMgr = 0;
+CDeviceMgr devices;
 bool g_bDebug = false;
 epicsThreadId g_PollThread = 0;
 epicsMutexId g_ThreadMutex = 0;
@@ -92,7 +93,7 @@ void PollThreadFunc(void* param)
 {
 	while(true)
 	{
-		for(CEK9000Device* elem = g_pDeviceMgr->FirstDevice(); elem; elem = g_pDeviceMgr->NextDevice())
+		for(CEK9000Device* elem = devices.FirstDevice(); elem; elem = devices.NextDevice())
 		{
 			if(elem)
 			{
@@ -238,7 +239,7 @@ CTerminal *CTerminal::ProcessRecordName(const char *recname, int &outindex, char
 	}
 	else
 	{
-		for (CEK9000Device *dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+		for (CEK9000Device *dev = devices.FirstDevice(); dev; dev = devices.NextDevice())
 		{
 			for (int i = 0; i < dev->m_nTerms; i++)
 			{
@@ -377,7 +378,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 	uint16_t buf = 1;
 	pek->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
 
-	g_pDeviceMgr->Add(pek);
+	devices.Add(pek);
 	return pek;
 }
 
@@ -945,7 +946,6 @@ CDeviceMgr::~CDeviceMgr()
 
 int CDeviceMgr::Init()
 {
-	g_pDeviceMgr = new CDeviceMgr();
 	return 0;
 }
 
@@ -1168,7 +1168,7 @@ void ek9000Configure(const iocshArgBuf *args)
 		return;
 	}
 
-	g_pDeviceMgr->Add(dev);
+	devices.Add(dev);
 }
 
 void ek9000ConfigureTerminal(const iocshArgBuf *args)
@@ -1184,7 +1184,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 		return;
 	}
 
-	CEK9000Device *dev = g_pDeviceMgr->FindDevice(ek);
+	CEK9000Device *dev = devices.FindDevice(ek);
 
 	/* If we cant find the device :( */
 	if (!dev)
@@ -1234,7 +1234,7 @@ void ek9000Stat(const iocshArgBuf *args)
 		epicsPrintf("Invalid parameter.\n");
 		return;
 	}
-	CEK9000Device *dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device *dev = devices.FindDevice(ek9k);
 
 	if (!dev)
 	{
@@ -1311,7 +1311,7 @@ void ek9000DisableDebug(const iocshArgBuf* args)
 
 void ek9000List(const iocshArgBuf* args)
 {
-	for(CEK9000Device* dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+	for(CEK9000Device* dev = devices.FirstDevice(); dev; dev = devices.NextDevice())
 	{
 		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_pName, dev->m_nTerms);
 		epicsPrintf("\tIP: %s\n", dev->m_pIP);
@@ -1326,7 +1326,7 @@ void ek9000SetWatchdogTime(const iocshArgBuf* args)
 		return;
 	if(time < 0 || time > 60000)
 		return;
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device* dev = devices.FindDevice(ek9k);
 	if(!dev)
 		return;
 	dev->WriteWatchdogTime((uint16_t)time);
@@ -1345,7 +1345,7 @@ void ek9000SetWatchdogType(const iocshArgBuf* args)
 		epicsPrintf("0 = enable on write\n");
 		return;
 	}
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device* dev = devices.FindDevice(ek9k);
 	if(!dev) return;
 	dev->WriteWatchdogType(type);
 }
@@ -1356,13 +1356,93 @@ void ek9000SetPollTime(const iocshArgBuf* args)
 	int time = args[1].ival;
 	if(!ek9k) return;
 	if(time < 10 || time > 1000) return;
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device* dev = devices.FindDevice(ek9k);
 	if(!dev) return;
 	g_nPollDelay = time;
 }
 
+void ek9000CoEWrite(const iocshArgBuf* args)
+{
+	const char* ek9k = args[0].sval;
+	int term = args[1].ival;
+	int index = args[2].ival;
+	int sub = args[3].ival;
+	const char* type = args[4].sval;
+	const char* val = args[5].sval;
+	if(!ek9k || !type || !val || index > 65535 || sub > 65535)
+	{
+		epicsPrintf("Invalid parameter.\n");
+		return;
+	}
+	CEK9000Device* dev = devices.FindDevice(ek9k);
+	if(!dev)
+	{
+		epicsPrintf("No such device.\n");
+		return;
+	}
+	if(term < 0 || term > dev->m_nTerms)
+	{
+		epicsPrintf("No such terminal\n");
+		return;
+	}
+
+}
+
+void ek9000CoERead(const iocshArgBuf* args)
+{
+	const char* ek9k = args[0].sval;
+	int term = args[1].ival;
+	int index = args[2].ival;
+	int sub = args[3].ival;
+	const char* type = args[4].sval;
+	if(!ek9k || !type || index > 65535 || sub > 65535)
+	{
+		epicsPrintf("Invalid parameter.\n");
+		return;
+	}
+	CEK9000Device* dev = devices.FindDevice(ek9k);
+	if(!dev)
+	{
+		epicsPrintf("No such device.\n");
+		return;
+	}
+	if(term < 0 || term > dev->m_nTerms)
+	{
+		epicsPrintf("No such terminal\n");
+		return;
+	}
+	if(!strcmp(type, "int16") || !strcmp(type, "uint16"))
+	{
+		
+	}
+}
+
+
 int ek9000RegisterFunctions()
 {
+	/* ek9000CoEWrite */
+	{
+		static const iocshArg arg0 = {"EK9K Name", iocshArgString};
+		static const iocshArg arg1 = {"Terminal number", iocshArgInt};
+		static const iocshArg arg2 = {"Index", iocshArgInt};
+		static const iocshArg arg3 = {"Subindex", iocshArgInt};
+		static const iocshArg arg4 = {"Type", iocshArgString};
+		static const iocshArg arg5 = {"Value", iocshArgString};
+		static const iocshArg* const args[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5};
+		static const iocshFuncDef func = {"ek9000CoEWrite", 6, args};
+		iocshRegister(&func, ek9000CoEWrite);
+	}
+	/* ek9000CoERead */
+	{
+		static const iocshArg arg0 = {"EK9K Name", iocshArgString};
+		static const iocshArg arg1 = {"Terminal number", iocshArgInt};
+		static const iocshArg arg2 = {"Index", iocshArgInt};
+		static const iocshArg arg3 = {"Subindex", iocshArgInt};
+		static const iocshArg arg4 = {"Type", iocshArgString};
+		static const iocshArg* const args[] = {&arg0, &arg1, &arg2, &arg3, &arg4};
+		static const iocshFuncDef func = {"ek9000CoERead", 5, args};
+		iocshRegister(&func, ek9000CoERead);
+	}
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
 		static const iocshArg arg1 = {"Name", iocshArgString};
@@ -1479,7 +1559,7 @@ static long ek9000_init(int after)
 	if (after == 0)
 	{
 		epicsPrintf("Initializing EK9000 Couplers.\n");
-		for (CEK9000Device *dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+		for (CEK9000Device *dev = devices.FirstDevice(); dev; dev = devices.NextDevice())
 		{
 			if (!dev->m_bInit)
 				dev->InitTerminals();
@@ -1495,76 +1575,4 @@ static long ek9000_init_record(void *prec)
 	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
 	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
 	return 0;
-}
-
-void WriteCoEParameterInt16(coe_param_t* paramlist, CEK9000Device* device, const char* name, uint16_t val)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return;
-	//device->doCoEIO(1, )
-}
-
-void WriteCoEParameterInt32(coe_param_t* paramlist, CEK9000Device* device, const char* name, uint32_t val)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return;
-}
-
-void WriteCoEParameterFloat(coe_param_t* paramlist, CEK9000Device* device, const char* name, float val)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return;
-}
-
-void WriteCoEParameterDouble(coe_param_t* paramlist, CEK9000Device* device, const char* name, double val)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return;
-}
-
-void WriteCoEParameterString(coe_param_t* paramlist, CEK9000Device* device, const char* name, const char* val)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return;
-}
-
-uint16_t ReadCoEParameterInt16(coe_param_t* paramlist, CEK9000Device* device, const char* name)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return 0;
-}
-
-uint32_t ReadCoEParameterInt32(coe_param_t* paramlist, CEK9000Device* device, const char* name)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return 0;
-}
-
-float ReadCoEParameterFloat(coe_param_t* paramlist, CEK9000Device* device, const char* name)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return 0.0f;
-}
-
-double ReadCoEParameterDouble(coe_param_t* paramlist, CEK9000Device* device, const char* name)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return 0.0;
-}
-
-char* ReadCoEParameterString(coe_param_t* paramlist, CEK9000Device* device, const char* name)
-{
-	coe_param_t* param;
-	if(!(param = FindCoEParameter(paramlist, name))) return NULL;
-}
-
-coe_param_t* FindCoEParameter(coe_param_t* paramlist, const char* name)
-{
-	for(int i = 0;;i++)
-	{
-		if(!paramlist[i].name) break;
-		if(strcmp(paramlist[i].name, name) == 0)
-			return &paramlist[i];
-	}
-	return NULL;
 }
