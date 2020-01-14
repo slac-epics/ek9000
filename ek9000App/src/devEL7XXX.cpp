@@ -1,3 +1,12 @@
+/*
+ * This file is part of the EK9000 device support module. It is subject to 
+ * the license terms in the LICENSE.txt file found in the top-level directory 
+ * of this distribution and at: 
+ *    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+ * No part of the EK9000 device support module, including this file, may be 
+ * copied, modified, propagated, or distributed except according to the terms 
+ * contained in the LICENSE.txt file.
+*/
 //======================================================//
 // Name: devEL7XXX.cpp
 // Purpose: Device support for EL7xxx modules (motor control)
@@ -588,7 +597,7 @@ void el7047_Configure(const iocshArgBuf* args)
 		epicsPrintf("Please provide a port name.\n");
 		return;
 	}
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device* dev = devices.FindDevice(ek9k);
 
 	if(!dev)
 	{
@@ -612,7 +621,7 @@ void el7047_Stat(const iocshArgBuf* args)
 		epicsPrintf("Please provide an ek9000 name.\n");
 		return;
 	}
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device* dev = devices.FindDevice(ek9k);
 	if(!dev)
 	{
 		epicsPrintf("Invalid device.\n");
@@ -879,6 +888,7 @@ void el70x7ResetMotor(const iocshArgBuf* args)
 	{
 		if(strcmp(x->portName, port) == 0)
 		{
+			/* For this, we need to toggle the reset bit in case it's already been reset once */
 			el70x7Axis* axis = x->getAxis(0);
 			axis->output.pos_execute = 0;
 			axis->output.stm_reset = 0;
