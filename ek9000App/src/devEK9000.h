@@ -604,6 +604,11 @@ CoE API
 
 ===========================================
 */
+
+#define COE_INT16_SIZE 2
+#define COE_INT32_SIZE 4
+#define COE_FLOAT32_SIZE 4
+
 typedef struct coe_param_s
 {
 	const char* name; 
