@@ -569,7 +569,7 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 	/* read */
 	else
 	{
-		uint16_t tmp_data[] =
+		uint16_t tmp_data[512] =
 			{
 				1,		  	/* 0x1400 = exec */
 				term,	 	/* 0x1401 = term id */
