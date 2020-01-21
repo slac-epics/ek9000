@@ -1,4 +1,4 @@
-el70x7Reset EK9K1_MOTOR_PORT
-el70x7PrintDiag EK9K1_MOTOR_PORT
-#el70x7GetParam EK9K1_MOTOR_PORT motor-supply-voltage
-#el70x7GetParam EK9K1_MOTOR_PORT control-voltage
+dbpf IOC:m1.SSET 1
+dbpf IOC:m1.SET 1
+dbpf IOC:m1.DVAL 10
+dbpf IOC:m1.SPMG 3
