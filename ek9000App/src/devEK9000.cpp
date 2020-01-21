@@ -754,53 +754,6 @@ int CEK9000Device::ReadNumTCPConnections(uint16_t &out)
 	return stat;
 }
 
-/* Read hardware/software versions */
-int CEK9000Device::ReadVersionInfo(uint16_t &hardver, uint16_t &softver_major, uint16_t &softver_minor, uint16_t &softver_patch)
-{
-	uint16_t ver[4];
-	int status = this->doEK9000IO(0, 0x1030, 4, ver);
-	if (!status)
-	{
-		hardver = ver[0];
-		softver_major = ver[1];
-		softver_minor = ver[2];
-		softver_patch = ver[3];
-		return EK_EOK;
-	}
-	this->m_nError = ver[0];
-	return status;
-}
-
-/* Read the serial number */
-int CEK9000Device::ReadSerialNumber(uint16_t &sn)
-{
-	uint16_t tmp = 0;
-	int stat = this->doEK9000IO(0, 0x1034, 1, &tmp);
-	if (!stat)
-	{
-		sn = tmp;
-		return EK_EOK;
-	}
-	this->m_nError = tmp;
-	return stat;
-}
-
-/* Read manfacturing date */
-int CEK9000Device::ReadMfgDate(uint16_t &day, uint16_t &mon, uint16_t &year)
-{
-	uint16_t date[3];
-	int status = this->doEK9000IO(0, 0x1035, 3, date);
-	if (!status)
-	{
-		day = date[0];
-		mon = date[1];
-		year = date[2];
-		return EK_EOK;
-	}
-	this->m_nError = date[0];
-	return status;
-}
-
 /* Read EBus status */
 int CEK9000Device::ReadEBusStatus(uint16_t &status)
 {
@@ -1252,16 +1205,11 @@ void ek9000Stat(const iocshArgBuf *args)
 	if (dev->VerifyConnection())
 		connected = true;
 
-	uint16_t ao = 0, ai = 0, bo = 0, bi = 0, tcp = 0, sn = 0, wtd = 0;
-	uint16_t hver = 0, svermaj = 0, svermin = 0, sverpat = 0;
-	uint16_t day = 0, month = 0, year = 0;
+	uint16_t ao = 0, ai = 0, bo = 0, bi = 0, tcp = 0, wtd = 0;
 
 	dev->ReadProcessImageSize(ao, ai, bo, bi);
 	dev->ReadNumTCPConnections(tcp);
-	dev->ReadSerialNumber(sn);
-	dev->ReadVersionInfo(hver, svermaj, svermin, sverpat);
 	dev->ReadNumFallbacksTriggered(wtd);
-	dev->ReadMfgDate(day, month, year);
 
 	epicsPrintf("Device: %s\n", ek9k);
 	if(connected)
@@ -1275,11 +1223,7 @@ void ek9000Stat(const iocshArgBuf *args)
 	epicsPrintf("\tBI size: %u\n", bi);
 	epicsPrintf("\tBO size: %u\n", bo);
 	epicsPrintf("\tTCP connections: %u\n", tcp);
-	epicsPrintf("\tSerial number: %u\n", sn);
-	epicsPrintf("\tHardware Version: %u\n", hver);
-	epicsPrintf("\tSoftware Version: %u.%u.%u\n", svermaj, svermin, sverpat);
 	epicsPrintf("\tFallbacks triggered: %u\n", wtd);
-	epicsPrintf("\tMfg date: %u/%u/%u\n", month, day, year);
 
 	for(int i = 0; i < dev->m_nTerms; i++)
 	{
