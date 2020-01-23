@@ -507,14 +507,6 @@ void Int32Fix(uint32_t* v)
 	((uint16_t*)v)[1] = ((uint16_t*)&tmp)[0];
 }
 
-void FixEndian(SPositionInterfaceCompact_Input& in, SPositionInterfaceCompact_Output& out)
-{
-	Int32Fix(&in.cntr_val);
-	Int32Fix(&in.lat_val);
-	Int32Fix(&out.enc_counter_val);
-	Int32Fix(&out.pos_tgt_pos);
-}
-
 asynStatus el70x7Axis::UpdatePDO(bool locked)
 {
 	const char* pStep = "UPDATE_PDO";
