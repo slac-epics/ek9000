@@ -275,6 +275,9 @@ asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel,
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::move\n",
 		__FUNCTION__, __LINE__);
 	this->ResetIfRequired();
+
+	SPositionInterface_Output prev = output;
+
 	/* Set the params */
 	printf("Max vel: %f\n", max_vel);
 	printf("Min vel: %f\n", min_vel);
@@ -298,6 +301,7 @@ asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel,
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to perform move.\n",
 		__FUNCTION__, __LINE__);
+	output = prev; /* Restore previous output state on motor error */
 	this->unlock();
 	return asynError;
 }
@@ -315,6 +319,8 @@ asynStatus el70x7Axis::moveVelocity(double min_vel, double max_vel, double accel
 		__FUNCTION__,__LINE__);
 	this->ResetIfRequired();
 
+	SPositionInterface_Output prev = output;
+
 	/* Update relevant parameters */
 	this->output.pos_accel = (uint32_t)round(accel);
 	this->output.pos_velocity = min_vel + (max_vel - min_vel) / 2.0;
@@ -328,6 +334,7 @@ asynStatus el70x7Axis::moveVelocity(double min_vel, double max_vel, double accel
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to set move velocity.\n",
 		__FUNCTION__, __LINE__);
+	output = prev; /* Restore the pre-call output state on propagation failure */
 	this->unlock();
 	return asynError;
 }
@@ -435,6 +442,9 @@ error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to poll device.\n",
 		__FUNCTION__,__LINE__);
 	has_shown_error = true;
+	/* When we reconnect we want to stop the moder ASAP */
+	output.pos_emergency_stp = 1;
+	output.pos_execute = 0;
 	this->unlock();
 	return asynError;
 }
@@ -444,6 +454,9 @@ asynStatus el70x7Axis::setPosition(double pos)
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::setPosition val=%f\n",
 		__FUNCTION__, __LINE__, pos);
+
+	/* Save previous output state */
+	SPositionInterface_Output prev = output;
 
 	output.pos_tgt_pos = (uint32_t)round(pos);
 	output.pos_start_type = EL7047_START_TYPE_ABSOLUTE;
@@ -456,6 +469,8 @@ asynStatus el70x7Axis::setPosition(double pos)
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Error while setting tgt pos.\n",
 		__FUNCTION__, __LINE__);
+	/* Restore previous if setPos failed */
+	output = prev;
 	this->unlock();
 	return asynError;
 }
