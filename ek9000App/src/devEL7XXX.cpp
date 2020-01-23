@@ -105,7 +105,13 @@ el70x7Axis* el70x7Controller::getAxis(asynUser* usr)
 void el70x7Controller::report(FILE* fd, int lvl)
 {
 	if(lvl)
-		fprintf(fd, "\tel70x7Controller slave=%u\n", this->pcontroller->m_nTerminalIndex);
+	{
+		fprintf(fd, "el70x7Controller slave=%u\n", this->pcontroller->m_nTerminalIndex);
+		fprintf(fd, "\tek9000_name=%s\n", pcoupler->m_pName);
+		fprintf(fd, "\tterminalno=%u\n", pcontroller->m_nTerminalIndex);
+		fprintf(fd, "\tport=%s\n", this->portName);
+		fprintf(fd, "\tnumaxes=%u\n", this->numAxes_);
+	}	
 	asynMotorController::report(fd, lvl);
 }
 
@@ -474,13 +480,6 @@ asynStatus el70x7Axis::setClosedLoop(bool closed)
 	return asynSuccess;
 }
 
-void Int32Fix(uint32_t* v)
-{
-	uint32_t tmp = *v;
-	((uint16_t*)v)[0] = ((uint16_t*)&tmp)[1];
-	((uint16_t*)v)[1] = ((uint16_t*)&tmp)[0];
-}
-
 asynStatus el70x7Axis::UpdatePDO(bool locked)
 {
 	const char* pStep = "UPDATE_PDO";
@@ -539,12 +538,6 @@ error:
 	return asynError;
 }
 
-void el70x7Axis::report(FILE* fd, int lvl)
-{
-	if(lvl)
-		fprintf(fd, "\t\tel70x7Axis.\n");
-	asynMotorAxis::report(fd, lvl);
-}
 
 /*
 Update the specified parameters
@@ -620,6 +613,18 @@ error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to update params. Error=%u Step=%s\n",
 		__FUNCTION__, __LINE__, res, step);
 	return asynError;
+}
+
+
+void el70x7Axis::report(FILE* fd, int lvl)
+{
+	if(lvl)
+	{
+		fprintf(fd, "asynMotorAxis");
+		fprintf(fd, "\tport=%s\n", this->pC_->portName);
+		fprintf(fd, "\tterminal=%u\n", this->pcontroller->m_nTerminalIndex);
+	}
+	asynMotorAxis::report(fd, lvl);
 }
 
 
