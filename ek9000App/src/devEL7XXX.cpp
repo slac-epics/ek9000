@@ -67,32 +67,6 @@
 
 std::vector<el70x7Controller*> controllers;
 
-/*
-
-Class for modbus driver asyn users
-
-*/
-
-/*
- * RAII lock
- */ 
-el70x7Axis::CouplerLock::CouplerLock(el70x7Axis* axis)
-{
-	this->axis = axis;
-	int stat = this->axis->pC_->pcoupler->Lock();
-	if (stat) epicsAssert(__FILE__, __LINE__, "pC_->lock() != asynSuccess", "");
-	asynPrint(axis->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Grabbed mutex lock for coupler=%s port=%s axisno=%u\n",
-		__FUNCTION__, __LINE__, axis->pcoupler->m_pName,
-		axis->pcoupler->m_pPortName, axis->axisNo_);
-}
-
-el70x7Axis::CouplerLock::~CouplerLock()
-{
-	this->axis->pC_->pcoupler->Unlock();
-	asynPrint(axis->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Released mutex for coupler=%s port=%s axisno=%u\n",
-		__FUNCTION__, __LINE__, axis->pcoupler->m_pName,
-		axis->pcoupler->m_pPortName, axis->axisNo_);
-}
 
 /*
 ========================================================
