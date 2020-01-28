@@ -12,7 +12,7 @@ device(bo,INST_IO,devEL20XX, "EL20XX")
 
 # EL30XX devices
 device(ai,INST_IO,devEL30XX, "EL30XX")
-device(ai,INST_IO,devEL31XX, "EL31XX")
+device(ai,INST_IO,devEL30XX, "EL31XX")
 
 # EL40XX devices
 device(ao,INST_IO,devEL40XX, "EL40XX")
