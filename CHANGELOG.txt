@@ -1,0 +1,22 @@
+
+--- R1.0.4 ---
+	* Fixed incorrect analog input scaling due to interpreting a signed 16-bit integral ADC count as unsigned
+	* Unified EL30XX and EL31XX device support again (EL31XX does NOT present ADC values as 16-bit unsigned)
+	* Unified EL40XX and EL41XX device support again (same issue as above)
+	* Device support now raises alarms when read/write calls fail
+
+--- R1.0.3 ---
+	* Fixed a bug where PVs would be undefined
+
+--- R1.0.2 ---
+	* Better logging
+	* Added template/subs for more terminals
+	* Added ek9000EnableDebug and ek9000DisableDebug
+	* Added a manual in doc/ and fixed typos in README
+	* Fixed issue with timestamps in logging functions
+	* Added SLAC license to repo
+
+--- 1.0.0 ---
+	* Initial release
+
+

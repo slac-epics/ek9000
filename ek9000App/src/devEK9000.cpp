@@ -514,38 +514,34 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 	/* write */
 	if (rw)
 	{
-		uint16_t tmp_data[] =
-			{
-				1,			/* 0x1400 = execute */
-				term,		/* 0x1401 = term id */
-				index,		/* 0x1402 = Le object */
-				subindex, 	/* 0x1403 = subindex */
-				len,		/* 0x1404 = length */
-			};
-		/* Prepare buffer */
-		uint16_t *buf = (uint16_t *)malloc(sizeof(uint16_t) * (6 + len));
-		memcpy(buf, tmp_data, sizeof(uint16_t) * 5);
-		memcpy((buf + 5), data, sizeof(uint16_t) * len);
-
-		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, len + 5);
-
-		if (this->Poll(0.05, 50))
+		uint16_t tmp_data[512] = 
 		{
-			uint16_t dat = 0;
-			this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
-			if (dat != 0)
-			{
-				data[0] = dat;
+			1,
+			(uint16_t)(term | 0x8000), /* Bit 15 needs to be 1 to indicate a write */
+			index,
+			subindex,
+			(uint16_t)(len*2),
+			0, /* Error code */
+		};
+
+		memcpy(tmp_data+6, data, len*sizeof(uint16_t));
+		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, len+7);
+		if (!this->Poll(0.005, TIMEOUT_COUNT))
+		{
+			this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, tmp_data, 6);
+			/* Write tmp data */		
+			if((tmp_data[0] & 0x400) != 0x400) {
 				return EK_EADSERR;
 			}
-			return EK_EERR;
 		}
+		else
+			return EK_EERR;
 		return EK_EOK;
 	}
 	/* read */
 	else
 	{
-		uint16_t tmp_data[] =
+		uint16_t tmp_data[512] =
 			{
 				1,		  	/* 0x1400 = exec */
 				term,	 	/* 0x1401 = term id */
@@ -562,7 +558,7 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 		this->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, 9);
 
 		/* poll */
-		if (this->Poll(POLL_DURATION, TIMEOUT_COUNT))
+		if (this->Poll(0.005, TIMEOUT_COUNT))
 		{
 			uint16_t dat = 0;
 			this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1405, &dat, 1);
@@ -576,8 +572,10 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 		epicsThreadSleep(0.05);
 		/* read result */
 		int res = this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1406, data, len);
+		if(res)
+			return EK_EERR;
 		return EK_EOK;
-	}
+	}	
 }
 
 int CEK9000Device::doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex)

@@ -109,10 +109,7 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
 		((dpvt->m_nChannel-1) * 2), buf, 1);
 	/* Set props */
-	if(dpvt->isSigned)
-		pRecord->rval = ((int16_t)buf[0]);
-	else
-		pRecord->rval = ((uint16_t)buf[0]);
+	pRecord->rval = (epicsFloat64)((int16_t)buf[0]);
 	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
 	dpvt->m_pTerminal->m_pDevice->Unlock();
@@ -179,10 +176,6 @@ static long EL30XX_init_record(void *precord)
 		Error("EL30XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
-	if(termid == 3174 || termid == 3102 || termid == 3142)
-		dpvt->isSigned = true;
-	else
-		dpvt->isSigned = false;
 	return 0;
 }
 
@@ -202,13 +195,14 @@ static long EL30XX_read_record(void *precord)
 
 static long EL30XX_linconv(void* precord, int after)
 {
+	if (!after) return 0;
 	aiRecord* pRecord = (aiRecord*)precord;
-	/* Max range is 32767 */
-	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 32767;
+	/* Max range is +/-32767 because presentation is a 64-bit signed integer */
+	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0x7FFF;
 	pRecord->roff = 0x0;
 	return 0;
 }
-
+#if 0
 static long EL31XX_linconv(void* precord, int after);
 
 struct
@@ -240,3 +234,4 @@ static long EL31XX_linconv(void* precord, int after)
 	pRecord->roff = 0x0;
 	return 0;
 }
+#endif 
