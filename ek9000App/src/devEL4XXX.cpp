@@ -101,7 +101,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	dpvt->m_pTerminal->m_pDevice->Lock();
 	
 	/* Set buffer & do write */
-	uint16_t buf = (uint16_t)pRecord->rval;
+	uint16_t buf = (int16_t)pRecord->rval;
 	int status = dpvt->m_pTerminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS, dpvt->m_pTerminal->m_nOutputStart + 
 		(dpvt->m_nChannel-1), &buf, 1);
 	
@@ -197,40 +197,10 @@ static long EL40XX_write_record(void* record)
 
 static long EL40XX_linconv(void* precord, int after)
 {
+	if(!after) return 0;
 	aoRecord* pRecord = (aoRecord*)precord;
-	/* Output is bit shifted 3 bits such that the max value will be 32767 */
 	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0x7FFF;
 	pRecord->roff = 0; /* NO offset is needed */
 	return 0;
 }
-
-/* EL41XX terminals have 16-bit precision instead */
-static long EL41XX_linconv(void* precord, int after)
-{
-	aoRecord* pRecord = (aoRecord*)precord;
-	/* No shift needed for the output */
-	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0xFFFF;
-	pRecord->roff = 0x0;
-	return 0;
-}
-
-struct
-{
-	long num;
-	DEVSUPFUN report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN ioint_info;
-	DEVSUPFUN write_record;
-	DEVSUPFUN linconv;
-} devEL41XX = {
-	6,
-	(DEVSUPFUN)EL40XX_dev_report,
-	(DEVSUPFUN)EL40XX_init,
-	(DEVSUPFUN)EL40XX_init_record,
-	NULL,
-	(DEVSUPFUN)EL40XX_write_record,
-	(DEVSUPFUN)EL41XX_linconv,
-};
-epicsExportAddress(dset, devEL41XX);
 
