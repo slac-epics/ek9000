@@ -142,7 +142,7 @@ static long el50xx_init_record(void* precord)
 	/* Check connection to terminal */
 	if(!dpvt->pcoupler->VerifyConnection())
 	{
-		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		Error("EL50XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		dpvt->pcoupler->Unlock();
 		return 1;
 	}
@@ -208,7 +208,8 @@ extern "C" {
 
 struct SEL5042SupportData
 {
-	
+	CTerminal* pterm;
+	CEK9000Device* pcoupler;
 };
 
 /*
@@ -229,7 +230,43 @@ Initialize the specified record
 */
 static long el5042_init_record(void* prec)
 {
+	longinRecord* record = static_cast<longinRecord*>(prec);
+	record->dpvt = calloc(1, sizeof(SEL50XXSupportData));
+	SEL5042SupportData* dpvt = static_cast<SEL5042SupportData*>(record->dpvt);
 
+	/* Get the terminal */
+	char* recname = NULL;
+	int channel = 0;
+	dpvt->pterm = CTerminal::ProcessRecordName(record->name, channel, recname);
+	if(!dpvt->pterm)
+	{
+		Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
+		return 1;
+	}
+	free(recname);
+	
+	dpvt->pcoupler = dpvt->pterm->m_pDevice;
+	dpvt->pcoupler->Lock();
+
+	/* Check connection to terminal */
+	if(!dpvt->pcoupler->VerifyConnection())
+	{
+		Error("EL5042_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		dpvt->pcoupler->Unlock();
+		return 1;
+	}
+
+	/* Check that slave # is OK */
+	uint16_t termid = 0;
+	dpvt->pterm->m_pDevice->ReadTerminalID(dpvt->pterm->m_nTerminalIndex, termid);
+	dpvt->pcoupler->Unlock();
+	if(termid != dpvt->pterm->m_nTerminalID || termid == 0)
+	{
+		Error("EL5042_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), record->name, termid);
+		return 1;
+	}
+
+	return 0;
 }
 
 
@@ -251,7 +288,7 @@ Called to read the specified record
 */
 static long el5042_read_record(void* prec)
 {
-
+	
 }
 
 
