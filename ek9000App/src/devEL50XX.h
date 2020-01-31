@@ -41,5 +41,5 @@ struct SEL5002Output
 	uint32_t encoder_value;
 };
 
-#pragma pack(0)
+#pragma pack()
 
