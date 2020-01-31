@@ -17,6 +17,16 @@
 // Planned features/notes:
 //	-	Motor reset from epics
 //======================================================//
+// REVISIONS:
+//
+// 1/29/2019 - Jeremy L.
+// 	revision list start; initial release
+//
+// 1/30/2019 - Jeremy L.
+//	setPosition no longer sets the execute bit, and does
+//	what it should actually do.
+//
+//======================================================//
 /* EPICS includes */
 #include <epicsExport.h>
 #include <epicsMath.h>
@@ -249,6 +259,17 @@ error:
 	return asynError;
 }
 
+/*
+--------------------------------------------------
+Move the motor to the specified relative or absolute
+position.
+rel is set to 0 for absolute position, set to 1 for
+a relative pos
+min_vel is the starting velo of the motor [steps/s]
+max_vel is the actual move velo of the motor [steps/s]
+accel is the acceleration of the motor [steps/s^2]
+--------------------------------------------------
+*/
 asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel, double accel)
 {
 	this->lock();
@@ -370,6 +391,14 @@ error:
 	return asynError;
 }
 
+/*
+--------------------------------------------------
+This function should poll the motor controller.
+it will read the motor position, drive status,
+moving status and home status and set each param
+using setDoubleParam or something similar.
+--------------------------------------------------
+*/
 asynStatus el70x7Axis::poll(bool* moving)
 {
 	// HACKHACK: These are just used to prevent spam!
@@ -429,6 +458,14 @@ error:
 	return asynError;
 }
 
+/*
+--------------------------------------------------
+This method should set the position of the motor,
+but it should not actually move the motor.
+The position is an absolute position that should
+be set in the hardware.
+--------------------------------------------------
+*/
 asynStatus el70x7Axis::setPosition(double pos)
 {
 	this->lock();
@@ -441,7 +478,7 @@ asynStatus el70x7Axis::setPosition(double pos)
 	output.pos_tgt_pos = (uint32_t)round(pos);
 	output.pos_start_type = EL7047_START_TYPE_ABSOLUTE;
 	output.pos_decel = output.pos_accel;
-	int stat = this->Execute();
+	int stat = this->UpdatePDO();
 	if(stat) goto error;
 	
 	this->unlock();

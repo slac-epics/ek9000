@@ -123,6 +123,8 @@
 
 #define EK9000_REGISTER_BASE 0x1400
 
+#define STRUCT_SIZE_TO_MODBUS_SIZE(x) (sizeof(x) % 2 == 0 ? sizeof(x) / 2 : sizeof(x) / 2 + 1)
+
 /* Forward decls */
 class CEK9000Device;
 class CDeviceMgr;
