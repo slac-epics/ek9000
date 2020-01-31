@@ -22,6 +22,7 @@ ek9000Support_SRCS += devEL1XXX.cpp
 ek9000Support_SRCS += devEL2XXX.cpp
 ek9000Support_SRCS += devEL3XXX.cpp
 ek9000Support_SRCS += devEL4XXX.cpp
+ek9000Support_SRCS += devEL50XX.cpp
 ek9000Support_SRCS += devEL7XXX.cpp
 ek9000Support_SRCS += diag.cpp
 
