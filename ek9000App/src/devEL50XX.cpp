@@ -11,6 +11,7 @@
 #include <recGbl.h>
 
 #include <longinRecord.h>
+#include <int64inRecord.h>
 
 #include "devEK9000.h"
 #include "devEL50XX.h"
@@ -59,7 +60,8 @@ static void el50xx_read_callback(CALLBACK* callback)
 {
 	void* usr;
 	callbackGetUser(usr, callback);
-	SEL50XXSupportData* dpvt = (SEL50XXSupportData*)usr;
+	longinRecord* precord = static_cast<longinRecord*>(usr);
+	SEL50XXSupportData* dpvt = static_cast<SEL50XXSupportData*>(precord->dpvt);
 
 	if(!dpvt || !dpvt->pterm || !dpvt->pcoupler)
 		return;
@@ -83,28 +85,29 @@ static void el50xx_read_callback(CALLBACK* callback)
 		{
 			SEL5001Output* output = reinterpret_cast<SEL5001Output*>(data);
 			if(output->data_error || output->sync_err)
-				recGblSetSevr(dpvt->precord, READ_ALARM, INVALID_ALARM);
+				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
 			if(output->frame_error)
-				recGblSetSevr(dpvt->precord, READ_ALARM, MAJOR_ALARM);
-			dpvt->precord->val = output->encoder_value;
+				recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
+			precord->val = output->encoder_value;
 			break;
 		}
 		case 5002:
 		{
 			SEL5002Output* output = reinterpret_cast<SEL5002Output*>(data);
 			if(output->data_error)
-				recGblSetSevr(dpvt->precord, READ_ALARM, INVALID_ALARM);
+				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
 			if(output->frame_error)
-				recGblSetSevr(dpvt->precord, COMM_ALARM, MAJOR_ALARM);
-			dpvt->precord->val = output->encoder_value;
+				recGblSetSevr(precord, COMM_ALARM, MAJOR_ALARM);
+			precord->val = output->encoder_value;
 			break;
 		}
 		default:
 		{
 			/* Raise invalid alarm if we don't have a tid */
-			recGblSetSevr(dpvt->precord, READ_ALARM, INVALID_ALARM);
+			recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
 		}
 	}
+	precord->pact = 0;
 	free(callback);
 
 }
@@ -208,9 +211,25 @@ extern "C" {
 
 struct SEL5042SupportData
 {
+	int64inRecord* prec;
 	CTerminal* pterm;
 	CEK9000Device* pcoupler;
 };
+
+#pragma pack(1)
+struct SEL5042InputPDO
+{
+	uint8_t warning : 1;
+	uint8_t error : 1;
+	uint8_t ready : 1;
+	uint8_t _r1 : 5;
+	uint8_t _r2 : 4;
+	uint8_t diag : 1;
+	uint8_t txpdo_state : 1;
+	uint8_t input_cycle_counter : 2;
+	uint32_t position;
+};
+#pragma pack()
 
 /*
 -------------------------------------
@@ -260,6 +279,7 @@ static long el5042_init_record(void* prec)
 	uint16_t termid = 0;
 	dpvt->pterm->m_pDevice->ReadTerminalID(dpvt->pterm->m_nTerminalIndex, termid);
 	dpvt->pcoupler->Unlock();
+	dpvt->prec = static_cast<int64inRecord*>(prec);
 	if(termid != dpvt->pterm->m_nTerminalID || termid == 0)
 	{
 		Error("EL5042_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), record->name, termid);
@@ -288,7 +308,23 @@ Called to read the specified record
 */
 static long el5042_read_record(void* prec)
 {
-	
+	int64inRecord* precord = static_cast<int64inRecord*>(prec);
+	SEL5042SupportData* dpvt = static_cast<SEL5042SupportData*>(precord->dpvt);
+
+	precord->pact = 1;
+
+	/* Just for utility */
+	dpvt->prec = static_cast<int64inRecord*>(prec);
+
+	/* Allocate and set callback */
+	CALLBACK *callback = (CALLBACK *)malloc(sizeof(CALLBACK));
+	*callback = *(CALLBACK*)el5042_read_callback;
+	callbackSetUser(precord, callback);
+	callbackSetCallback(el5042_read_callback, callback);
+	callbackSetPriority(priorityHigh, callback);
+	callbackRequest(callback);
+
+	return 0;
 }
 
 
@@ -300,5 +336,43 @@ read the record
 */
 static void el5042_read_callback(CALLBACK* callback)
 {
+	int64inRecord* precord;
+	void* record;
+	SEL5042SupportData* dpvt;
+	SEL5042InputPDO* pdo;
+
+	if(!callback) return;
+
+	callbackGetUser(record, callback);
+	if(!record) return;
+	precord = static_cast<int64inRecord*>(record);
+	dpvt = static_cast<SEL5042SupportData*>(precord->dpvt);
+	if(!dpvt) return;
+
+	/* Read the stuff */
+	uint16_t buf[32];
+	dpvt->pcoupler->doEK9000IO(0, dpvt->pterm->m_nInputStart,
+		STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(SEL5042InputPDO)), buf);
+
+	/* Cast it to our pdo type */
+	pdo = reinterpret_cast<SEL5042InputPDO*>(buf);
+
+	/* Update our params */
+	precord->pact = 0;
+	precord->val = pdo->position;
+
+	/* Check for any errors */
+	if(pdo->error)
+	{
+		recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
+	}
+
+	/* TODO: Should warnings have alarms associated? */
+	if(pdo->warning)
+	{
+		recGblSetSevr(precord, READ_ALARM, MINOR_ALARM);
+	}
+
+	free(callback);
 
 }
