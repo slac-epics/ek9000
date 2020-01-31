@@ -1,11 +1,16 @@
 #RELEASE Location of external products
 
-SUPPORT=~/epics-r3-14/extensions/src/
+# Default support and base settings
+SUPPORT=/home/jeremy/epics-7/extensions
+EPICS_BASE=/home/jeremy/epics-7/base 
+
+# Include local release file
+-include $(TOP)/configure/RELEASE.local 
+
 -include $(TOP)/../configure/SUPPORT.$(EPICS_HOST_ARCH)
 
-# Make sure to clone the drvAsynIPPort branch.
+# Modbus and ASYN modules are dependencies
 MODBUS=$(SUPPORT)/modbus
-ASYN=$(SUPPORT)/asyn
-#  EPICS_BASE 3.14 or later is required
-EPICS_BASE=~/epics-r3-14/base
+ASYN=$(SUPPORT)/asyn-4-36
+
 -include $(TOP)/../configure/EPICS_BASE.$(EPICS_HOST_ARCH)
