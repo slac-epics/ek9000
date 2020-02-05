@@ -15,7 +15,7 @@ file "../../db/EL2008.template"
 		DESC8,	ZNAM8,	ONAM8,	PINI8	
 	}
 	{
-		"TestTerm1",
+		"TestTerm1:EK:MEC:2",
 		"Sig1", "",		"",		"1",
 		"Sig2", "",		"",		"1",
 		"Sig3", "",		"",		"1",

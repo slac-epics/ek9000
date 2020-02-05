@@ -1,4 +1,4 @@
-#!../../bin/linux-x86_64/ek9000Test
+#!../../bin/rhel7-x86_64/ek9000Test
 
 < envPaths
 dbLoadDatabase("../../dbd/ek9000Test.dbd")
@@ -15,13 +15,12 @@ ek9000Test_registerRecordDeviceDriver pdbbase
 
 # Configure the device
 # ek9000Configure takes 4 parameters: your *unique* device name, the IP of the device, the port number and the number of slaves you wish to access
-ek9000Configure("EK9K1", "192.168.1.3", 502, 5)
+ek9000Configure("EK9K1", "bhc-tst-ek9000", 502, 5)
 # ek9000ConfigureTerminal takes 4 parameters: the name of the device which it's attached to, the record base name, the device type string, and the position on the rail.
-ek9000ConfigureTerminal("EK9K1", "TestTerm1", "EL2008", 1)
+ek9000ConfigureTerminal("EK9K1", "TestTerm1:EK:MEC:2", "EL2008", 1)
 ek9000ConfigureTerminal("EK9K1", "TestTerm2", "EL1004", 2)
 ek9000ConfigureTerminal("EK9K1", "TestTerm3", "EL2008", 3)
 ek9000ConfigureTerminal("EK9K1", "TestTerm4", "EL3064", 4)
-ek9000ConfigureTerminal("EK9K1", "TestTerm5", "EL3202", 5)
 cd "${TOP}/src/ek9000/iocBoot/${IOC}"
 
 # Load our example subs file 
