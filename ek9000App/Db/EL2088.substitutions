@@ -2,14 +2,42 @@ file EL2088.template
 { 	pattern 
 	{
 		TERMINAL,	
-		DESC1,	ZNAM1,	ONAM1,	PINI1,	
-		DESC2,	ZNAM2,	ONAM2,	PINI2,	
-		DESC3,	ZNAM3,	ONAM3,	PINI3,	
-		DESC4,	ZNAM4,	ONAM4,	PINI4,	
-		DESC5,	ZNAM5,	ONAM5,	PINI5,	
-		DESC6,	ZNAM6,	ONAM6,	PINI6,	
-		DESC7,	ZNAM7,	ONAM7,	PINI7,	
-		DESC8,	ZNAM8,	ONAM8,	PINI8	
+
+	}
+	{
+	}
+}
+
+	}
+	{
+	}
+}
+
+	}
+	{
+	}
+}
+
+	}
+	{
+	}
+}
+
+	}
+	{
+	}
+}
+
+	}
+	{
+	}
+}
+
+	}
+	{
+	}
+}
+
 	}
 	{
 	}

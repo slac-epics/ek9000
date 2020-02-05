@@ -8,6 +8,6 @@ record(ao,"$(TERMINAL):1")
 	field(DTYP,  "EL40XX")
 	field(SCAN,  ".1 second")
 	field(LINR,  "LINEAR")
-	field(PINI,  "TRUE")
+	field(PINI,  "YES")
 }
 

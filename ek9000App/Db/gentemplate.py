@@ -12,130 +12,98 @@
 # Horrible script to auto generate templates and sub files
 #
 def make_bi(name, i, dtyp):
-	num = 1
-	subs = open(name + ".substitutions", "w+")
-	with open(name + ".template", "w+") as fs:			
-		fs.write("#\n# " + name + " template.\n#\n\n")
-		subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
-		subs.write("\t\tTERMINAL,\t\n")
-		while num <= i:
-			fs.write("record(bi,\"$(TERMINAL):" + str(num) +"\")\n{\n")
-			fs.write("\tfield(DESC,  \"\")\n")
-			fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
-			fs.write("\tfield(ZNAM,  \"low\")\n")
-			fs.write("\tfield(ONAM,  \"high\")\n")
-			fs.write("\tfield(SCAN,  \".1 second\")\n")
-			fs.write("}\n\n")			
-			subs.write("\n")
-			num = num + 1
-		subs.write("\t}\n\t{\n\t}\n}\n")
-	subs.flush()
-	subs.close()
-			
+    num = 1
+    subs = open(name + ".substitutions", "w+")
+    with open(name + ".template", "w+") as fs:			
+        fs.write("#\n# " + name + " template.\n#\n\n")
+        subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
+        subs.write("\t\tTERMINAL,\t\n")
+        while num <= i:
+            fs.write("record(bi,\"$(TERMINAL):" + str(num) +"\")\n{\n")
+            fs.write("\tfield(DESC,  \"\")\n")
+            fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
+            fs.write("\tfield(ZNAM,  \"low\")\n")
+            fs.write("\tfield(ONAM,  \"high\")\n")
+            fs.write("\tfield(SCAN,  \".1 second\")\n")
+            fs.write("\tfield(PINI,  \"YES\")\n")
+            fs.write("}\n\n")			
+            subs.write("\n")
+            num = num + 1
+            subs.write("\t}\n\t{\n\t}\n}\n")
+    subs.flush()
+    subs.close()
+
 def make_bo(name, i, dtyp):
-	num = 1
-	subs = open(name + ".substitutions", "w+")
-	with open(name + ".template", "w+") as fs:			
-		fs.write("#\n# " + name + " template.\n#\n\n")
-		subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
-		subs.write("\t\tTERMINAL,\t\n")
-		while num <= i:
-			fs.write("record(bo,\"$(TERMINAL):" + str(num) +"\")\n{\n")
-			fs.write("\tfield(DESC,  \"\")\n")
-			fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
-			fs.write("\tfield(ZNAM,  \"low\")\n")
-			fs.write("\tfield(ONAM,  \"high\")\n")
-			fs.write("\tfield(PINI,  \"TRUE\")\n")
-			fs.write("}\n\n")	
-			subs.write("\t\tDESC" + str(num) + ",\t")
-			subs.write("ZNAM" + str(num) + ",\t")
-			subs.write("ONAM" + str(num) + ",\t")
-			if not num == i:
-				subs.write("PINI" + str(num) + ",\t")
-			else:
-				subs.write("PINI" + str(num) + "\t")
-			num = num + 1
-			subs.write("\n")
-		subs.write("\t}\n\t{\n\t}\n}\n")
-	subs.flush()
-	subs.close()
-	
-	
-	
+    num = 1
+    subs = open(name + ".substitutions", "w+")
+    with open(name + ".template", "w+") as fs:			
+        fs.write("#\n# " + name + " template.\n#\n\n")
+        subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
+        subs.write("\t\tTERMINAL,\t\n")
+        while num <= i:
+            fs.write("record(bo,\"$(TERMINAL):" + str(num) +"\")\n{\n")
+            fs.write("\tfield(DESC,  \"\")\n")
+            fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
+            fs.write("\tfield(ZNAM,  \"low\")\n")
+            fs.write("\tfield(ONAM,  \"high\")\n")
+            fs.write("\tfield(PINI,  \"YES\")\n")
+            fs.write("}\n\n")	
+            #subs.write("\t\tDESC" + str(num) + ",\t")
+            #subs.write("ZNAM" + str(num) + ",\t")
+            #subs.write("ONAM" + str(num) + ",\t")
+            #if not num == i:subs.write("PINI" + str(num) + ",\t")
+            #else:
+            #	subs.write("PINI" + str(num) + "\t")
+            num = num + 1
+            subs.write("\n")
+            subs.write("\t}\n\t{\n\t}\n}\n")
+    subs.flush()
+    subs.close()
+
+
+
 def make_ai(name, i, dtyp):
-	num = 1
-	subs = open(name + ".substitutions", "w+")
-	with open(name + ".template", "w+") as fs:			
-		fs.write("#\n# " + name + " template.\n#\n\n")
-		subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
-		subs.write("\t\tTERMINAL,\t\n")
-		while num <= i:
-			fs.write("record(ai,\"$(TERMINAL):" + str(num) +"\")\n{\n")
-			fs.write("\tfield(DESC,  \"\")\n")
-			fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
-			fs.write("\tfield(SCAN,  \".1 second\")\n")
-			fs.write("\tfield(EGU,   \"Volts\")\n")
-			fs.write("\tfield(LINR,  \"LINEAR\")\n")
-			fs.write("}\n\n")
-			subs.write("\t\tDESC" + str(num) + ",\t")
-			subs.write("SCAN" + str(num) + ",\t")
-			subs.write("ADEL" + str(num) + ",\t")
-			subs.write("EGUF" + str(num) + ",\t")
-			subs.write("EGUL" + str(num) + ",\t")
-			subs.write("HIGH" + str(num) + ",\t")
-			subs.write("HIHI" + str(num) + ",\t")
-			subs.write("HOPR" + str(num) + ",\t")
-			subs.write("HYST" + str(num) + ",\t")
-			subs.write("LOLO" + str(num) + ",\t")
-			subs.write("LOPR" + str(num) + ",\t")
-			subs.write("LOW" + str(num) + ",\t")
-			subs.write("MDEL" + str(num) + ",\t")
-			subs.write("SMOO" + str(num) + ",\t")
-			if not num == i:
-				subs.write("UNIT" + str(num) + ",\t")
-			else:
-				subs.write("UNIT" + str(num) + "\t")
-			num = num + 1
-			subs.write("\n")
-		subs.write("\t}\n\t{\n\t}\n}\n")
-	subs.flush()
-	subs.close()
-			
+    num = 1
+    subs = open(name + ".substitutions", "w+")
+    with open(name + ".template", "w+") as fs:			
+        fs.write("#\n# " + name + " template.\n#\n\n")
+        subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
+        subs.write("\t\tTERMINAL,\t\n")
+        while num <= i:
+            fs.write("record(ai,\"$(TERMINAL):" + str(num) +"\")\n{\n")
+            fs.write("\tfield(DESC,  \"\")\n")
+            fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
+            fs.write("\tfield(SCAN,  \".1 second\")\n")
+            fs.write("\tfield(EGU,   \"Volts\")\n")
+            fs.write("\tfield(LINR,  \"LINEAR\")\n")
+            fs.write("\tfield(PINI,  \"YES\")\n")
+            fs.write("}\n\n")
+            num = num + 1
+            subs.write("\n")
+            subs.write("\t}\n\t{\n\t}\n}\n")
+    subs.flush()
+    subs.close()
+
 def make_ao(name, i, dtyp):
-	num = 1
-	subs = open(name + ".substitutions", "w+")
-	with open(name + ".template", "w+") as fs:			
-		fs.write("#\n# " + name + " template.\n#\n\n")
-		subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
-		subs.write("\t\tTERMINAL,\t\n")
-		while num <= i:
-			fs.write("record(ao,\"$(TERMINAL):" + str(num) +"\")\n{\n")
-			fs.write("\tfield(DESC,  \"\")\n")
-			fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
-			fs.write("\tfield(SCAN,  \".1 second\")\n")
-			fs.write("\tfield(LINR,  \"LINEAR\")\n")
-			fs.write("\tfield(PINI,  \"TRUE\")\n")
-			fs.write("}\n\n")
-			subs.write("\t\tDESC" + str(num) + ",\t")
-			subs.write("SCAN" + str(num) + ",\t")
-			subs.write("ADEL" + str(num) + ",\t")
-			subs.write("EGUF" + str(num) + ",\t")
-			subs.write("EGUL" + str(num) + ",\t")
-			subs.write("DRVH" + str(num) + ",\t")
-			subs.write("DRVL" + str(num) + ",\t")
-			subs.write("HOPR" + str(num) + ",\t")
-			subs.write("LOPR" + str(num) + ",\t")
-			subs.write("LOLO" + str(num) + ",\t")
-			subs.write("LOPR" + str(num) + ",\t")
-			if not num == i:
-				subs.write("PINI" + str(num) + ",\t")
-			else:
-				subs.write("PINI" + str(num) + "\t")
-			num = num + 1
-			subs.write("\n")
-		subs.write("\t}\n\t{\n\t}\n}\n")
-	subs.flush()
-	subs.close()
+    num = 1
+    subs = open(name + ".substitutions", "w+")
+    with open(name + ".template", "w+") as fs:			
+        fs.write("#\n# " + name + " template.\n#\n\n")
+        subs.write("file " + name + ".template\n{ \tpattern \n\t{\n")
+        subs.write("\t\tTERMINAL,\t\n")
+        while num <= i:
+            fs.write("record(ao,\"$(TERMINAL):" + str(num) +"\")\n{\n")
+            fs.write("\tfield(DESC,  \"\")\n")
+            fs.write("\tfield(DTYP,  \"" + dtyp + "\")\n")
+            fs.write("\tfield(SCAN,  \".1 second\")\n")
+            fs.write("\tfield(LINR,  \"LINEAR\")\n")
+            fs.write("\tfield(PINI,  \"YES\")\n")
+            fs.write("}\n\n")
+            num = num + 1
+            subs.write("\n")
+            subs.write("\t}\n\t{\n\t}\n}\n")
+    subs.flush()
+    subs.close()
 
 
 # EL1XXX stuff 
