@@ -3,6 +3,10 @@ file EL1202.template
 	{
 		TERMINAL,	
 
+	}
+	{
+	}
+}
 
 	}
 	{

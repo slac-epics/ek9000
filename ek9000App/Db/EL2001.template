@@ -8,6 +8,6 @@ record(bo,"$(TERMINAL):1")
 	field(DTYP,  "EL20XX")
 	field(ZNAM,  "low")
 	field(ONAM,  "high")
-	field(PINI,  "TRUE")
+	field(PINI,  "YES")
 }
 
