@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../../../base/include/os/Linux/",
+                "${workspaceFolder}/../../../base/include",
+                "${workspaceFolder}/../../include",
+                "/usr/include/c++/8/",
+                "/home/jeremy/epics-r3-14/base/include",
+                "/usr/include/",
+                "${workspaceFolder}/ek9000App/src/O.Common/",
+                "/usr/include/i386-linux-gnu/",
+                "/usr/local/include/",
+                "/usr/include/x86_64-linux-gnu/c++/7"
+            ],
+            "defines": [
+                "_X86_",
+                "UNIX",
+                "linux",
+                "_GNU_SOURCE",
+                "_DEFAULT_SOURCE"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64",
+            "compileCommands": "${workspaceFolder}/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

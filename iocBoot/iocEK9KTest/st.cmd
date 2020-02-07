@@ -5,6 +5,7 @@ dbLoadDatabase("../../dbd/ek9000Test.dbd")
 
 cd "${TOP}"
 
+
 ## Register all support components
 dbLoadDatabase "dbd/ek9000Test.dbd"
 ek9000Test_registerRecordDeviceDriver pdbbase
@@ -22,9 +23,13 @@ ek9000ConfigureTerminal("EK9K1", "TestTerm2", "EL1004", 2)
 ek9000ConfigureTerminal("EK9K1", "TestTerm3", "EL2008", 3)
 ek9000ConfigureTerminal("EK9K1", "TestTerm4", "EL3064", 4)
 ek9000ConfigureTerminal("EK9K1", "TestTerm5", "EL3202", 5)
+
 cd "${TOP}/src/ek9000/iocBoot/${IOC}"
 
 # Load our example subs file 
 dbLoadTemplate("example1.substitutions")
+
+dbLoadRecords("db/coe_param_test.db")
+
 
 iocInit

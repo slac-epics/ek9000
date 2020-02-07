@@ -17,3 +17,15 @@ device(ai,INST_IO,devEL30XX, "EL31XX")
 # EL40XX devices
 device(ao,INST_IO,devEL40XX, "EL40XX")
 device(ao,INST_IO,devEL40XX, "EL41XX")
+
+device(int64in,INST_IO,devEK9KCoERO,"CoEParamInt64RO")
+device(int64in,INST_IO,devEK9KCoERO,"CoEParamInt32RO")
+device(int64in,INST_IO,devEK9KCoERO,"CoEParamInt16RO")
+device(int64in,INST_IO,devEK9KCoERO,"CoEParamInt8RO")
+device(int64in,INST_IO,devEK9KCoERO,"CoEParamBoolRO")
+
+device(int64out,INST_IO,devEK9KCoERW,"CoEParamInt64RW")
+device(int64out,INST_IO,devEK9KCoERW,"CoEParamInt32RW")
+device(int64out,INST_IO,devEK9KCoERW,"CoEParamInt16RW")
+device(int64out,INST_IO,devEK9KCoERW,"CoEParamInt8RW")
+device(int64out,INST_IO,devEK9KCoERW,"CoEParamBoolRW")
