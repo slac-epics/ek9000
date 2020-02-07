@@ -2,10 +2,22 @@ file EL2124.template
 { 	pattern 
 	{
 		TERMINAL,	
-		DESC1,	ZNAM1,	ONAM1,	PINI1,	
-		DESC2,	ZNAM2,	ONAM2,	PINI2,	
-		DESC3,	ZNAM3,	ONAM3,	PINI3,	
-		DESC4,	ZNAM4,	ONAM4,	PINI4	
+
+	}
+	{
+	}
+}
+
+	}
+	{
+	}
+}
+
+	}
+	{
+	}
+}
+
 	}
 	{
 	}

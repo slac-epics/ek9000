@@ -2,7 +2,7 @@ file EL2001.template
 { 	pattern 
 	{
 		TERMINAL,	
-		DESC1,	ZNAM1,	ONAM1,	PINI1	
+
 	}
 	{
 	}

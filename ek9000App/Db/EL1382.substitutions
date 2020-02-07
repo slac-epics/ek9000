@@ -3,6 +3,10 @@ file EL1382.template
 	{
 		TERMINAL,	
 
+	}
+	{
+	}
+}
 
 	}
 	{

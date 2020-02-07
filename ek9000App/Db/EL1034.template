@@ -9,6 +9,7 @@ record(bi,"$(TERMINAL):1")
 	field(ZNAM,  "low")
 	field(ONAM,  "high")
 	field(SCAN,  ".1 second")
+	field(PINI,  "YES")
 }
 
 record(bi,"$(TERMINAL):2")
@@ -18,6 +19,7 @@ record(bi,"$(TERMINAL):2")
 	field(ZNAM,  "low")
 	field(ONAM,  "high")
 	field(SCAN,  ".1 second")
+	field(PINI,  "YES")
 }
 
 record(bi,"$(TERMINAL):3")
@@ -27,6 +29,7 @@ record(bi,"$(TERMINAL):3")
 	field(ZNAM,  "low")
 	field(ONAM,  "high")
 	field(SCAN,  ".1 second")
+	field(PINI,  "YES")
 }
 
 record(bi,"$(TERMINAL):4")
@@ -36,5 +39,6 @@ record(bi,"$(TERMINAL):4")
 	field(ZNAM,  "low")
 	field(ONAM,  "high")
 	field(SCAN,  ".1 second")
+	field(PINI,  "YES")
 }
 
