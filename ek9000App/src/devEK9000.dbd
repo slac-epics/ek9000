@@ -29,3 +29,6 @@ device(int64out,INST_IO,devEK9KCoERW,"CoEParamInt32RW")
 device(int64out,INST_IO,devEK9KCoERW,"CoEParamInt16RW")
 device(int64out,INST_IO,devEK9KCoERW,"CoEParamInt8RW")
 device(int64out,INST_IO,devEK9KCoERW,"CoEParamBoolRW")
+
+device(longin,INST_IO,devEK9000ConfigRO,"EK9000ParamRO")
+device(longout,INST_IO,devEK9000ConfigRW,"EK9000ParamRW")

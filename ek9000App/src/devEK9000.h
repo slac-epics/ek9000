@@ -438,7 +438,7 @@ public:
 	inline int doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t *data);
 
 	/* Do CoE I/O */
-	inline int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint32_t reallen = 0);
+	inline int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint16_t reallen = 0);
 
 	/* same as doEK9000IO except this only operates on the ek9000 itself, term is not used */
 	inline int doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex = 0);

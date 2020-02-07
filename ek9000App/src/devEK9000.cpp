@@ -545,7 +545,7 @@ int CEK9000Device::CoEVerifyConnection(uint16_t termid)
 
 /* 1 for write and 0 for read */
 /* LENGTH IS IN REGISTERS */
-int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint32_t reallen)
+int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint16_t reallen)
 {
 	/* write */
 	if (rw)
@@ -904,7 +904,7 @@ struct SMsg_t
 
 void CEK9000Device::QueueCallback(void(*callback)(void*), void* rec)
 {
-	SMsg_t* msg = new SMsg_t;
+//	SMsg_t* msg = new SMsg_t;
 //	this->queue->trySend(&msg, sizeof(callback));
 }
 
@@ -1547,12 +1547,20 @@ struct ek9k_coe_param_t
 	} type;
 };
 
+struct ek9k_param_t
+{
+	CEK9000Device* ek9k;
+	int reg;
+	int len;
+};
+
 struct ek9k_conf_pvt_t
 {
 	ek9k_coe_param_t param;
 };
 
 int CoE_ParseString(const char* str, ek9k_coe_param_t* param);
+int EK9K_ParseString(const char* str, ek9k_param_t* param);
 //======================================================//
 
 
@@ -1660,6 +1668,7 @@ static long ek9k_confli_read_record(void* prec)
 	}
 
 	dpvt->param.ek9k->Unlock();
+	return 0;
 }
 
 //-----------------------------------------------------------------//
@@ -1717,8 +1726,7 @@ static long ek9k_conflo_write_record(void* prec)
 {
 	int64outRecord* precord = static_cast<int64outRecord*>(prec);
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
-	uint32_t val = precord->val;
-	int ret = 0;
+	int ret;
 
 	if(!dpvt || !dpvt->param.ek9k) return -1;
 
@@ -1765,16 +1773,17 @@ static long ek9k_conflo_write_record(void* prec)
 	}
 
 	dpvt->param.ek9k->Unlock();
+	return 0;
 }
 
 //-----------------------------------------------------------------//
 
 int CoE_ParseString(const char* str, ek9k_coe_param_t* param)
 {
-	size_t strl = strlen(str);
+	int strl = strlen(str);
 	CEK9000Device* pcoupler = 0;
 	CTerminal* pterm = 0;
-	int index, subindex, termid;
+	int termid;
 	int i, bufcnt = 0;
 	char buf[512]; 
 	char* buffers[5];
@@ -1837,5 +1846,179 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param)
 	param->subindex = strtol(buffers[3], 0, 16);
 	if(errno != 0) return 1;
 
+	return 0;
+}
+
+//-----------------------------------------------------------------//
+// EK9K RO configuration/status
+static long ek9k_ro_init(int pass);
+static long ek9k_ro_init_record(void* prec);
+static long ek9k_ro_read_record(void* pprec);
+
+struct
+{
+	long		number;
+	DEVSUPFUN	dev_report;
+	DEVSUPFUN	init;
+	DEVSUPFUN	init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN	get_ioint_info;
+	DEVSUPFUN	write_longout;/*(-1,0)=>(failure,success*/
+}
+devEK9000ConfigRO =
+{
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_ro_init,
+	ek9k_ro_init_record,
+	NULL,
+	ek9k_ro_read_record,
+};
+
+epicsExportAddress(dset, devEK9000ConfigRO);
+
+static long ek9k_ro_init(int pass)
+{
+	return 0;
+}
+
+static long ek9k_ro_init_record(void* prec)
+{
+	longinRecord* precord = static_cast<longinRecord*>(prec);
+	precord->dpvt = calloc(1, sizeof(ek9k_param_t));
+	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
+	ek9k_param_t param;
+
+	/* parse the string to obtain various info */
+	if(EK9K_ParseString(precord->inp.value.instio.string, &param))
+	{
+		Error("Maloformed modbus string in record %s\n", precord->name);
+		return 1;
+	}
+	*dpvt = param;
+	return 0;
+}
+
+static long ek9k_ro_read_record(void* prec)
+{
+	longinRecord* precord = static_cast<longinRecord*>(prec);
+	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
+	CEK9000Device* dev = dpvt->ek9k;
+	uint16_t buf;
+
+	if(!dev) return -1;
+
+	dev->Lock();
+
+	dev->doEK9000IO(0, dpvt->reg, 1, &buf);
+	precord->val = buf;
+
+	dev->Unlock();
+	return 0;
+}
+
+//-----------------------------------------------------------------//
+
+//-----------------------------------------------------------------//
+// EK9K RW configuration
+static long ek9k_rw_init(int pass);
+static long ek9k_rw_init_record(void* prec);
+static long ek9k_rw_write_record(void* pprec);
+
+struct
+{
+	long		number;
+	DEVSUPFUN	dev_report;
+	DEVSUPFUN	init;
+	DEVSUPFUN	init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN	get_ioint_info;
+	DEVSUPFUN	write_longout;/*(-1,0)=>(failure,success*/
+}
+devEK9000ConfigRW =
+{
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_rw_init,
+	ek9k_rw_init_record,
+	NULL,
+	ek9k_rw_write_record,
+};
+
+epicsExportAddress(dset, devEK9000ConfigRW);
+
+static long ek9k_rw_init(int pass)
+{
+	return 0;
+}
+
+static long ek9k_rw_init_record(void* prec)
+{
+	longoutRecord* precord = static_cast<longoutRecord*>(prec);
+	precord->dpvt = calloc(1, sizeof(ek9k_param_t));
+	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
+	ek9k_param_t param;
+
+	/* parse the string to obtain various info */
+	if(EK9K_ParseString(precord->out.value.instio.string, &param))
+	{
+		Error("Maloformed modbus string in record %s\n", precord->name);
+		return 1;
+	}
+	*dpvt = param;
+	return 0;
+}
+
+static long ek9k_rw_write_record(void* prec)
+{
+	longinRecord* precord = static_cast<longinRecord*>(prec);
+	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
+	CEK9000Device* dev = dpvt->ek9k;
+	uint16_t buf = precord->val;
+
+	if(!dev) return -1;
+
+	dev->Lock();
+
+	dev->doEK9000IO(1, dpvt->reg, 1, &buf);
+
+	dev->Unlock();
+	return 0;
+}
+
+//-----------------------------------------------------------------//
+
+/* The string will be in the format EK9K,0x1002 */
+int EK9K_ParseString(const char* str, ek9k_param_t* param)
+{
+	char buf[512];
+	const char *pek9k = 0, *preg = 0;
+
+	memset(buf, 0, 512);
+	strncpy(buf, str, 512);
+
+	if(!buf[0]) return 1;
+	pek9k = buf;
+
+	/* Read until we hit a comma, then replace */
+	int strl = strlen(buf);
+	for(int i = 0; i < strl; i++)
+	{
+		if(buf[i] == ',')
+		{
+			buf[i] = '\0';
+			preg = &buf[i+1];
+			break;
+		}
+	}
+	if(!preg) return 1;
+
+	/* Find the coupler */
+	param->ek9k = g_pDeviceMgr->FindDevice(pek9k);
+	param->reg = strtol(preg, 0, 16);
+
+	if(!param->ek9k)
+	{
+		printf("Unable to find the specified coupler\n");
+		return 1;
+	}
 	return 0;
 }

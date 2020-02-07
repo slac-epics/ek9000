@@ -30,6 +30,6 @@ cd "${TOP}/src/ek9000/iocBoot/${IOC}"
 dbLoadTemplate("example1.substitutions")
 
 dbLoadRecords("db/coe_param_test.db")
-
+dbLoadRecords("db/EK9000_Status.db","EK9K=EK9K1")
 
 iocInit
