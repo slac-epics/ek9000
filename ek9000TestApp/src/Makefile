@@ -32,6 +32,10 @@ ek9000Test_SRCS_vxWorks += -nil-
 
 # Finally link to the EPICS Base libraries
 ek9000Test_LIBS += $(EPICS_BASE_IOC_LIBS)
+ek9000Test_LIBS += ek9000Support
+ek9000Test_LIBS += modbus
+ek9000Test_LIBS += asyn
+
 
 #===========================
 
