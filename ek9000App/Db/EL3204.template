@@ -1,0 +1,44 @@
+#
+# EL3204 template.
+#
+
+record(ai,"$(TERMINAL):1")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL30XX")
+	field(SCAN,  ".1 second")
+	field(EGU,   "Volts")
+	field(LINR,  "LINEAR")
+	field(PINI,  "YES")
+}
+
+record(ai,"$(TERMINAL):2")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL30XX")
+	field(SCAN,  ".1 second")
+	field(EGU,   "Volts")
+	field(LINR,  "LINEAR")
+	field(PINI,  "YES")
+}
+
+record(ai,"$(TERMINAL):3")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL30XX")
+	field(SCAN,  ".1 second")
+	field(EGU,   "Volts")
+	field(LINR,  "LINEAR")
+	field(PINI,  "YES")
+}
+
+record(ai,"$(TERMINAL):4")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL30XX")
+	field(SCAN,  ".1 second")
+	field(EGU,   "Volts")
+	field(LINR,  "LINEAR")
+	field(PINI,  "YES")
+}
+

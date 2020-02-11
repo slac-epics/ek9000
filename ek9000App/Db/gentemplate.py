@@ -221,3 +221,8 @@ make_ai("EL3161", 1, "EL31XX")
 make_ai("EL3162", 2, "EL31XX")
 make_ai("EL3164", 4, "EL31XX")
 make_ai("EL3174", 4, "EL31XX")
+make_ai("EL3202", 2, "EL30XX")
+make_ai("EL3201", 2, "EL30XX")
+make_ai("EL3204", 4, "EL30XX")
+make_ai("EL3208", 8, "EL30XX")
+
