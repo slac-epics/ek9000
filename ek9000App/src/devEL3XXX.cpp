@@ -245,7 +245,7 @@ static long EL30XX_read_record(void *precord)
 
 static long EL30XX_linconv(void* precord, int after)
 {
-	if (!after) return 0;
+	if (1) return 0;
 	aiRecord* pRecord = static_cast<aiRecord*>(precord);
 	/* Max range is +/-32767 because presentation is a 16-bit signed integer */
 	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0x7FFF;
