@@ -1,0 +1,21 @@
+
+record(int64out,"TestTerm4:UserScaleGain")
+{
+	field(OUT, "@EK9K1,4,0x8000,0x12,int32")
+	field(DTYP, "CoEParamInt32RW")
+	#field(SCAN, "1 second")
+}
+
+record(int64out,"TestTerm4:UserCalibrationGain")
+{
+	field(OUT, "@EK9K1,4,0x8000,0x18,int16")
+	field(DTYP, "CoEParamInt16RW")
+	#field(SCAN, "1 second")
+}
+
+record(longin,"EK9K1:AnalogInputSize")
+{
+	field(INP, "@EK9K1,0x1011")
+	field(DTYP,"EK9000ParamRO")
+	field(SCAN,"1 second")
+}

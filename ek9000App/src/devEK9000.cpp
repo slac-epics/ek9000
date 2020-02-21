@@ -222,7 +222,6 @@ CTerminal *CTerminal::ProcessRecordName(const char *recname, int &outindex, char
 			ret[i] = '\0';
 			good = 1;
 			outindex = atoi(&ret[i + 1]);
-			break;
 		}
 	}
 

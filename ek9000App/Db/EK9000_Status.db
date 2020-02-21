@@ -1,0 +1,158 @@
+#
+# Various status PVs for the EK9k
+#
+
+record(longin,"$(EK9K):AnalogOutputSize")
+{
+	field(EGU, "bytes")
+	field(INP, "@$(EK9K),0x1010")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):AnalogInputSize")
+{
+	field(EGU, "bytes")
+	field(INP, "@$(EK9K),0x1011")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):DigitalInputSize")
+{
+	field(EGU, "bits")
+	field(INP, "@$(EK9K),0x1012")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):DigitalOutputSize")
+{
+	field(EGU, "bits")
+	field(INP, "@$(EK9K),0x1013")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):WatchdogExpTime")
+{
+	field(SCAN, "10 second")
+	field(EGU, "ms")
+	field(INP, "@$(EK9K),0x1020")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):FallbacksTriggered")
+{
+	field(SCAN, "10 second")
+	field(INP, "@$(EK9K),0x1021")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):TCPConnections")
+{
+	field(SCAN, "10 second")
+	field(INP, "@$(EK9K),0x1022")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):HardwareVersion")
+{
+	field(PINI,"YES")
+	field(INP,"@$(EK9K),0x1030")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):SoftwareVersionMain")
+{
+	field(PINI,"YES")
+	field(INP,"@$(EK9K),0x1031")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):SoftwareVersionSub")
+{
+	field(PINI,"YES")
+	field(INP,"@$(EK9K),0x1032")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):SoftwareVersionBeta")
+{
+	field(PINI,"YES")
+	field(INP,"@$(EK9K),0x1033")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):SerialNumber")
+{
+	field(PINI,"YES")
+	field(INP,"@$(EK9K),0x1034")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):DayOfMfg")
+{
+	field(PINI,"YES")
+	field(INP,"@$(EK9K),0x1035")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):MonthOfMfg")
+{
+	field(PINI,"YES")
+	field(INP,"@$(EK9K),0x1036")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):YearOfMfg")
+{
+	field(PINI,"YES")
+	field(INP,"@$(EK9K),0x1037")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longin,"$(EK9K):EbusStatus")
+{
+	field(INP,"@$(EK9K),0x1040")
+	field(SCAN,"1 second")
+	field(LOLO, 0)
+	field(LOW, 0)
+	field(LSV, "MAJOR")
+	field(LLSV, "MAJOR")
+	field(DTYP, "EK9000ParamRO")
+}
+
+record(longout,"$(EK9K):WatchdogTime")
+{
+	field(OUT,"@$(EK9K),0x1120")
+	field(DTYP, "EK9000ParamRW")
+	field(VAL, 1000)
+	field(PINI, "YES")
+}
+
+record(longout,"$(EK9K):WatchdogType")
+{
+	field(OUT,"@$(EK9K),0x1122")
+	field(DTYP, "EK9000ParamRW")
+	field(VAL, 1)
+	field(PINI, "YES")
+}
+
+record(longout,"$(EK9K):FallbackMode")
+{
+	field(OUT,"@$(EK9K),0x1123")
+	field(DTYP, "EK9000ParamRW")
+	field(VAL, 0)
+	field(PINI, "YES")
+}
+
+record(longout,"$(EK9K):WriteLock")
+{
+	field(OUT,"@$(EK9K),0x1124")
+	field(DTYP, "EK9000ParamRW")
+	field(VAL, 1)
+	field(PINI, "YES")
+}
+
+record(longout,"$(EK9K):EBusControl")
+{
+	field(OUT,"@$(EK9K),0x1140")
+	field(DTYP, "EK9000ParamRW")
+}
