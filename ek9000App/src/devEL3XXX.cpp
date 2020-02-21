@@ -73,6 +73,32 @@ struct
 
 epicsExportAddress(dset, devEL30XX);
 
+#pragma pack(1)
+/*
+Okay beckhoff, what the h*ck! The status bits COME AFTER THE VALUE 
+but the docs say they come before! What! 
+Never had this issue with ANY other terminal type. I feel dirty and wrong
+for swapping the bytes around here.
+*/
+struct SEL30XXStandardInputPDO
+{
+	uint8_t underrange : 1;
+	uint8_t overrange : 1;
+	uint8_t limit1 : 2;
+	uint8_t limit2 : 2;
+	uint8_t _r1 : 2;
+	uint8_t _r2 : 6;
+	uint8_t txpdo_state : 1;
+	uint8_t txpdo_toggle : 1;
+	uint16_t value;
+};
+
+struct SEL30XXCompactInputPDO
+{
+	uint16_t value;
+};
+#pragma pack()
+
 struct SEL30XXSupportData
 {
 	CTerminal* m_pTerminal;
@@ -80,15 +106,18 @@ struct SEL30XXSupportData
 	int m_nChannel;
 	/* Compact or standard PDO used */
 	bool m_bCompactPDO;
-	bool isSigned;
 };
 
 static void EL30XX_ReadCallback(CALLBACK* callback)
 {
 	void* record;
+	SEL30XXStandardInputPDO* spdo;
+	SEL30XXCompactInputPDO* cpdo;
+	uint16_t buf[2];
+
 	callbackGetUser(record, callback);
-	aiRecord* pRecord = (aiRecord*)record;
-	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
+	aiRecord* pRecord = static_cast<aiRecord*>(record);
+	SEL30XXSupportData* dpvt = static_cast<SEL30XXSupportData*>(pRecord->dpvt);
 	free(callback);
 
 	/* Check for invalid */
@@ -104,12 +133,31 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
-	/* read analog input, 4 bytes each, first 16 bits is the actual adc value */
-	uint16_t buf[2];
-	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
-		((dpvt->m_nChannel-1) * 2), buf, 1);
+
+	/* Compact PDO sends ONLY the data, no status bits */
+	if(dpvt->m_bCompactPDO)
+	{
+		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
+			((dpvt->m_nChannel-1)), buf, 1);
+		cpdo = reinterpret_cast<SEL30XXCompactInputPDO*>(buf);
+		pRecord->rval = cpdo->value;
+	}
+	else
+	{
+		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
+			((dpvt->m_nChannel-1) * 2), buf, 2);
+		spdo = reinterpret_cast<SEL30XXStandardInputPDO*>(buf);
+		pRecord->rval = spdo->value;
+
+		/* For standard PDO types, we have limits, so we should set alarms based on these,
+		   apparently the error bit is just equal to (overrange || underrange) */
+		if(spdo->overrange || spdo->underrange)
+		{
+			recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
+		}
+	}
+
 	/* Set props */
-	pRecord->rval = (epicsFloat64)((int16_t)buf[0]);
 	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
 	dpvt->m_pTerminal->m_pDevice->Unlock();
@@ -141,9 +189,9 @@ static long EL30XX_init(int after)
 
 static long EL30XX_init_record(void *precord)
 {
-	aiRecord* pRecord = (aiRecord*)precord;
+	aiRecord* pRecord = static_cast<aiRecord*>(precord);
 	pRecord->dpvt = calloc(1, sizeof(SEL30XXSupportData));
-	SEL30XXSupportData* dpvt = (SEL30XXSupportData*)pRecord->dpvt;
+	SEL30XXSupportData* dpvt = static_cast<SEL30XXSupportData*>(pRecord->dpvt);
 
 	/* Get the terminal */
 	char* recname = NULL;
@@ -171,17 +219,19 @@ static long EL30XX_init_record(void *precord)
 	dpvt->m_pTerminal->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
 	dpvt->m_pDevice->Unlock();
 
+	/* This is important; if the terminal id is different than what we want, report an error */
 	if(termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
 	{
 		Error("EL30XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
+	
 	return 0;
 }
 
 static long EL30XX_read_record(void *precord)
 {
-	aiRecord* pRecord = (aiRecord*)precord;
+	aiRecord* pRecord = static_cast<aiRecord*>(precord);
 	/* Allocate and set callback */
 	CALLBACK *callback = (CALLBACK *)malloc(sizeof(CALLBACK));
 	*callback = *(CALLBACK*)EL30XX_ReadCallback;
@@ -195,43 +245,10 @@ static long EL30XX_read_record(void *precord)
 
 static long EL30XX_linconv(void* precord, int after)
 {
-	if (!after) return 0;
-	aiRecord* pRecord = (aiRecord*)precord;
-	/* Max range is +/-32767 because presentation is a 64-bit signed integer */
+	if (1) return 0;
+	aiRecord* pRecord = static_cast<aiRecord*>(precord);
+	/* Max range is +/-32767 because presentation is a 16-bit signed integer */
 	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0x7FFF;
 	pRecord->roff = 0x0;
 	return 0;
 }
-#if 0
-static long EL31XX_linconv(void* precord, int after);
-
-struct
-{
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN read_record;
-	DEVSUPFUN linconv;
-} devEL31XX = {
-	6,
-	(DEVSUPFUN)EL30XX_dev_report,
-	(DEVSUPFUN)EL30XX_init,
-	(DEVSUPFUN)EL30XX_init_record,
-	NULL,
-	(DEVSUPFUN)EL30XX_read_record,
-	(DEVSUPFUN)EL31XX_linconv,
-};
-
-epicsExportAddress(dset, devEL31XX);
-
-static long EL31XX_linconv(void* precord, int after)
-{
-	aiRecord* pRecord = (aiRecord*)precord;
-	/* Max range is 32767 */
-	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 65535;
-	pRecord->roff = 0x0;
-	return 0;
-}
-#endif 
