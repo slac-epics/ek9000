@@ -82,7 +82,6 @@ for swapping the bytes around here.
 */
 struct SEL30XXStandardInputPDO
 {
-	uint16_t value;
 	uint8_t underrange : 1;
 	uint8_t overrange : 1;
 	uint8_t limit1 : 2;
@@ -91,6 +90,7 @@ struct SEL30XXStandardInputPDO
 	uint8_t _r2 : 6;
 	uint8_t txpdo_state : 1;
 	uint8_t txpdo_toggle : 1;
+	uint16_t value;
 };
 
 struct SEL30XXCompactInputPDO

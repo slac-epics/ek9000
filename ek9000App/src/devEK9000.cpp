@@ -473,7 +473,7 @@ int CEK9000Device::InitTerminals()
 
 	/* Figure out the register map */
 	int coil_in = 1, coil_out = 1;
-	int reg_in = 1, reg_out = 0x800;
+	int reg_in = 0, reg_out = 0x800;
 	/* in = holding regs, out = inp regs */
 	/* analog terms are mapped FIRST */
 	/* then digital termas are mapped */
