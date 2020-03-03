@@ -13,4 +13,5 @@ EPICS_BASE=/home/jeremy/epics-7/base
 MODBUS=$(SUPPORT)/modbus
 ASYN=$(SUPPORT)/asyn-4-36
 
+-include $(TOP)/configure/RELEASE.local 
 -include $(TOP)/../configure/EPICS_BASE.$(EPICS_HOST_ARCH)
