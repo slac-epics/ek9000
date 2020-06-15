@@ -1,26 +1,2 @@
 # SNL programs or functions to be invoked from iocsh
-registrar(ek9000RegisterFunctions)
-registrar(el7047_Register)
-
-# Basically just for init
-device(bo,INST_IO,devEK9000,"EK9000")
-
-# EL11XX devices
-device(bi,INST_IO,devEL10XX, "EL10XX")
-
-# EL20XX devices
-device(bo,INST_IO,devEL20XX, "EL20XX")
-
-# EL30XX devices
-device(ai,INST_IO,devEL30XX, "EL30XX")
-device(ai,INST_IO,devEL31XX, "EL31XX")
-
-# EL40XX devices
-device(ao,INST_IO,devEL40XX, "EL40XX")
-device(ao,INST_IO,devEL41XX, "EL41XX")
-
-# EL50XX devices
-device(longin,INST_IO,devEL50XX, "EL5001")
-device(longin,INST_IO,devEL50XX, "EL5002")
-#device(longin,INST_IO,devEL5042, "EL5042")
-
+registrar(ek9k_register)

@@ -15,16 +15,14 @@ ek9000Test_registerRecordDeviceDriver pdbbase
 
 # Configure the device
 # ek9000Configure takes 4 parameters: your *unique* device name, the IP of the device, the port number and the number of slaves you wish to access
-ek9000Configure("EK9K1", "192.168.1.3", 502, 4)
-# ek9000ConfigureTerminal takes 4 parameters: the name of the device which it's attached to, the record base name, the device type string, and the position on the rail.
-ek9000ConfigureTerminal("EK9K1", "TestTerm1", "EL2008", 1)
-ek9000ConfigureTerminal("EK9K1", "TestTerm2", "EL1004", 2)
-ek9000ConfigureTerminal("EK9K1", "TestTerm3", "EL2008", 3)
-ek9000ConfigureTerminal("EK9K1", "TestTerm4", "EL3064", 4)
+drvAsynIPPortConfigure("EK9K1_PORT", "192.168.1.3:502", 0, 0, 1)
+modbusInterposeConfig("EK9K1_PORT", 0, 2000, 0)
+drvModbusAsynConfigure("EK9K1", "EK9K1_PORT", 0,4,1,10,2,100,"Cheese")
+ek9000Register("EK9K1D", "EK9K1", "192.168.1.3:502")
 
 cd "${TOP}/iocBoot/${IOC}"
 
 # Load our example subs file 
-dbLoadTemplate("example1.substitutions")
+#dbLoadTemplate("example1.substitutions")
 
 iocInit
