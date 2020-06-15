@@ -17,6 +17,8 @@ ek9000Test_DBD += base.dbd
 ek9000Test_DBD += devEK9000.dbd
 ek9000Test_DBD += motorSupport.dbd
 ek9000Test_DBD += asyn.dbd
+ek9000Test_DBD += modbusSupport.dbd
+ek9000Test_DBD += drvAsynIPPort.dbd
 
 # Include dbd files from all support applications:
 
@@ -24,6 +26,7 @@ ek9000Test_DBD += asyn.dbd
 ek9000Test_LIBS += ek9000Support
 ek9000Test_LIBS += motor 
 ek9000Test_LIBS += asyn
+ek9000Test_LIBS += modbus
 
 # ek9000Test_registerRecordDeviceDriver.cpp derives from ek9000Test.dbd
 ek9000Test_SRCS += ek9000Test_registerRecordDeviceDriver.cpp
