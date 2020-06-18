@@ -1,0 +1,76 @@
+#
+# EL2008 template.
+#
+
+record(bo,"$(TERMINAL):1")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "low")
+	field(ONAM,  "high")
+	field(PINI,  "TRUE")
+}
+
+record(bo,"$(TERMINAL):2")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "low")
+	field(ONAM,  "high")
+	field(PINI,  "TRUE")
+}
+
+record(bo,"$(TERMINAL):3")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "low")
+	field(ONAM,  "high")
+	field(PINI,  "TRUE")
+}
+
+record(bo,"$(TERMINAL):4")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "low")
+	field(ONAM,  "high")
+	field(PINI,  "TRUE")
+}
+
+record(bo,"$(TERMINAL):5")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "low")
+	field(ONAM,  "high")
+	field(PINI,  "TRUE")
+}
+
+record(bo,"$(TERMINAL):6")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "low")
+	field(ONAM,  "high")
+	field(PINI,  "TRUE")
+}
+
+record(bo,"$(TERMINAL):7")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "low")
+	field(ONAM,  "high")
+	field(PINI,  "TRUE")
+}
+
+record(bo,"$(TERMINAL):8")
+{
+	field(DESC,  "")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "low")
+	field(ONAM,  "high")
+	field(PINI,  "TRUE")
+}
+
