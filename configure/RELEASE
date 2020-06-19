@@ -1,17 +1,44 @@
-#RELEASE Location of external products
+# RELEASE.local
+#
+# Read definitions of:
+#	EPICS_SITE_TOP
+#	BASE_MODULE_VERSION
+#	EPICS_MODULES 
+# from one of the following options
+-include $(TOP)/../../RELEASE_SITE
+-include $(TOP)/RELEASE_SITE
 
-# Default support and base settings
-SUPPORT=/home/jeremy/epics-7/extensions
-EPICS_BASE=/home/jeremy/epics-7/base 
+# Check that EPICS_MODULES was defined in a RELEASE_SITE file
+-include $(TOP)/../../RELEASE_SITE.check
 
-# Include local release file
--include $(TOP)/configure/RELEASE.local 
+# ==========================================================
+# Define the version strings for all needed modules
+# Use naming pattern:
+#   FOO_MODULE_VERSION = R1.2
+# so scripts can extract version strings
+# Don't set your version to anything such as "test" that
+# could match a directory name.
+# ==========================================================
+ASYN_MODULE_VERSION=R4.32-1.0.1
+MODBUS_MODULE_VERSION=R3.0.0-0.2.0
 
--include $(TOP)/../configure/SUPPORT.$(EPICS_HOST_ARCH)
+# ==========================================================
+# Define module paths using pattern
+# FOO = $(EPICS_MODULES)/foo/$(FOO_MODULE_VERSION)
+#  or
+# FOO = /Full/Path/To/Development/Version 
+# ==========================================================
+ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
+MODBUS=$(EPICS_MODULES)/modbus/$(MODBUS_MODULE_VERSION)
+#EK9000=/reg/neh/home/lorelli/ek9000-release/ek9000-slac-R1.0.3/
 
-# Modbus and ASYN modules are dependencies
-MODBUS=$(SUPPORT)/modbus
-ASYN=$(SUPPORT)/asyn-4-36
+# ============================================================
+#  Module Location
+# ============================================================
 
--include $(TOP)/configure/RELEASE.local 
--include $(TOP)/../configure/EPICS_BASE.$(EPICS_HOST_ARCH)
+# Set EPICS_BASE last so it appears last in the DB, DBD, INCLUDE, and LIB search paths
+EPICS_BASE              = $(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
+
+# Check for undefined EPICS_BASE
+-include $(TOP)/../../EPICS_BASE.check
+
