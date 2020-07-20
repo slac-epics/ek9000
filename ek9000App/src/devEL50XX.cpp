@@ -114,12 +114,12 @@ static void el50xx_read_callback(CALLBACK* callback)
 
 static long el50xx_dev_report(int lvl)
 {
-
+	return 0;
 }
 
 static long el50xx_init(int after)
 {
-
+	return 0;
 }
 
 static long el50xx_init_record(void* precord)
@@ -238,7 +238,7 @@ Report on all EL5042 devices
 */
 static long el5042_dev_report(int lvl)
 {
-
+	return 0;
 }
 
 
@@ -297,7 +297,7 @@ Initialize the device support module
 */
 static long el5042_init(int after)
 {
-
+	return 0;
 }
 
 
