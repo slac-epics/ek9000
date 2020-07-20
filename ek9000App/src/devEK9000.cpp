@@ -813,7 +813,7 @@ int CEK9000Device::ReadMfgDate(uint16_t &day, uint16_t &mon, uint16_t &year)
 /* Read EBus status */
 int CEK9000Device::ReadEBusStatus(uint16_t &status)
 {
-	ushort tmp = 0; // to store tmp data
+	uint16_t tmp = 0; // to store tmp data
 	int stat = this->doEK9000IO(0, 0x1040, 1, &tmp);
 	if (!stat)
 	{
@@ -870,7 +870,7 @@ int CEK9000Device::ReadTerminalID(uint16_t termid, uint16_t &out)
 
 int CEK9000Device::Poll(float duration, int timeout)
 {
-	ushort dat = 0;
+	uint16_t dat = 0;
 	do
 	{
 		this->m_pDriver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
