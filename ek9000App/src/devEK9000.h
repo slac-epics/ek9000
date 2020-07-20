@@ -33,6 +33,7 @@
 #include <callback.h>
 #include <epicsStdio.h>
 #include <errlog.h>
+#include <epicsMessageQueue.h> 
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -40,7 +41,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <vector>
+
+#include <functional>
 
 #define PORT_PREFIX "PORT_"
 
@@ -58,72 +60,29 @@
 #define EL9XXX_STIRNG "EL9XXX"
 
 /* This device's error types */
-#define EK_EOK 			0  /* OK */
-#define EK_EERR 		1  /* Unspecified err */
-#define EK_EBADTERM 		2  /* Bad terminal */
-#define EK_ENOCONN 		3  /* Bad connection */
-#define EK_EBADPARAM 		4  /* Bad parameter passed */
-#define EK_EBADPTR 		5  /* Bad pointer */
-#define EK_ENODEV 		6  /* Bad device */
-#define EK_ENOENT 		7  /* No dir entry */
-#define EK_EWTCHDG 		8  /* Watchdog error */
-#define EK_EBADTYP 		9  /* Bad terminal type */
-#define EK_EBADIP 		10 /* Bad IP format */
-#define EK_EBADPORT 		11 /* Bad port # */
-#define EK_EADSERR 		12 /* ADS error */
-#define EK_ETERMIDMIS 		13 /* Terminal id mismatch. e.g. term type is EL1124, but id is 2008 */
-#define EK_EBADMUTEX 		14 /* Mutex error */
-#define EK_EMUTEXTIMEOUT 	15 /* Mutex timeout */
-#define EK_EBADTERMID 		16 /* Invalid terminal id */
-#define EK_EMODBUSERR 		17 /* Modbus error */
+#define EK_EOK 0		 /* OK */
+#define EK_EERR 1		 /* Unspecified err */
+#define EK_EBADTERM 2	/* Bad terminal */
+#define EK_ENOCONN 3	 /* Bad connection */
+#define EK_EBADPARAM 4   /* Bad parameter passed */
+#define EK_EBADPTR 5	 /* Bad pointer */
+#define EK_ENODEV 6		 /* Bad device */
+#define EK_ENOENT 7		 /* No dir entry */
+#define EK_EWTCHDG 8	 /* Watchdog error */
+#define EK_EBADTYP 9	 /* Bad terminal type */
+#define EK_EBADIP 10	 /* Bad IP format */
+#define EK_EBADPORT 11   /* Bad port # */
+#define EK_EADSERR 12	/* ADS error */
+#define EK_ETERMIDMIS 13 /* Terminal id mismatch. e.g. term type is EL1124, but id is 2008 */
+#define EK_EBADMUTEX 14	/* Mutex error */
+#define EK_EMUTEXTIMEOUT 15
+#define EK_EBADTERMID 16 /* Invalid terminal id */
+#define EK_EMODBUSERR 17 /* Modbus error */
 
 #define IMAGE_TYPE_BI 1
 #define IMAGE_TYPE_BO 2
 #define IMAGE_TYPE_AO 3
 #define IMAGE_TYPE_AI 4
-
-#define EL30XX_COMPACT_STR 			"compact"
-#define EL30XX_STANDARD_STR 			"standard"
-#define EL7047_VEL_CTRL_COMPACT_STR		"velocity control compact"
-#define EL7047_VEL_CTRL_COMPACT_INFO_STR 	"velocity control compact with info data"
-#define EL7047_VEL_CTRL_STR 			"velocity control"
-#define EL7047_POS_CTRL_STR 			"position control"
-#define EL7047_POS_INTERFACE_COMPACT_STR 	"positioning interface compact"
-#define EL7047_POS_INTERFACE_STR		"positioning interface"
-#define EL7047_POS_INTERFACE_INFO_STR		"positioning interface with info data"
-/* The sizes of the pdos of el7047 (bytes) */
-#define EL7047_VEL_CTRL_COMPACT_OSIZE		8
-#define EL7047_VEL_CTRL_COMPACT_ISIZE		8
-#define EL7047_VEL_CTRL_COMPACT_INFO_OSIZE	8
-#define EL7047_VEL_CTRL_COMPACT_INFO_ISIZE	12
-#define EL7047_VEL_CTRL_ISIZE			12
-#define EL7047_VEL_CTRL_OSIZE			10
-#define EL7047_POS_CTRL_ISIZE			12
-#define EL7047_POS_CTRL_OSIZE			12
-#define EL7047_POS_INTERFACE_COMPACT_ISIZE	14
-#define EL7047_POS_INTERFACE_COMPACT_OSIZE	14
-#define EL7047_POS_INTERFACE_ISIZE		24
-#define EL7047_POS_INTERFACE_OSIZE		22
-#define EL7047_POS_INTERFACE_INFO_ISIZE		28
-#define EL7047_POS_INTERFACE_INFO_OSIZE		22
-/* EL7047 pdo type ids */
-#define EL7047_VEL_CTRL_COMPACT_ID		1
-#define EL7047_VEL_CTRL_ID			2
-#define EL7047_VEL_CTRL_COMPACT_INFO_ID		3
-#define EL7047_POS_CTRL_ID			4
-#define EL7047_POS_INTERFACE_ID			5
-#define EL7047_POS_INTERFACE_COMPACT_ID		6
-#define EL7047_POS_INTERFACE_INFO_ID		7
-/* The sizes of the pdos of el3064 (bytes) */
-#define EL30XX_STANDARD_ISIZE			16
-#define EL30XX_COMPACT_ISIZE			8
-/* EL30XX pdo IDs */
-#define EL30XX_STANDARD_ID			1
-#define EL30XX_COMPACT_ID			2
-
-#define EK9000_REGISTER_BASE 0x1400
-
-#define STRUCT_SIZE_TO_MODBUS_SIZE(x) (sizeof(x) % 2 == 0 ? sizeof(x) / 2 : sizeof(x) / 2 + 1)
 
 /* Forward decls */
 class CEK9000Device;
@@ -131,12 +90,10 @@ class CDeviceMgr;
 class CTerminalList;
 template <class T>
 class CSimpleList;
-class CTerminal;
-
-extern class CDeviceMgr devices;
+struct CTerminal;
 
 /* Globals */
-//extern CDeviceMgr *g_pDeviceMgr;
+extern CDeviceMgr *g_pDeviceMgr;
 extern bool g_bDebug;
 
 /* Terminal types */
@@ -159,6 +116,17 @@ enum class ETerminalType
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
 
+/* Errors and error types */
+enum EK9KError : int
+{
+	ERR_OK,
+	ERR_GENERIC,
+	ERR_NULLPARAM,
+	ERR_INVALPARAM,
+	ERR_BADID,
+	ERR_INVALTERMID,
+};
+
 /* Simple struct that holds some data for async processing */
 struct STerminalProcessInfo
 {
@@ -167,15 +135,17 @@ struct STerminalProcessInfo
 	int m_nChannel;
 };
 
-/* Utils */
 void Info(const char* fmt, ...);
 void Warning(const char* fmt, ...);
 void Error(const char* fmt, ...);
-char* strlower(char* str);
 
 #define DevInfo(fmt, ...) if(g_bDebug) { Info(fmt, __VA_ARGS__); }
 #define DevWarn(fmt, ...) if(g_bDebug) { Warning(fmt, __VA_ARGS__); }
 #define DevError(fmt, ...) if(g_bDebug) { Error(fmt, __VA_ARGS__); }
+
+/* Strcmp with no case (nc) */
+int strcmpnc(const char* str1, const char* str2);
+int strncmpnc(const char* str1, const char* str2, int n);
 
 class CTerminal
 {
@@ -196,21 +166,6 @@ public:
 	/* Do EK9000 IO */
 	int doEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
 
-	/*
-	===========================================
-
-	COE API 
-
-	===========================================
-	*/
-	void WriteCoEInt16(const char* param, uint16_t v);
-	void WriteCoEInt32(const char* param, uint32_t v);
-	void WriteCoEFloat32(const char* param, float v);
-	void WriteCoEString(const char* param, const char* string);
-	uint16_t ReadCoEInt16(const char* param);
-	uint32_t ReadCoEInt32(const char* param);
-	float ReadCoEFloat32(const char* param);
-	char* ReadCoEString(const char* param);
 public:
 	/* Name of record */
 	char *m_pRecordName = NULL;
@@ -223,21 +178,19 @@ public:
 	/* the device */
 	CEK9000Device *m_pDevice = NULL;
 	/* Terminal id, aka the 1124 in EL1124 */
-	int m_nTerminalID	= 0;
+	int m_nTerminalID = 0;
 	/* Number of inputs */
-	int m_nInputs		= 0;
+	int m_nInputs = 0;
 	/* Number of outputs */
-	int m_nOutputs		= 0;
+	int m_nOutputs = 0;
 	/* Size of inputs */
-	int m_nInputSize	= 0;
+	int m_nInputSize = 0;
 	/* Size of outputs */
-	int m_nOutputSize	= 0;
+	int m_nOutputSize = 0;
 	/* input image start */
-	int m_nInputStart	= 0;
+	int m_nInputStart = 0;
 	/* Output image start */
-	int m_nOutputStart	= 0;
-	/* Specifically for terminals with multiple pdo types */
-	int m_nPdoID 		= 0;
+	int m_nOutputStart = 0;
 };
 
 /* 
@@ -374,9 +327,6 @@ public:
 	/* Find device by name */
 	CEK9000Device *FindDevice(const char *name) const;
 
-	/* Find device by card number */
-	CEK9000Device* FindDevice(int card) const;
-
 	/* Get first device */
 	CEK9000Device *FirstDevice() const;
 
@@ -426,8 +376,10 @@ public:
 	/* last device err */
 	int m_nError = EK_EOK;
 
-	/* The card number for the motor record */
-	int m_nCardNum = -1;
+	/* Message queue */
+	epicsMessageQueue* queue;
+
+	int LastADSErr = 0;
 
 public:
 	CEK9000Device();
@@ -436,6 +388,10 @@ public:
 	~CEK9000Device();
 
 public:
+	void QueueCallback(void(*callback)(void*), void* rec);
+
+	void ExecuteCallbacks();
+
 	/* Allows for better error handling (instead of using print statements to indicate error) */
 	static CEK9000Device *Create(const char *name, const char *ip, int terminal_count);
 
@@ -444,9 +400,6 @@ public:
 	CTerminal *GetTerminal(const char *recordname);
 
 	CTerminal *GetAllTerminals() { return m_pTerms; }
-
-	/* Remove a terminal */
-	int RemoveTerminal(const char* name);
 
 	/* Initializes a terminal (after it's been added). This should be called from the init_record routines */
 	int InitTerminal(int termindex);
@@ -458,8 +411,6 @@ public:
 	int Lock();
 	/* Unlock it */
 	void Unlock();
-	/* Try lock */
-	int TryLock();
 
 public:
 	/* Error handling functions */
@@ -473,11 +424,6 @@ public:
 	/* error to string */
 	static const char *ErrorToString(int err);
 public:
-	
-	void AssignCardNum(int card) { this->m_nCardNum = card; }
-public:
-
-public:
 	/* Utils for reading/writing */
 
 	/* Verify connection using asynUser */
@@ -489,16 +435,16 @@ public:
 	/* term = -1 for no terminal */
 	/* len = number of regs to read */
 	/* addr = starting addr */
-	int doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t *data);
+	inline int doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t *data);
 
 	/* Do CoE I/O */
-	int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex = 0);
+	inline int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint16_t reallen = 0);
 
 	/* same as doEK9000IO except this only operates on the ek9000 itself, term is not used */
-	int doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex = 0);
+	inline int doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex = 0);
 
 	/* Reads the value of the CoE register */
-	int ReadCOECode();
+	inline int ReadCOECode();
 
 	/* Reads coupler type */
 	int ReadTerminalType(uint16_t termid, int &id);
@@ -587,9 +533,35 @@ public:
 	int CoEVerifyConnection(uint16_t termid);
 
 public:
-	/* Option management */
+	/* Process data interaction */
 
-	int SetOption(int term, const char *opt, const char *val);
+	/* Termid is the term index */
+	/* channel is the output number and is 1-based */
+	/* data is the value, true for on, false for off */
+	int WriteDigitalOut(int termid, int channel, uint16_t data);
+
+	/* termid is the term index */
+	/* channel is the output number and is 1-based */
+	int WriteAnalogOut(int termid, int channel, uint32_t data);
+
+	/* Reads analog input of the specified terminal */
+	/* channel is a 1-based number that represents the signal number */
+	int ReadDigitalInput(int termid, int channel, uint16_t& data);
+
+	/* Reads analog output of the specified terminal */
+	/* channel is a 1-based number that represents the signal number */
+	int ReadAnalogInput(int termid, int channel, uint32_t& data);
+
+	/* Motor out */
+	/* TODO: Implement */
+	int WriteMotorOut(int termid);
+
+public:
+	/* Error reporting function, only prints on debug */
+	//void ReportError(int errorcode, const char* _msg = NULL);
+
+	/* Enable/disable debug */
+	//void EnableDebug(bool enabled) { m_bDebug = enabled; };
 
 public:
 	/* Needed for the list impl */
@@ -599,32 +571,61 @@ public:
 	}
 };
 
-/*
-===========================================
+#include <type_traits>
+#include <typeinfo>
 
-CoE API
-
-===========================================
-*/
-
-#define COE_INT16_SIZE 2
-#define COE_INT32_SIZE 4
-#define COE_FLOAT32_SIZE 4
-
-typedef struct coe_param_s
+template<class...Args>
+class iocshFunction
 {
-	const char* name; 
-	const char* unit;
-	int index;
-	int subindex; 
-	enum 
+	iocshArg* args;
+	iocshFuncDef funcdef;
+	int nargs;
+	std::function<void(Args...)> func;
+public:
+	iocshFunction(const char* name, std::initializer_list<const char*> list, std::function<void(Args...)> fn) :
+		func(fn)
 	{
-		COE_PARAM_INT16,
-		COE_PARAM_INT32,
-		COE_PARAM_FLOAT32,
-		COE_PARAM_STRING,
-	} type;
-	int len;
-} coe_param_t;
+		nargs = list.size();
+		if(nargs > 0)
+			args = (iocshArg*)malloc(list.size() * sizeof(iocshArg));
+		/* Use this to determine types */
+		std::vector<Args...> argbuf;
+	
+		/* Handle all of the types, probably in the worst way possible */
+		int i = 0;
+		for(auto x : list)
+		{
+			iocshArgType argtype = getArgType(typeid(argbuf[i]));
+			args[i] = {x,argtype};
+			i++;
+		}
+		/* Register the function */
+		funcdef = {name, nargs, this->args};
+		iocshRegister(&this->funcdef, fn);
+	}
+
+	~iocshFunction()
+	{
+		free(args);
+	}
+
+private:
+	void wrapper(const iocshArgBuf* argbuf)
+	{
+	}
+
+	iocshArgType getArgType(const std::type_info& info) const
+	{
+		if(info == typeid(int) || info == typeid(unsigned))
+			return iocshArgInt;
+		else if(info == typeid(float) || info == typeid(double) || info == typeid(long double))
+			return iocshArgDouble;
+		else if(info == typeid(const char*) || info == typeid(char*))
+			return iocshArgString;
+		else if(info == typeid(pdbbase))
+			return iocshArgPdbbase;
+		return iocshArgString;
+	}
+};
 
 #endif

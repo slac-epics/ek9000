@@ -28,8 +28,9 @@
 #include <mbboRecord.h>
 #include <iocsh.h>
 #include <callback.h>
-#include <atomic>
-
+#include <alarm.h>
+#include <alarmString.h> 
+#include <recGbl.h>
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
 
@@ -95,6 +96,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	if(status != epicsMutexLockOK)
 	{
 		DevError("EL20XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
+		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		pRecord->pact = 0;
 		return;
 	}
@@ -105,13 +107,16 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, 
 		dpvt->m_pTerminal->m_nOutputStart + (dpvt->m_nChannel-2), &buf, 1);
 
-	/* Processing done */
-	pRecord->pact = 0;
 	dpvt->m_pDevice->Unlock();
 
+	/* Processing done */
+	pRecord->pact = FALSE;
+	pRecord->rbv = pRecord->val;
+	pRecord->udf = FALSE;
 	/* check for errors... */
 	if(status)
 	{
+		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		if(status > 0x100)
 		{
 			DevError("EL20XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
@@ -121,6 +126,20 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 		return;
 	}
 }
+#if 0
+static void EL20XX_ReadOutputs(void* precord)
+{
+	boRecord* pRecord = (boRecord*)precord;
+	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
+	if(!dpvt->m_pTerminal)
+		return;
+	uint16_t buf = 0;
+	/* Read from the device */
+	dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_COILS,
+			dpvt->m_pTerminal->m_nOutputStart + (dpvt->m_nChannel * 2), &buf, 1);
+	pRecord->rval = buf;
+}
+#endif
 
 static long EL20XX_dev_report(int interest)
 {
@@ -137,7 +156,7 @@ static long EL20XX_init_record(void* precord)
 	boRecord* pRecord = (boRecord*)precord;
 	pRecord->dpvt = malloc(sizeof(SEL20XXSupportData));
 	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
-
+	
 	/* Grab terminal info */
 	char* recname = NULL;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
@@ -158,7 +177,7 @@ static long EL20XX_init_record(void* precord)
 		Error("EL20XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
-	
+
 	/* Lock mutex for modbus */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 
@@ -180,22 +199,22 @@ static long EL20XX_init_record(void* precord)
 		dpvt->m_pDevice->Unlock();
 		return 1;
 	}
+
 	dpvt->m_pDevice->Unlock();
+	//EL20XX_write_record(precord);
 	return 0;
 }
 
 static long EL20XX_write_record(void* precord)
 {
 	boRecord* pRecord = (boRecord*)precord;
+	SEL20XXSupportData* dat = (SEL20XXSupportData*)pRecord->dpvt;
 	CALLBACK* callback = (CALLBACK*)malloc(sizeof(CALLBACK));
 	*callback = *(CALLBACK*)EL20XX_WriteCallback;
 	callbackSetUser(pRecord, callback);
 	callbackSetPriority(priorityHigh, callback);
 	callbackSetCallback(EL20XX_WriteCallback, callback);
-	pRecord->pact = 1;
 	callbackRequest(callback);
-
+	//dat->m_pDevice->QueueCallback(EL20XX_WriteCallback, precord);
 	return 0;
 }
-
-

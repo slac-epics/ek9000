@@ -8,7 +8,7 @@
  * contained in the LICENSE.txt file.
 */
 //======================================================//
-// Name: devEK9000.cpp
+// Name: devEK9000.c
 // Purpose: Device support for EK9000 and it's associated
 // devices
 // Authors: Jeremy L.
@@ -18,17 +18,22 @@
 //		any leaks or other performance issues
 //	-
 // Notes:
+//	-	Performance could be improved by adding a hashmap
+//		type of structure instead of a simple doubly linked
+//		list (would use less memory too)
+//	-	All device support things are defined and implemented
+//		here
 //	-	For device specific indicies and such, refer to the docs:
 //		EL1XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el10xx_el11xxen.pdf
 //		EL2XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/EL20xx_EL2124en.pdf
 //		EL3XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el30xxen.pdf
 //		EL4XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el40xxen.pdf
+//		EL7XXX:
 // Revisions:
 //	-	July 15, 2019: Improved error propagation and added
 //		new init routines.
-//	-	July-Now: Bugfixes, etc.
-//	-	August 29, 2019: Began rewrite to allow for different pdo
-//		type support.
+//	-	Feb 7, 2020: Implemented record-based CoE configuration
+//	-	Feb 7, 2020: doCoEIO will now set an errno variable
 //======================================================//
 
 /* EPICS includes */
@@ -48,8 +53,15 @@
 #include <callback.h>
 #include <epicsTime.h>
 #include <epicsGeneralTime.h>
-#include <ctype.h>
-#include <vector>
+#include <errno.h>
+
+/* Record includes */
+#include <biRecord.h>
+#include <boRecord.h>
+#include <longinRecord.h>
+#include <longoutRecord.h>
+#include <int64inRecord.h>
+#include <int64outRecord.h>
 
 /* Modbus or asyn includes */
 #include <drvModbusAsyn.h>
@@ -70,8 +82,7 @@ class CEK9000Device;
 class CDeviceMgr;
 
 /* Globals */
-//CDeviceMgr *g_pDeviceMgr = 0;
-CDeviceMgr devices;
+CDeviceMgr *g_pDeviceMgr = 0;
 bool g_bDebug = false;
 epicsThreadId g_PollThread = 0;
 epicsMutexId g_ThreadMutex = 0;
@@ -93,7 +104,7 @@ void PollThreadFunc(void* param)
 {
 	while(true)
 	{
-		for(CEK9000Device* elem = devices.FirstDevice(); elem; elem = devices.NextDevice())
+		for(CEK9000Device* elem = g_pDeviceMgr->FirstDevice(); elem; elem = g_pDeviceMgr->NextDevice())
 		{
 			if(elem)
 			{
@@ -113,7 +124,7 @@ void PollThreadFunc(void* param)
 				if(status)
 					continue;
 				uint16_t buf = 1;
-				elem->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1121, &buf, 1);
+				elem->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1);
 				elem->Unlock();
 			}
 		}
@@ -159,11 +170,27 @@ void Error(const char* fmt, ...)
 	va_end(list);
 }
 
-char* strlower(char* str)
+int strcmpnc(const char* str1, const char* str2)
 {
-	for(size_t i = 0; i < strlen(str); i++)
-		str[i] = tolower(str[i]);
-	return str;
+	size_t str1l = strlen(str1);
+	size_t str2l = strlen(str2);
+	for(int i = 0; str1[i] && str2[i]; i++)
+	{
+		if(tolower(str1[i]) != tolower(str2[i]))
+			return 1;
+	}
+	if(str1l < str2l) return -1;
+	if(str2l < str1l) return 1;
+	return 0;
+}
+
+int strncmpnc(const char* str1, const char* str2, int n)
+{
+	for(int i = 0; i < n; i++)
+	{
+		if(tolower(str1[i]) != tolower(str2[i])) return 1;
+	}
+	return 0;
 }
 
 //==========================================================//
@@ -229,6 +256,7 @@ CTerminal *CTerminal::ProcessRecordName(const char *recname, int &outindex, char
 			ret[i] = '\0';
 			good = 1;
 			outindex = atoi(&ret[i + 1]);
+			break;
 		}
 	}
 
@@ -239,7 +267,7 @@ CTerminal *CTerminal::ProcessRecordName(const char *recname, int &outindex, char
 	}
 	else
 	{
-		for (CEK9000Device *dev = devices.FirstDevice(); dev; dev = devices.NextDevice())
+		for (CEK9000Device *dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
 		{
 			for (int i = 0; i < dev->m_nTerms; i++)
 			{
@@ -297,6 +325,7 @@ CEK9000Device::CEK9000Device()
 	m_pPortName = (char *)malloc(1);
 	m_pPortName[0] = '\0';
 	this->m_Mutex = epicsMutexCreate();
+	this->queue = new epicsMessageQueue(500, sizeof(void*));
 }
 
 CEK9000Device::~CEK9000Device()
@@ -334,9 +363,12 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 	pek->m_pName = strdup(name);
 
 	/* Create terminal name */
+	size_t prefixlen = strlen(PORT_PREFIX);
 	size_t len = strlen(name) + strlen(PORT_PREFIX) + 1;
 	pek->m_pPortName = (char *)malloc(len);
-	sprintf(pek->m_pPortName, "%s%s", PORT_PREFIX, name);
+	memcpy(pek->m_pPortName, PORT_PREFIX, prefixlen); /* Should be optimized? */
+	memcpy(pek->m_pPortName + prefixlen, name, strlen(name) + 1);
+	pek->m_pPortName[len - 1] = '\0';
 
 	/* Copy IP */
 	pek->m_pIP = strdup(ip);
@@ -349,7 +381,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 		return NULL;
 	}
 
-	status = modbusInterposeConfig(pek->m_pPortName, modbusLinkTCP, 500, 0);
+	status = modbusInterposeConfig(pek->m_pPortName, modbusLinkTCP, 5000, 0);
 
 	if (status)
 	{
@@ -378,7 +410,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 	uint16_t buf = 1;
 	pek->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
 
-	devices.Add(pek);
+	g_pDeviceMgr->Add(pek);
 	return pek;
 }
 
@@ -400,36 +432,11 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 int CEK9000Device::Lock()
 {
 	return this->m_pDriver->lock();
-	//return epicsMutexLock(this->m_Mutex);
-}
-
-int CEK9000Device::TryLock()
-{
-	//return epicsMutexTryLock(this->m_Mutex);
-	return this->m_pDriver->lock();
-}
-
-int CEK9000Device::RemoveTerminal(const char* name)
-{
-	if(!name)
-		return EK_EBADPARAM;
-	for(int i = 0; i < this->m_nTerms; i++)
-	{
-		if(!this->m_pTerms[i].m_pRecordName)
-			continue;
-		if(strcmp(this->m_pTerms[i].m_pRecordName, name))
-		{
-			memset(&this->m_pTerms[i], 0, sizeof(CTerminal));
-			return EK_EOK;
-		}
-	}
-	return EK_EOK;
 }
 
 void CEK9000Device::Unlock()
 {
 	this->m_pDriver->unlock();
-	//epicsMutexUnlock(this->m_Mutex);
 }
 
 /* Verifies that terminals have the correct ID */
@@ -437,7 +444,7 @@ void CEK9000Device::Unlock()
 int CEK9000Device::InitTerminal(int term)
 {
 	if (term < 0 || term >= m_nTerms)
-		return EK_EBADPARAM;
+		return ERR_INVALPARAM;
 
 	/* Read ther terminal's id */
 	uint16_t tid = 0;
@@ -449,7 +456,7 @@ int CEK9000Device::InitTerminal(int term)
 	if (tid != terminal->m_nTerminalID)
 		return EK_ETERMIDMIS;
 
-	return EK_EOK;
+	return ERR_OK;
 }
 
 /* This will configure process image locations in each terminal */
@@ -466,7 +473,7 @@ int CEK9000Device::InitTerminals()
 
 	/* Figure out the register map */
 	int coil_in = 1, coil_out = 1;
-	int reg_in = 1, reg_out = 0x800;
+	int reg_in = 0, reg_out = 0x800;
 	/* in = holding regs, out = inp regs */
 	/* analog terms are mapped FIRST */
 	/* then digital termas are mapped */
@@ -537,7 +544,8 @@ int CEK9000Device::CoEVerifyConnection(uint16_t termid)
 }
 
 /* 1 for write and 0 for read */
-int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex)
+/* LENGTH IS IN REGISTERS */
+int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint16_t reallen)
 {
 	/* write */
 	if (rw)
@@ -548,7 +556,7 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 			(uint16_t)(term | 0x8000), /* Bit 15 needs to be 1 to indicate a write */
 			index,
 			subindex,
-			(uint16_t)(len*2),
+			reallen ? reallen : (uint16_t)(len*2),
 			0, /* Error code */
 		};
 
@@ -557,8 +565,9 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 		if (!this->Poll(0.005, TIMEOUT_COUNT))
 		{
 			this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, tmp_data, 6);
-			/* Write tmp data */		
+			/* Write tmp data */
 			if((tmp_data[0] & 0x400) != 0x400) {
+				LastADSErr = tmp_data[5];
 				return EK_EADSERR;
 			}
 		}
@@ -603,7 +612,7 @@ int CEK9000Device::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, 
 		if(res)
 			return EK_EERR;
 		return EK_EOK;
-	}
+	}	
 }
 
 int CEK9000Device::doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex)
@@ -754,6 +763,53 @@ int CEK9000Device::ReadNumTCPConnections(uint16_t &out)
 	return stat;
 }
 
+/* Read hardware/software versions */
+int CEK9000Device::ReadVersionInfo(uint16_t &hardver, uint16_t &softver_major, uint16_t &softver_minor, uint16_t &softver_patch)
+{
+	uint16_t ver[4];
+	int status = this->doEK9000IO(0, 0x1030, 4, ver);
+	if (!status)
+	{
+		hardver = ver[0];
+		softver_major = ver[1];
+		softver_minor = ver[2];
+		softver_patch = ver[3];
+		return EK_EOK;
+	}
+	this->m_nError = ver[0];
+	return status;
+}
+
+/* Read the serial number */
+int CEK9000Device::ReadSerialNumber(uint16_t &sn)
+{
+	uint16_t tmp = 0;
+	int stat = this->doEK9000IO(0, 0x1034, 1, &tmp);
+	if (!stat)
+	{
+		sn = tmp;
+		return EK_EOK;
+	}
+	this->m_nError = tmp;
+	return stat;
+}
+
+/* Read manfacturing date */
+int CEK9000Device::ReadMfgDate(uint16_t &day, uint16_t &mon, uint16_t &year)
+{
+	uint16_t date[3];
+	int status = this->doEK9000IO(0, 0x1035, 3, date);
+	if (!status)
+	{
+		day = date[0];
+		mon = date[1];
+		year = date[2];
+		return EK_EOK;
+	}
+	this->m_nError = date[0];
+	return status;
+}
+
 /* Read EBus status */
 int CEK9000Device::ReadEBusStatus(uint16_t &status)
 {
@@ -814,16 +870,15 @@ int CEK9000Device::ReadTerminalID(uint16_t termid, uint16_t &out)
 
 int CEK9000Device::Poll(float duration, int timeout)
 {
-	ushort dat[6];
-	dat[0] = 0;
+	ushort dat = 0;
 	do
 	{
-		this->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, dat, 7);
+		this->m_pDriver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
 		epicsThreadSleep(duration);
 		timeout--;
-	} while ((dat[0] & 0x200) && timeout > 0);
+	} while ((dat | 0x200) == 0x200 && timeout > 0);
 
-	if (timeout <= 0 || (dat[0] & 0x100) == 0x100)
+	if (timeout <= 0)
 		return 1;
 	else
 		return 0;
@@ -839,6 +894,29 @@ int CEK9000Device::LastError()
 const char *CEK9000Device::LastErrorString()
 {
 	return ErrorToString(LastError());
+}
+
+struct SMsg_t
+{
+	void* rec;
+	void(*callback)(void*);
+};
+
+void CEK9000Device::QueueCallback(void(*callback)(void*), void* rec)
+{
+//	SMsg_t* msg = new SMsg_t;
+//	this->queue->trySend(&msg, sizeof(callback));
+}
+
+void CEK9000Device::ExecuteCallbacks()
+{
+	this->Lock();
+	SMsg_t* msg;
+	while(this->queue->tryReceive(&msg, sizeof(msg)))
+	{
+		msg->callback(msg->rec);
+	}
+	this->Unlock();
 }
 
 const char *CEK9000Device::ErrorToString(int i)
@@ -899,6 +977,7 @@ CDeviceMgr::~CDeviceMgr()
 
 int CDeviceMgr::Init()
 {
+	g_pDeviceMgr = new CDeviceMgr();
 	return 0;
 }
 
@@ -936,16 +1015,6 @@ CEK9000Device *CDeviceMgr::FindDevice(const char *name) const
 		}
 	}
 	epicsMutexUnlock(m_Mutex);
-	return NULL;
-}
-
-CEK9000Device* CDeviceMgr::FindDevice(int card) const
-{
-	for(CEK9000Device* dev = this->FirstDevice(); dev; dev = this->NextDevice())
-	{
-		if(dev->m_nCardNum == card)
-			return dev;
-	}
 	return NULL;
 }
 
@@ -1121,7 +1190,7 @@ void ek9000Configure(const iocshArgBuf *args)
 		return;
 	}
 
-	devices.Add(dev);
+	g_pDeviceMgr->Add(dev);
 }
 
 void ek9000ConfigureTerminal(const iocshArgBuf *args)
@@ -1137,7 +1206,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 		return;
 	}
 
-	CEK9000Device *dev = devices.FindDevice(ek);
+	CEK9000Device *dev = g_pDeviceMgr->FindDevice(ek);
 
 	/* If we cant find the device :( */
 	if (!dev)
@@ -1182,12 +1251,12 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 void ek9000Stat(const iocshArgBuf *args)
 {
 	const char *ek9k = args[0].sval;
-	if (!ek9k)
+	if (!ek9k || !g_pDeviceMgr)
 	{
 		epicsPrintf("Invalid parameter.\n");
 		return;
 	}
-	CEK9000Device *dev = devices.FindDevice(ek9k);
+	CEK9000Device *dev = g_pDeviceMgr->FindDevice(ek9k);
 
 	if (!dev)
 	{
@@ -1205,11 +1274,16 @@ void ek9000Stat(const iocshArgBuf *args)
 	if (dev->VerifyConnection())
 		connected = true;
 
-	uint16_t ao = 0, ai = 0, bo = 0, bi = 0, tcp = 0, wtd = 0;
+	uint16_t ao = 0, ai = 0, bo = 0, bi = 0, tcp = 0, sn = 0, wtd = 0;
+	uint16_t hver = 0, svermaj = 0, svermin = 0, sverpat = 0;
+	uint16_t day = 0, month = 0, year = 0;
 
 	dev->ReadProcessImageSize(ao, ai, bo, bi);
 	dev->ReadNumTCPConnections(tcp);
+	dev->ReadSerialNumber(sn);
+	dev->ReadVersionInfo(hver, svermaj, svermin, sverpat);
 	dev->ReadNumFallbacksTriggered(wtd);
+	dev->ReadMfgDate(day, month, year);
 
 	epicsPrintf("Device: %s\n", ek9k);
 	if(connected)
@@ -1218,12 +1292,16 @@ void ek9000Stat(const iocshArgBuf *args)
 		epicsPrintf("\tStatus: NOT CONNECTED\n");
 	epicsPrintf("\tIP: %s\n", dev->m_pIP);
 	epicsPrintf("\tAsyn Port Name: %s\n", dev->m_pPortName);
-	epicsPrintf("\tAO size: %u\n", ao);
-	epicsPrintf("\tAI size: %u\n", ai);
-	epicsPrintf("\tBI size: %u\n", bi);
-	epicsPrintf("\tBO size: %u\n", bo);
+	epicsPrintf("\tAO size: %u [bytes]\n", ao);
+	epicsPrintf("\tAI size: %u [bytes]\n", ai);
+	epicsPrintf("\tBI size: %u [bits]\n", bi);
+	epicsPrintf("\tBO size: %u [bits]\n", bo);
 	epicsPrintf("\tTCP connections: %u\n", tcp);
+	epicsPrintf("\tSerial number: %u\n", sn);
+	epicsPrintf("\tHardware Version: %u\n", hver);
+	epicsPrintf("\tSoftware Version: %u.%u.%u\n", svermaj, svermin, sverpat);
 	epicsPrintf("\tFallbacks triggered: %u\n", wtd);
+	epicsPrintf("\tMfg date: %u/%u/%u\n", month, day, year);
 
 	for(int i = 0; i < dev->m_nTerms; i++)
 	{
@@ -1255,10 +1333,11 @@ void ek9000DisableDebug(const iocshArgBuf* args)
 
 void ek9000List(const iocshArgBuf* args)
 {
-	for(CEK9000Device* dev = devices.FirstDevice(); dev; dev = devices.NextDevice())
+	for(CEK9000Device* dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
 	{
 		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_pName, dev->m_nTerms);
 		epicsPrintf("\tIP: %s\n", dev->m_pIP);
+		epicsPrintf("\tConnected: %s\n", dev->VerifyConnection() ? "TRUE" : "FALSE");
 	}
 }
 
@@ -1270,7 +1349,7 @@ void ek9000SetWatchdogTime(const iocshArgBuf* args)
 		return;
 	if(time < 0 || time > 60000)
 		return;
-	CEK9000Device* dev = devices.FindDevice(ek9k);
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
 	if(!dev)
 		return;
 	dev->WriteWatchdogTime((uint16_t)time);
@@ -1289,7 +1368,7 @@ void ek9000SetWatchdogType(const iocshArgBuf* args)
 		epicsPrintf("0 = enable on write\n");
 		return;
 	}
-	CEK9000Device* dev = devices.FindDevice(ek9k);
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
 	if(!dev) return;
 	dev->WriteWatchdogType(type);
 }
@@ -1300,93 +1379,13 @@ void ek9000SetPollTime(const iocshArgBuf* args)
 	int time = args[1].ival;
 	if(!ek9k) return;
 	if(time < 10 || time > 1000) return;
-	CEK9000Device* dev = devices.FindDevice(ek9k);
+	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
 	if(!dev) return;
 	g_nPollDelay = time;
 }
 
-void ek9000CoEWrite(const iocshArgBuf* args)
-{
-	const char* ek9k = args[0].sval;
-	int term = args[1].ival;
-	int index = args[2].ival;
-	int sub = args[3].ival;
-	const char* type = args[4].sval;
-	const char* val = args[5].sval;
-	if(!ek9k || !type || !val || index > 65535 || sub > 65535)
-	{
-		epicsPrintf("Invalid parameter.\n");
-		return;
-	}
-	CEK9000Device* dev = devices.FindDevice(ek9k);
-	if(!dev)
-	{
-		epicsPrintf("No such device.\n");
-		return;
-	}
-	if(term < 0 || term > dev->m_nTerms)
-	{
-		epicsPrintf("No such terminal\n");
-		return;
-	}
-
-}
-
-void ek9000CoERead(const iocshArgBuf* args)
-{
-	const char* ek9k = args[0].sval;
-	int term = args[1].ival;
-	int index = args[2].ival;
-	int sub = args[3].ival;
-	const char* type = args[4].sval;
-	if(!ek9k || !type || index > 65535 || sub > 65535)
-	{
-		epicsPrintf("Invalid parameter.\n");
-		return;
-	}
-	CEK9000Device* dev = devices.FindDevice(ek9k);
-	if(!dev)
-	{
-		epicsPrintf("No such device.\n");
-		return;
-	}
-	if(term < 0 || term > dev->m_nTerms)
-	{
-		epicsPrintf("No such terminal\n");
-		return;
-	}
-	if(!strcmp(type, "int16") || !strcmp(type, "uint16"))
-	{
-		
-	}
-}
-
-
 int ek9000RegisterFunctions()
 {
-	/* ek9000CoEWrite */
-	{
-		static const iocshArg arg0 = {"EK9K Name", iocshArgString};
-		static const iocshArg arg1 = {"Terminal number", iocshArgInt};
-		static const iocshArg arg2 = {"Index", iocshArgInt};
-		static const iocshArg arg3 = {"Subindex", iocshArgInt};
-		static const iocshArg arg4 = {"Type", iocshArgString};
-		static const iocshArg arg5 = {"Value", iocshArgString};
-		static const iocshArg* const args[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5};
-		static const iocshFuncDef func = {"ek9000CoEWrite", 6, args};
-		iocshRegister(&func, ek9000CoEWrite);
-	}
-	/* ek9000CoERead */
-	{
-		static const iocshArg arg0 = {"EK9K Name", iocshArgString};
-		static const iocshArg arg1 = {"Terminal number", iocshArgInt};
-		static const iocshArg arg2 = {"Index", iocshArgInt};
-		static const iocshArg arg3 = {"Subindex", iocshArgInt};
-		static const iocshArg arg4 = {"Type", iocshArgString};
-		static const iocshArg* const args[] = {&arg0, &arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"ek9000CoERead", 5, args};
-		iocshRegister(&func, ek9000CoERead);
-	}
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
 		static const iocshArg arg1 = {"Name", iocshArgString};
@@ -1438,7 +1437,9 @@ int ek9000RegisterFunctions()
 
 	/* ek9000Stat */
 	{
-		static const iocshFuncDef func = {"ek9000Stat", 0, NULL};
+		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
+		static const iocshArg*const args[] = {&arg1};
+		static const iocshFuncDef func = {"ek9000Stat", 1, args};
 		iocshRegister(&func, ek9000Stat);
 	}
 
@@ -1454,7 +1455,7 @@ int ek9000RegisterFunctions()
 	{
 		static const iocshArg arg1 = {"EK9K", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000DisableDebug", 1, args};
+		static const iocshFuncDef func = {"ek9000DisableDebig", 1, args};
 		iocshRegister(&func, ek9000DisableDebug);
 	}
 
@@ -1503,7 +1504,7 @@ static long ek9000_init(int after)
 	if (after == 0)
 	{
 		epicsPrintf("Initializing EK9000 Couplers.\n");
-		for (CEK9000Device *dev = devices.FirstDevice(); dev; dev = devices.NextDevice())
+		for (CEK9000Device *dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
 		{
 			if (!dev->m_bInit)
 				dev->InitTerminals();
@@ -1518,5 +1519,506 @@ static long ek9000_init_record(void *prec)
 {
 	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
 	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
+	return 0;
+}
+
+
+
+//======================================================//
+//
+// Device support types for CoE configuration
+// 		- Strings for CoE configuration should be like
+//			this: @CoE ek9k,terminal,index,subindex
+//
+//======================================================//
+// Common funcs/defs
+struct ek9k_coe_param_t
+{
+	CEK9000Device* ek9k;
+	CTerminal* pterm;
+	int index;
+	int subindex;
+	enum {
+		COE_TYPE_BOOL,
+		COE_TYPE_INT8,
+		COE_TYPE_INT16,
+		COE_TYPE_INT32,
+		COE_TYPE_INT64,
+	} type;
+};
+
+struct ek9k_param_t
+{
+	CEK9000Device* ek9k;
+	int reg;
+	int len;
+};
+
+struct ek9k_conf_pvt_t
+{
+	ek9k_coe_param_t param;
+};
+
+int CoE_ParseString(const char* str, ek9k_coe_param_t* param);
+int EK9K_ParseString(const char* str, ek9k_param_t* param);
+//======================================================//
+
+
+//-----------------------------------------------------------------//
+// Configuration CoE RO parameter
+static long ek9k_confli_init(int pass);
+static long ek9k_confli_init_record(void* prec);
+static long ek9k_confli_read_record(void* prec);
+
+struct
+{
+	long		number;
+	DEVSUPFUN	dev_report;
+	DEVSUPFUN	init;
+	DEVSUPFUN	init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN	get_ioint_info;
+	DEVSUPFUN	read_longin; /*returns: (-1,0)=>(failure,success)*/
+}
+devEK9KCoERO =
+{
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_confli_init,
+	ek9k_confli_init_record,
+	NULL,
+	ek9k_confli_read_record,
+};
+
+epicsExportAddress(dset, devEK9KCoERO);
+
+static long ek9k_confli_init(int pass)
+{
+	return 0;
+}
+
+static long ek9k_confli_init_record(void* prec)
+{
+	int64inRecord* precord = static_cast<int64inRecord*>(prec);
+	ek9k_coe_param_t param;
+	precord->dpvt = calloc(1, sizeof(ek9k_conf_pvt_t));
+	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
+
+	if(CoE_ParseString(precord->inp.value.instio.string, &param))
+	{
+		Error("ek9k_confli_init_record: Malformed input link string for record %s\n", 
+			precord->name);
+		return 1;
+	}
+	dpvt->param = param;
+	return 0;
+}
+
+static long ek9k_confli_read_record(void* prec)
+{
+	int64inRecord* precord = static_cast<int64inRecord*>(prec);
+	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
+
+	if(!dpvt || !dpvt->param.ek9k) return -1;
+
+	dpvt->param.ek9k->Lock();
+
+	switch(dpvt->param.type)
+	{
+		case ek9k_coe_param_t::COE_TYPE_BOOL:
+		{
+			uint16_t buf;
+			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 1, &buf, dpvt->param.subindex);
+			precord->val = static_cast<epicsInt64>(buf);
+			break;
+		}
+		case ek9k_coe_param_t::COE_TYPE_INT8:
+		{
+			uint16_t buf;
+			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 1, &buf, dpvt->param.subindex);
+			precord->val = static_cast<epicsInt64>(buf);
+			break;
+		}
+		case ek9k_coe_param_t::COE_TYPE_INT16:
+		{
+			uint16_t buf;
+			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 1, &buf, dpvt->param.subindex);
+			precord->val = static_cast<epicsInt64>(buf);
+			break;
+		}
+		case ek9k_coe_param_t::COE_TYPE_INT32:
+		{
+			uint32_t buf;
+			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 2, reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+			precord->val = static_cast<epicsInt64>(buf);
+			break;
+		}
+		case ek9k_coe_param_t::COE_TYPE_INT64:
+		{
+			uint64_t buf;
+			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 4, reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+			precord->val = static_cast<epicsInt64>(buf);
+			break;
+		}
+		default: break;
+	}
+
+	dpvt->param.ek9k->Unlock();
+	return 0;
+}
+
+//-----------------------------------------------------------------//
+
+//-----------------------------------------------------------------//
+// Configuration RW CoE parameter
+static long ek9k_conflo_init(int pass);
+static long ek9k_conflo_init_record(void* prec);
+static long ek9k_conflo_write_record(void* prec);
+
+struct
+{
+	long		number;
+	DEVSUPFUN	dev_report;
+	DEVSUPFUN	init;
+	DEVSUPFUN	init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN	get_ioint_info;
+	DEVSUPFUN	write_longout;/*(-1,0)=>(failure,success*/
+}
+devEK9KCoERW =
+{
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_conflo_init,
+	ek9k_conflo_init_record,
+	NULL,
+	ek9k_conflo_write_record,
+};
+
+epicsExportAddress(dset, devEK9KCoERW);
+
+static long ek9k_conflo_init(int pass)
+{
+	return 0;
+}
+
+static long ek9k_conflo_init_record(void* prec)
+{
+	int64outRecord* precord = static_cast<int64outRecord*>(prec);
+	ek9k_coe_param_t param;
+	precord->dpvt = calloc(1, sizeof(ek9k_conf_pvt_t));
+	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
+	
+	if(CoE_ParseString(precord->out.value.instio.string, &param))
+	{
+		Error("ek9k_conflo_init_record: Malformed input link string for record %s\n", 
+			precord->name);
+		return 1;
+	}
+	dpvt->param = param;
+	return 0;
+}
+
+static long ek9k_conflo_write_record(void* prec)
+{
+	int64outRecord* precord = static_cast<int64outRecord*>(prec);
+	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
+	int ret;
+
+	if(!dpvt || !dpvt->param.ek9k) return -1;
+
+	dpvt->param.ek9k->Lock();
+
+	switch(dpvt->param.type)
+	{
+		case ek9k_coe_param_t::COE_TYPE_BOOL:
+		{
+			uint16_t buf = static_cast<epicsInt16>(precord->val);
+			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 1, &buf, dpvt->param.subindex, 1);
+			break;
+		}
+		case ek9k_coe_param_t::COE_TYPE_INT8:
+		{
+			uint16_t buf = static_cast<epicsInt16>(precord->val);
+			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 1, &buf, dpvt->param.subindex, 1);
+			break;
+		}
+		case ek9k_coe_param_t::COE_TYPE_INT16:
+		{
+			uint16_t buf = static_cast<epicsInt16>(precord->val);
+			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 1, &buf, dpvt->param.subindex, 2);
+			break;
+		}
+		case ek9k_coe_param_t::COE_TYPE_INT32:
+		{
+			uint32_t buf = static_cast<epicsInt32>(precord->val);
+			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 2, reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex, 4);
+			break;
+		}
+		case ek9k_coe_param_t::COE_TYPE_INT64:
+		{
+			uint64_t buf = precord->val;
+			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_nTerminalIndex,
+				dpvt->param.index, 4, reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex, 8);
+			break;
+		}
+		default: break;
+	}
+
+	dpvt->param.ek9k->Unlock();
+	return 0;
+}
+
+//-----------------------------------------------------------------//
+
+int CoE_ParseString(const char* str, ek9k_coe_param_t* param)
+{
+	int strl = strlen(str);
+	CEK9000Device* pcoupler = 0;
+	CTerminal* pterm = 0;
+	int termid;
+	int i, bufcnt = 0;
+	char buf[512]; 
+	char* buffers[5];
+
+	if(str[0] == 0) return 1;
+
+	memset(buf, 0, 512);
+	strcpy(buf, str);
+
+	/* Tokenize & separate into substrings */
+	for(char* tok = strtok((char*)str, ","); tok; tok = strtok(NULL, ","))
+	{
+		buffers[bufcnt] = tok;
+		++bufcnt;
+	}
+	for(i = 0; i < strl; i++)
+		if(buf[i] == ',') buf[i] = 0;
+
+	/* Finally actually parse the integers, find the ek9k, etc. */
+	for(CEK9000Device* dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+	{
+		if(strncmp(dev->m_pName, buffers[0], strlen(dev->m_pName)) == 0)
+		{
+			pcoupler = dev;
+			break;
+		}
+	}
+
+	if(!pcoupler)
+	{
+		Error("Coupler not found.\n");
+		return 1;
+	}
+
+	if(bufcnt < 4) return 1;
+
+	/* Determine the CoE type */
+	if(strncmpnc(buffers[4], "bool", 4) == 0)
+		param->type = ek9k_coe_param_t::COE_TYPE_BOOL;
+	else if(strncmpnc(buffers[4], "int16", 5) == 0 || strncmpnc(buffers[4], "uint16", 6) == 0)
+		param->type = ek9k_coe_param_t::COE_TYPE_INT16;
+	else if(strncmpnc(buffers[4], "int32", 5) == 0 || strncmpnc(buffers[4], "uint32", 6) == 0)
+		param->type = ek9k_coe_param_t::COE_TYPE_INT32;
+	else if(strncmpnc(buffers[4], "int64", 5) == 0 || strncmpnc(buffers[4], "uint64", 6) == 0)
+		param->type = ek9k_coe_param_t::COE_TYPE_INT64;
+	else if(strncmpnc(buffers[4], "int8", 4) == 0 || strncmpnc(buffers[4], "uint8", 5) == 0)
+		param->type = ek9k_coe_param_t::COE_TYPE_INT8;
+	else
+		return 1;
+
+	termid = atoi(buffers[1]);
+	if(errno != 0) return 1;
+	pterm = &pcoupler->m_pTerms[termid-1];
+
+	param->pterm = pterm;
+	param->ek9k = pcoupler;
+	param->index = strtol(buffers[2], 0, 16);
+	if(errno != 0) return 1;
+
+	param->subindex = strtol(buffers[3], 0, 16);
+	if(errno != 0) return 1;
+
+	return 0;
+}
+
+//-----------------------------------------------------------------//
+// EK9K RO configuration/status
+static long ek9k_ro_init(int pass);
+static long ek9k_ro_init_record(void* prec);
+static long ek9k_ro_read_record(void* pprec);
+
+struct
+{
+	long		number;
+	DEVSUPFUN	dev_report;
+	DEVSUPFUN	init;
+	DEVSUPFUN	init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN	get_ioint_info;
+	DEVSUPFUN	write_longout;/*(-1,0)=>(failure,success*/
+}
+devEK9000ConfigRO =
+{
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_ro_init,
+	ek9k_ro_init_record,
+	NULL,
+	ek9k_ro_read_record,
+};
+
+epicsExportAddress(dset, devEK9000ConfigRO);
+
+static long ek9k_ro_init(int pass)
+{
+	return 0;
+}
+
+static long ek9k_ro_init_record(void* prec)
+{
+	longinRecord* precord = static_cast<longinRecord*>(prec);
+	precord->dpvt = calloc(1, sizeof(ek9k_param_t));
+	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
+	ek9k_param_t param;
+
+	/* parse the string to obtain various info */
+	if(EK9K_ParseString(precord->inp.value.instio.string, &param))
+	{
+		Error("Maloformed modbus string in record %s\n", precord->name);
+		return 1;
+	}
+	*dpvt = param;
+	return 0;
+}
+
+static long ek9k_ro_read_record(void* prec)
+{
+	longinRecord* precord = static_cast<longinRecord*>(prec);
+	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
+	CEK9000Device* dev = dpvt->ek9k;
+	uint16_t buf;
+
+	if(!dev) return -1;
+
+	dev->Lock();
+
+	dev->doEK9000IO(0, dpvt->reg, 1, &buf);
+	precord->val = buf;
+
+	dev->Unlock();
+	return 0;
+}
+
+//-----------------------------------------------------------------//
+
+//-----------------------------------------------------------------//
+// EK9K RW configuration
+static long ek9k_rw_init(int pass);
+static long ek9k_rw_init_record(void* prec);
+static long ek9k_rw_write_record(void* pprec);
+
+struct
+{
+	long		number;
+	DEVSUPFUN	dev_report;
+	DEVSUPFUN	init;
+	DEVSUPFUN	init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN	get_ioint_info;
+	DEVSUPFUN	write_longout;/*(-1,0)=>(failure,success*/
+}
+devEK9000ConfigRW =
+{
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_rw_init,
+	ek9k_rw_init_record,
+	NULL,
+	ek9k_rw_write_record,
+};
+
+epicsExportAddress(dset, devEK9000ConfigRW);
+
+static long ek9k_rw_init(int pass)
+{
+	return 0;
+}
+
+static long ek9k_rw_init_record(void* prec)
+{
+	longoutRecord* precord = static_cast<longoutRecord*>(prec);
+	precord->dpvt = calloc(1, sizeof(ek9k_param_t));
+	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
+	ek9k_param_t param;
+
+	/* parse the string to obtain various info */
+	if(EK9K_ParseString(precord->out.value.instio.string, &param))
+	{
+		Error("Maloformed modbus string in record %s\n", precord->name);
+		return 1;
+	}
+	*dpvt = param;
+	return 0;
+}
+
+static long ek9k_rw_write_record(void* prec)
+{
+	longinRecord* precord = static_cast<longinRecord*>(prec);
+	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
+	CEK9000Device* dev = dpvt->ek9k;
+	uint16_t buf = precord->val;
+
+	if(!dev) return -1;
+
+	dev->Lock();
+
+	dev->doEK9000IO(1, dpvt->reg, 1, &buf);
+
+	dev->Unlock();
+	return 0;
+}
+
+//-----------------------------------------------------------------//
+
+/* The string will be in the format EK9K,0x1002 */
+int EK9K_ParseString(const char* str, ek9k_param_t* param)
+{
+	char buf[512];
+	const char *pek9k = 0, *preg = 0;
+
+	memset(buf, 0, 512);
+	strncpy(buf, str, 512);
+
+	if(!buf[0]) return 1;
+	pek9k = buf;
+
+	/* Read until we hit a comma, then replace */
+	int strl = strlen(buf);
+	for(int i = 0; i < strl; i++)
+	{
+		if(buf[i] == ',')
+		{
+			buf[i] = '\0';
+			preg = &buf[i+1];
+			break;
+		}
+	}
+	if(!preg) return 1;
+
+	/* Find the coupler */
+	param->ek9k = g_pDeviceMgr->FindDevice(pek9k);
+	param->reg = strtol(preg, 0, 16);
+
+	if(!param->ek9k)
+	{
+		printf("Unable to find the specified coupler\n");
+		return 1;
+	}
 	return 0;
 }

@@ -28,7 +28,8 @@
 #include <aoRecord.h>
 #include <iocsh.h>
 #include <callback.h>
-#include <atomic>
+#include <recGbl.h>
+#include <alarm.h> 
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -37,7 +38,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "asynDriver.h"
 #include "devEK9000.h"
 
 struct SEL40XXSupportData
@@ -91,6 +91,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	/* Verify connection */
 	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
 	{
+		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		pRecord->pact = 0;
 		return;
@@ -100,7 +101,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	dpvt->m_pTerminal->m_pDevice->Lock();
 	
 	/* Set buffer & do write */
-	uint16_t buf = pRecord->rval;
+	uint16_t buf = (int16_t)pRecord->rval;
 	int status = dpvt->m_pTerminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS, dpvt->m_pTerminal->m_nOutputStart + 
 		(dpvt->m_nChannel-1), &buf, 1);
 	
@@ -108,15 +109,19 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	dpvt->m_pTerminal->m_pDevice->Unlock();
 
 	/* No more processing */
-	pRecord->pact = 0;
-
+	pRecord->pact = FALSE;
+	pRecord->udf = FALSE;
 	/* Check error */
 	if(status)
 	{
-		if(status > 0x100) {
+		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
+		if(status > 0x100)
+		{
 			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
+			return;
 		}
-		else {
+		else
+		{
 			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		}
 		return;
@@ -132,7 +137,6 @@ static long EL40XX_init(int after)
 {
 	return 0;
 }
-
 
 static long EL40XX_init_record(void* record)
 {
@@ -152,7 +156,7 @@ static long EL40XX_init_record(void* record)
 	}
 	free(out);
 	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
-
+	
 	/* Lock mutex for IO */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 	/* Verify it's error free */
@@ -175,6 +179,7 @@ static long EL40XX_init_record(void* record)
 		Error("EL40XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
+	//EL40XX_write_record(record);
 	return 0;
 }
 
@@ -186,47 +191,16 @@ static long EL40XX_write_record(void* record)
 	callbackSetCallback(EL40XX_WriteCallback, callback);
 	callbackSetUser(pRecord, callback);
 	callbackSetPriority(priorityHigh, callback);
-	pRecord->pact = 1;
 	callbackRequest(callback);
 	return 0;
 }
 
 static long EL40XX_linconv(void* precord, int after)
 {
+	if(!after) return 0;
 	aoRecord* pRecord = (aoRecord*)precord;
-	/* Output is bit shifted 3 bits such that the max value will be 32767 */
 	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0x7FFF;
 	pRecord->roff = 0; /* NO offset is needed */
 	return 0;
 }
-
-/* EL41XX terminals have 16-bit precision instead */
-static long EL41XX_linconv(void* precord, int after)
-{
-	aoRecord* pRecord = (aoRecord*)precord;
-	/* No shift needed for the output */
-	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0xFFFF;
-	pRecord->roff = 0x0;
-	return 0;
-}
-
-struct
-{
-	long num;
-	DEVSUPFUN report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN ioint_info;
-	DEVSUPFUN write_record;
-	DEVSUPFUN linconv;
-} devEL41XX = {
-	6,
-	(DEVSUPFUN)EL40XX_dev_report,
-	(DEVSUPFUN)EL40XX_init,
-	(DEVSUPFUN)EL40XX_init_record,
-	NULL,
-	(DEVSUPFUN)EL40XX_write_record,
-	(DEVSUPFUN)EL41XX_linconv,
-};
-epicsExportAddress(dset, devEL41XX);
 
