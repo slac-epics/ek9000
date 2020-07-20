@@ -28,7 +28,8 @@
 #include <biRecord.h>
 #include <iocsh.h>
 #include <callback.h>
-#include <atomic>
+#include <alarm.h>
+#include <recGbl.h>
 
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
@@ -91,6 +92,7 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 	if(status != epicsMutexLockOK)
 	{
 		DevError("EL10XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		pRecord->pact = 0;
 		return;
 	}
@@ -105,6 +107,7 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 	/* Error states */
 	if(status)
 	{
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		/* Check type of err */
 		if(status > 0x100)
 		{
@@ -114,8 +117,10 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 		DevError("EL10XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(status));
 		return;
 	}
-	pRecord->pact = 0;
+	pRecord->val = buf;
 	pRecord->rval = buf;
+	pRecord->udf = FALSE;
+	pRecord->pact = FALSE;
 }
 
 static long EL10XX_dev_report(int interest)
@@ -133,7 +138,6 @@ static long EL10XX_init_record(void* precord)
 	biRecord* pRecord = (biRecord*)precord;
 	pRecord->dpvt = malloc(sizeof(SEL10XXSupportData));
 	SEL10XXSupportData* dpvt = (SEL10XXSupportData*)pRecord->dpvt;
-
 	/* Get terminal */
 	char* name = NULL;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, name);
@@ -146,7 +150,6 @@ static long EL10XX_init_record(void* precord)
 	}
 	free(name);
 	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
-
 	/* Lock mutex for modbus io */
 	int status = dpvt->m_pDevice->Lock();
 
@@ -162,6 +165,9 @@ static long EL10XX_init_record(void* precord)
 	dpvt->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
 	
 	dpvt->m_pDevice->Unlock();
+	
+	pRecord->udf = FALSE;
+
 	/* Invalid term id */
 	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
 	{
@@ -180,7 +186,6 @@ static long EL10XX_read_record(void* precord)
 	callbackSetUser(pRecord, callback);
 	callbackSetPriority(priorityHigh, callback);
 	/* Indicate processing active */
-	pRecord->pact = 1;
 	callbackRequest(callback);
 	return 0;
 }
