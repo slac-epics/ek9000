@@ -58,9 +58,6 @@ jobs:
 
   - env: BASE=7.0
 
-  - env: BASE=7.0 EXTRA="CMD_CXXFLAGS=-std=c++11"
-    compiler: clang
-
 # Trusty: compiler versions very close to RHEL 7
 
   - env: BASE=7.0
@@ -80,16 +77,6 @@ jobs:
   - env: BASE=7.0 RTEMS=4.10
 
   - env: BASE=7.0 RTEMS=4.9
-
-# Other gcc versions (added as an extra package)
-
-  - env: BASE=7.0
-    compiler: gcc-6
-    addons: { apt: { packages: ["g++-6"], sources: ["ubuntu-toolchain-r-test"] } }
-
-  - env: BASE=7.0
-    compiler: gcc-7
-    addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
 
 # MacOS build
 
