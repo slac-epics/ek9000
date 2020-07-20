@@ -11,7 +11,7 @@ DBD += devEK9000.dbd
 DBD += ek9000.dbd
 DBD += ek9000Include.dbd
 
-USR_CXXFLAGS += --std=c++11 -g
+#USR_CXXFLAGS += --std=c++11 -g
 
 # Used for code improvement purposes
 #USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic
