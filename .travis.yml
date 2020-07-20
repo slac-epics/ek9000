@@ -13,7 +13,7 @@ cache:
 
 env:
   global:
-    - SETUP_PATH=.ci-local:.ci
+    - SETUP_PATH=.ci
     - MODULES="asyn modbus motor"
     - ASYN=master
     - MODBUS=master
@@ -30,6 +30,9 @@ addons:
     - g++-mingw-w64-x86-64
     - qemu-system-x86
   homebrew:
+    packages:
+      - bash
+      - re2c
     update: true
 
 install:
