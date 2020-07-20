@@ -38,3 +38,6 @@ tparse\.py
 
 /*.xml
 .clangd
+
+ek9000App/src/BhcConfigFiles/
+ek9000App/src/BhcConfigFiles.zip
