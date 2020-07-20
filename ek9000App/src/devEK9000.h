@@ -46,6 +46,8 @@
 
 #define PORT_PREFIX "PORT_"
 
+#define STRUCT_SIZE_TO_MODBUS_SIZE(_x) ((_x % 2) == 0 ? (_x) / 2 : ((_x)/2) + 1)
+
 /* Choice strings */
 #define EL2008_STRING "EL2008"
 #define EL1124_STRING "EL1124"
@@ -435,16 +437,16 @@ public:
 	/* term = -1 for no terminal */
 	/* len = number of regs to read */
 	/* addr = starting addr */
-	inline int doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t *data);
+	int doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t *data);
 
 	/* Do CoE I/O */
-	inline int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint16_t reallen = 0);
+	int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint16_t reallen = 0);
 
 	/* same as doEK9000IO except this only operates on the ek9000 itself, term is not used */
-	inline int doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex = 0);
+	int doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex = 0);
 
 	/* Reads the value of the CoE register */
-	inline int ReadCOECode();
+	int ReadCOECode();
 
 	/* Reads coupler type */
 	int ReadTerminalType(uint16_t termid, int &id);

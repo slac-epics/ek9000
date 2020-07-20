@@ -1,2 +1,2 @@
 # SNL programs or functions to be invoked from iocsh
-registrar(ek9k_register)
+registrar(ek9000RegisterFunctions)
