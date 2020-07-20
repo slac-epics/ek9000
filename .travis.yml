@@ -7,6 +7,9 @@ language: cpp
 compiler: gcc
 dist: xenial
 
+git:
+  submodules: true
+
 cache:
   directories:
   - $HOME/.cache
