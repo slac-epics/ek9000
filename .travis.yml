@@ -74,9 +74,9 @@ jobs:
 
 # Cross-compilation to RTEMS
 
-  - env: BASE=7.0 RTEMS=4.10
+#  - env: BASE=7.0 RTEMS=4.10
 
-  - env: BASE=7.0 RTEMS=4.9
+#  - env: BASE=7.0 RTEMS=4.9
 
 # MacOS build
 
@@ -86,9 +86,9 @@ jobs:
 
 # Windows builds
 
-  - env: BASE=7.0
-    os: windows
-    compiler: vs2017
+#  - env: BASE=7.0
+#    os: windows
+#    compiler: vs2017
 
   - env: BASE=7.0
     os: windows
