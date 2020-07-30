@@ -3,7 +3,7 @@
  * CoE diagnostics support
  *
  */ 
-#include "diag.h"
+#include "ekDiag.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -25,60 +25,57 @@ struct coe_diag_msg_t
 int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 {
 	coe_diag_msg_t msg = *(coe_diag_msg_t*)string;
-	char buf[4096];
+	char buf[8192];
+	char tmpbuf[512];
 
 	/* Print out a timestamp */
-	sprintf(buf, "%s", asctime(localtime((time_t*)&msg.timestamp)));
-	
-	//sprintf(buf, "%s Diagnostic code: %X, Flags: 0x%X, TextID: 0x%X\n",
-	//		buf, msg.diag_code, msg.flags, msg.textid);
-	//strncpy(outbuf, buf, outbuflen);
-	//return outbuflen;
+	snprintf(tmpbuf, sizeof(tmpbuf), "%s", asctime(localtime((time_t*)&msg.timestamp)));
+
 	/* Print in the type of message */
 	switch((msg.textid & 0xF000) >> 11)
 	{
 		case 2:
-			sprintf(buf, "%s [RESERVED]", buf);
+			snprintf(buf, sizeof(buf), "%s [RESERVED]", tmpbuf);
 			break;
 		case 1:
-			sprintf(buf, "%s [INFO]", buf);
+			snprintf(buf, sizeof(buf), "%s [INFO]", tmpbuf);
 			break;
 		case 0:
-			sprintf(buf, "%s [SYSINFO]", buf);
+			snprintf(buf, sizeof(buf), "%s [SYSINFO]", tmpbuf);
 			break;
 		case 4:
-			sprintf(buf, "%s [WARN]", buf);
+			snprintf(buf, sizeof(buf), "%s [WARN]", tmpbuf);
 			break;
 		default:
-			sprintf(buf, "%s [ERROR]", buf);
+			snprintf(buf, sizeof(buf), "%s [ERROR]", tmpbuf);
 	}
 
 	/* Print in the subsystem */
 	switch((msg.textid & 0x0F00) >> 7)
 	{
 		case 0:
-			sprintf(buf, "%s [SYSTEM]", buf);
+			snprintf(buf, sizeof(buf), "%s [SYSTEM]", tmpbuf);
 			break;
 		case 1:
-			sprintf(buf, "%s [GENERAL]", buf);
+			snprintf(buf, sizeof(buf), "%s [GENERAL]", tmpbuf);
 			break;
 		case 2:
-			sprintf(buf, "%s [COMM]", buf);
+			snprintf(buf, sizeof(buf), "%s [COMM]", tmpbuf);
 			break;
 		case 3:
-			sprintf(buf, "%s [ENC]", buf);
+			snprintf(buf, sizeof(buf), "%s [ENC]", tmpbuf);
 			break;
 		case 4:
-			sprintf(buf, "%s [DRIVE]", buf);
+			snprintf(buf, sizeof(buf), "%s [DRIVE]", tmpbuf);
 			break;
 		case 5:
-			sprintf(buf, "%s [INPUTS]", buf);
+			snprintf(buf, sizeof(buf), "%s [INPUTS]", tmpbuf);
 			break;
 		case 6:
-			sprintf(buf, "%s [I/O GEN]", buf);
+			snprintf(buf, sizeof(buf), "%s [I/O GEN]", tmpbuf);
 			break;
 		default:
-			sprintf(buf, "%s [RESERVED]", buf);
+			snprintf(buf, sizeof(buf), "%s [RESERVED]", tmpbuf);
 			break;
 	}
 
@@ -86,291 +83,291 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 	switch(msg.textid)
 	{
 		case 0x1:
-			sprintf(buf, "%s No error", buf);
+			snprintf(buf, sizeof(buf), "%s No error", tmpbuf);
 			break;
 		case 0x2:
-			sprintf(buf, "%s Communication established", buf);
+			snprintf(buf, sizeof(buf), "%s Communication established", tmpbuf);
 			break;
 		case 0x3:
-			sprintf(buf, "%s Initialization: 0x%X, 0x%X, 0x%X", buf,
+			snprintf(buf, sizeof(buf), "%s Initialization: 0x%X, 0x%X, 0x%X", tmpbuf,
 					msg.params[0], msg.params[1], msg.params[2]);
 			break;
 		case 0x1000:
-			sprintf(buf, "%s Information: 0x%X, 0x%X, 0x%X", buf,
+			snprintf(buf, sizeof(buf), "%s Information: 0x%X, 0x%X, 0x%X", tmpbuf,
 					msg.params[0], msg.params[1], msg.params[2]);
 			break;
 		case 0x1012:
-			sprintf(buf, "%s EtherCAT state change Init - PreOP", buf);
+			snprintf(buf, sizeof(buf), "%s EtherCAT state change Init - PreOP", tmpbuf);
 			break;
 		case 0x1021:
-			sprintf(buf, "%s EtherCAT state change PreOP - Init", buf);
+			snprintf(buf, sizeof(buf), "%s EtherCAT state change PreOP - Init", tmpbuf);
 			break;
 		case 0x1024:
-			sprintf(buf, "%s EtherCAT state change PreOP - SafeOP", buf);
+			snprintf(buf, sizeof(buf), "%s EtherCAT state change PreOP - SafeOP", tmpbuf);
 			break;
 		case 0x1042:
-			sprintf(buf, "%s EtherCAT state change SafeOP - PreOP", buf);
+			snprintf(buf, sizeof(buf), "%s EtherCAT state change SafeOP - PreOP", tmpbuf);
 			break;
 		case 0x1048:
-			sprintf(buf, "%s EtherCAT state change SafeOP - OP", buf);
+			snprintf(buf, sizeof(buf), "%s EtherCAT state change SafeOP - OP", tmpbuf);
 			break;
 		case 0x1084:
-			sprintf(buf, "%s EtherCAT state change OP - SafeOP", buf);
+			snprintf(buf, sizeof(buf), "%s EtherCAT state change OP - SafeOP", tmpbuf);
 			break;
 		case 0x1100:
-			sprintf(buf, "%s Detection of operation mode completed: 0x%X, %d", buf,
+			snprintf(buf, sizeof(buf), "%s Detection of operation mode completed: 0x%X, %d", tmpbuf,
 					msg.params[0], (uint32_t)msg.params[5]);
 			break;
 		case 0x1135:
-			sprintf(buf, "%s Cycle time OK: %d", buf, (uint32_t)msg.params[0]);
+			snprintf(buf, sizeof(buf), "%s Cycle time OK: %d", tmpbuf, (uint32_t)msg.params[0]);
 			break;
 		case 0x1157:
-			sprintf(buf, "%s Data manually saved (Idx: 0x%X, Subidx: 0x%X)", buf, msg.params[0], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Data manually saved (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0], msg.params[1]);
 			break;
 		case 0x1158:
-			sprintf(buf, "%s Data automatically saved (Idx: 0x%X, Subidx: 0x%X)", buf, msg.params[0], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Data automatically saved (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0], msg.params[1]);
 			break;
 		case 0x1159:
-			sprintf(buf, "%s Data deleted (Idx: 0x%X, Subidx: 0x%X)", buf, msg.params[0], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Data deleted (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0], msg.params[1]);
 			break;
 		case 0x117F:
-			sprintf(buf, "%s Information: 0x%X, 0x%X, 0x%X", buf, msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Information: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[2]);
 			break;
 		case 0x1201:
-			sprintf(buf, "%s Communication re-established", buf);
+			snprintf(buf, sizeof(buf), "%s Communication re-established", tmpbuf);
 			break;
 		case 0x1300:
-			sprintf(buf, "%s Position set: %d, %d", buf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Position set: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
 			break;
 		case 0x1303:
-			sprintf(buf, "%s Encoder supply OK", buf);
+			snprintf(buf, sizeof(buf), "%s Encoder supply OK", tmpbuf);
 			break;
 		case 0x1304:
-			sprintf(buf, "%s Encoder initialization successful, channel: 0x%X", buf, msg.params[0]);
+			snprintf(buf, sizeof(buf), "%s Encoder initialization successful, channel: 0x%X", tmpbuf, msg.params[0]);
 			break;
 		case 0x1305:
-			sprintf(buf, "%s Sent command encoder reset, channel: %X", buf, msg.params[0]);
+			snprintf(buf, sizeof(buf), "%s Sent command encoder reset, channel: %X", tmpbuf, msg.params[0]);
 			break;
 		case 0x1400:
-			sprintf(buf, "%s Drive is calibrated: %d, %d", buf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Drive is calibrated: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
 			break;
 		case 0x1401:
-			sprintf(buf, "%s Actual drive state: 0x%X, %d", buf, msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Actual drive state: 0x%X, %d", tmpbuf, msg.params[0], (uint32_t)msg.params[1]);
 			break;
 		case 0x1705:
-			sprintf(buf, "%s CPU usage returns in the normal range (<85%%)", buf);
+			snprintf(buf, sizeof(buf), "%s CPU usage returns in the normal range (<85%%)", tmpbuf);
 			break;
 		case 0x1706:
-			sprintf(buf, "%s Channel is no longer saturated", buf);
+			snprintf(buf, sizeof(buf), "%s Channel is no longer saturated", tmpbuf);
 			break;
 		case 0x1707:
-			sprintf(buf, "%s Channel is not overloaded anymore", buf);
+			snprintf(buf, sizeof(buf), "%s Channel is not overloaded anymore", tmpbuf);
 			break;
 		case 0x170A:
-			sprintf(buf, "%s No channel range error anymore", buf);
+			snprintf(buf, sizeof(buf), "%s No channel range error anymore", tmpbuf);
 			break;
 		case 0x170C:
-			sprintf(buf, "%s Calibration data saved", buf);
+			snprintf(buf, sizeof(buf), "%s Calibration data saved", tmpbuf);
 			break;
 		case 0x170D:
-			sprintf(buf, "%s Calibration data will be applied and saved after sending the command 0x5AFE", buf);
+			snprintf(buf, sizeof(buf), "%s Calibration data will be applied and saved after sending the command 0x5AFE", tmpbuf);
 			break;
 		case 0x2000:
-			sprintf(buf, "%s Converting this command to a string is not supported", buf);
+			snprintf(buf, sizeof(buf), "%s Converting this command to a string is not supported", tmpbuf);
 			break;
 		case 0x2001:
-			sprintf(buf, "%s Network link lost", buf);
+			snprintf(buf, sizeof(buf), "%s Network link lost", tmpbuf);
 			break;
 		case 0x2002:
-			sprintf(buf, "%s Network link detected", buf);
+			snprintf(buf, sizeof(buf), "%s Network link detected", tmpbuf);
 			break;
 		case 0x2003:
-			sprintf(buf, "%s No valid IP configuration found: DHCP client started.", buf);
+			snprintf(buf, sizeof(buf), "%s No valid IP configuration found: DHCP client started.", tmpbuf);
 			break;
 		case 0x2004: 
-			sprintf(buf, "%s valid IP configuration found", buf);
+			snprintf(buf, sizeof(buf), "%s valid IP configuration found", tmpbuf);
 			break;
 		case 0x2005:
-			sprintf(buf, "%s DHCP client timed out", buf);
+			snprintf(buf, sizeof(buf), "%s DHCP client timed out", tmpbuf);
 			break;
 		case 0x2006:
-			sprintf(buf, "%s Duplicate IP address detected", buf);
+			snprintf(buf, sizeof(buf), "%s Duplicate IP address detected", tmpbuf);
 			break;
 		case 0x2007:
-			sprintf(buf, "%s UDP handler initialized", buf);
+			snprintf(buf, sizeof(buf), "%s UDP handler initialized", tmpbuf);
 			break;
 		case 0x2008:
-			sprintf(buf, "%s TCP handler initialized", buf);
+			snprintf(buf, sizeof(buf), "%s TCP handler initialized", tmpbuf);
 			break;
 		case 0x2009:
-			sprintf(buf, "%s No more TCP sockets available", buf);
+			snprintf(buf, sizeof(buf), "%s No more TCP sockets available", tmpbuf);
 			break;
 		case 0x4001:
 		case 0x4000:
 		case 0x417F:
-			sprintf(buf, "%s Warning: 0x%X, 0x%X, 0x%X", buf, msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Warning: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[2]);
 			break;
 		case 0x4002:
-			sprintf(buf, "%s Connection open", buf);
+			snprintf(buf, sizeof(buf), "%s Connection open", tmpbuf);
 			break;
 		case 0x4003:
-			sprintf(buf, "%s Connection closed", buf);
+			snprintf(buf, sizeof(buf), "%s Connection closed", tmpbuf);
 			break;
 		case 0x4004:
-			sprintf(buf, "%s Connection timed out", buf);
+			snprintf(buf, sizeof(buf), "%s Connection timed out", tmpbuf);
 			break;
 		case 0x4005:
 		case 0x4006:
 		case 0x4007:
 		case 0x4008:
-			sprintf(buf, "%s Connection attempt deinied", buf);
+			snprintf(buf, sizeof(buf), "%s Connection attempt deinied", tmpbuf);
 			break;
 		case 0x4101:
-			sprintf(buf, "%s Terminal overtemp", buf);
+			snprintf(buf, sizeof(buf), "%s Terminal overtemp", tmpbuf);
 			break;
 		case 0x1402:
-			sprintf(buf, "%s Discrepency in PDO conf", buf);
+			snprintf(buf, sizeof(buf), "%s Discrepency in PDO conf", tmpbuf);
 			break;
 		case 0x428D:
-			sprintf(buf, "%s Challenge is not random", buf);
+			snprintf(buf, sizeof(buf), "%s Challenge is not random", tmpbuf);
 			break;
 		case 0x4300:
-			sprintf(buf, "%s Subincrements deactivated: %d, %d", buf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Subincrements deactivated: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
 			break;
 		case 0x4301:
-			sprintf(buf, "%s Encoder warning", buf);
+			snprintf(buf, sizeof(buf), "%s Encoder warning", tmpbuf);
 			break;
 		case 0x4400:
-			sprintf(buf, "%s Drive is no calibrated: %d, %d", buf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Drive is no calibrated: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
 			break;
 		case 0x4401:
-			sprintf(buf, "%s Starttype not supported: 0x%X, %d", buf, msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Starttype not supported: 0x%X, %d", tmpbuf, msg.params[0], (uint32_t)msg.params[1]);
 			break;
 		case 0x4402:
-			sprintf(buf, "%s Command rejected: %d, %d", buf, (uint32_t)msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Command rejected: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[1]);
 			break;
 		case 0x4405:
-			sprintf(buf, "%s Invalid modulo subtype: %d, %d", buf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Invalid modulo subtype: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
 			break;
 		case 0x4410:
-			sprintf(buf, "%s Target overrun: %d, %d", buf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Target overrun: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
 			break;
 		case 0x4411:
-			sprintf(buf, "%s DC-Link undervoltage", buf);
+			snprintf(buf, sizeof(buf), "%s DC-Link undervoltage", tmpbuf);
 			break;
 		case 0x4412:
-			sprintf(buf, "%s DC-Link overvoltage", buf);
+			snprintf(buf, sizeof(buf), "%s DC-Link overvoltage", tmpbuf);
 			break;
 		case 0x4413:
-			sprintf(buf, "%s I2T-Model Amplifier overload", buf);
+			snprintf(buf, sizeof(buf), "%s I2T-Model Amplifier overload", tmpbuf);
 			break;
 		case 0x4414:
-			sprintf(buf, "%s I2T-Model motor overload", buf);
+			snprintf(buf, sizeof(buf), "%s I2T-Model motor overload", tmpbuf);
 			break;
 		case 0x4415:
-			sprintf(buf, "%s Speed limitation active", buf);
+			snprintf(buf, sizeof(buf), "%s Speed limitation active", tmpbuf);
 			break;
 		case 0x4416:
-			sprintf(buf, "%s Step loss detected at position: 0x%X%X", buf, msg.params[0], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Step loss detected at position: 0x%X%X", tmpbuf, msg.params[0], msg.params[1]);
 			break;
 		case 0x4417:
-			sprintf(buf, "%s Motor overtemperature", buf);
+			snprintf(buf, sizeof(buf), "%s Motor overtemperature", tmpbuf);
 			break;
 		case 0x4418:
-			sprintf(buf, "%s Current is limited", buf);
+			snprintf(buf, sizeof(buf), "%s Current is limited", tmpbuf);
 			break;
 		case 0x4419:
-			sprintf(buf, "%s Limit: Amplifier I2T model exceeds 100%%", buf);
+			snprintf(buf, sizeof(buf), "%s Limit: Amplifier I2T model exceeds 100%%", tmpbuf);
 			break;
 		case 0x441A:
-			sprintf(buf, "%s Limit: Motor I2T-model exceeds 100%%", buf);
+			snprintf(buf, sizeof(buf), "%s Limit: Motor I2T-model exceeds 100%%", tmpbuf);
 			break;
 		case 0x441B:
-			sprintf(buf, "%s Limit: Velocity limit", buf);
+			snprintf(buf, sizeof(buf), "%s Limit: Velocity limit", tmpbuf);
 			break;
 		case 0x441C:
-			sprintf(buf, "%s STO while axis was enabled", buf);
+			snprintf(buf, sizeof(buf), "%s STO while axis was enabled", tmpbuf);
 			break;
 		case 0x4600:
-			sprintf(buf, "%s Wrong supply voltage range", buf);
+			snprintf(buf, sizeof(buf), "%s Wrong supply voltage range", tmpbuf);
 			break;
 		case 0x4610:
-			sprintf(buf, "%s Wrong output voltage range", buf);
+			snprintf(buf, sizeof(buf), "%s Wrong output voltage range", tmpbuf);
 			break;
 		case 0x4705:
-			sprintf(buf, "%s Processor usage at %d%%", buf, (uint32_t)msg.params[0]);
+			snprintf(buf, sizeof(buf), "%s Processor usage at %d%%", tmpbuf, (uint32_t)msg.params[0]);
 			break;
 		case 0x470A:
-			sprintf(buf, "%s EtherCAT frame missed", buf);
+			snprintf(buf, sizeof(buf), "%s EtherCAT frame missed", tmpbuf);
 			break;
 		case 0x8000:
-			sprintf(buf, "%s %s", buf, msg.params);
+			snprintf(buf, sizeof(buf), "%s %s", tmpbuf, msg.params);
 			break;
 		case 0x8001:
-			sprintf(buf, "%s Error: 0x%X, 0x%X, 0x%X", buf, msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Error: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[2]);
 			break;
 		case 0x8002:
-			sprintf(buf, "%s Communication aborted", buf);
+			snprintf(buf, sizeof(buf), "%s Communication aborted", tmpbuf);
 			break;
 		case 0x8003:
-			sprintf(buf, "%s Configuration error: 0x%X, 0x%X, 0x%X", buf, msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Configuration error: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[2]);
 			break;
 		case 0x8004:
-			sprintf(buf, "%s %s: Unsuccessful FwdOpen-Response received", buf, msg.params);
+			snprintf(buf, sizeof(buf), "%s %s: Unsuccessful FwdOpen-Response received", tmpbuf, msg.params);
 			break;
 		case 0x8005:
-			sprintf(buf, "%s %s: FwdClose-Request sent", buf, msg.params);
+			snprintf(buf, sizeof(buf), "%s %s: FwdClose-Request sent", tmpbuf, msg.params);
 			break;
 		case 0x8006:
-			sprintf(buf, "%s %s: Unsuccessful FwdClose-Response received", buf, msg.params);
+			snprintf(buf, sizeof(buf), "%s %s: Unsuccessful FwdClose-Response received", tmpbuf, msg.params);
 			break;
 		case 0x8007:
-			sprintf(buf, "%s %s: Connection closed", buf, msg.params);
+			snprintf(buf, sizeof(buf), "%s %s: Connection closed", tmpbuf, msg.params);
 			break;
 		case 0x8100:
-			sprintf(buf, "%s Status word set: 0x%X,%d", buf, msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Status word set: 0x%X,%d", tmpbuf, msg.params[0], (uint32_t)msg.params[1]);
 			break;
 		case 0x8101:
-			sprintf(buf, "%s Operation mode incompatible to PDO interface: 0x%X, %d", buf, msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Operation mode incompatible to PDO interface: 0x%X, %d", tmpbuf, msg.params[0], (uint32_t)msg.params[1]);
 			break;
 		case 0x8102:
-			sprintf(buf, "%s Invalid combination of input and output PDOs", buf);
+			snprintf(buf, sizeof(buf), "%s Invalid combination of input and output PDOs", tmpbuf);
 			break;
 		case 0x8103:
-			sprintf(buf, "%s No variable linkage", buf);
+			snprintf(buf, sizeof(buf), "%s No variable linkage", tmpbuf);
 			break;
 		case 0x8104:
-			sprintf(buf, "%s Terminal overtemp", buf);
+			snprintf(buf, sizeof(buf), "%s Terminal overtemp", tmpbuf);
 			break;
 		case 0x8105:
-			sprintf(buf, "%s PD-Watchdog", buf);
+			snprintf(buf, sizeof(buf), "%s PD-Watchdog", tmpbuf);
 			break;
 		case 0x8135:
-			sprintf(buf, "%s Cycle time must be a multiple of 125us", buf);
+			snprintf(buf, sizeof(buf), "%s Cycle time must be a multiple of 125us", tmpbuf);
 			break;
 		case 0x8136:
-			sprintf(buf, "%s Configuration error: invalid sample rate", buf);
+			snprintf(buf, sizeof(buf), "%s Configuration error: invalid sample rate", tmpbuf);
 			break;
 		case 0x8137:
-			sprintf(buf, "%s Electronic type plate: CRC error", buf);
+			snprintf(buf, sizeof(buf), "%s Electronic type plate: CRC error", tmpbuf);
 			break;
 		case 0x8140:
-			sprintf(buf, "%s Sync error", buf);
+			snprintf(buf, sizeof(buf), "%s Sync error", tmpbuf);
 			break;
 		case 0x8141:
-			sprintf(buf, "%s Sync %X interrupt lost", buf, msg.params[0]);
+			snprintf(buf, sizeof(buf), "%s Sync %X interrupt lost", tmpbuf, msg.params[0]);
 			break;
 		case 0x8142:
-			sprintf(buf, "%s Sync interrupt async", buf);
+			snprintf(buf, sizeof(buf), "%s Sync interrupt async", tmpbuf);
 			break;
 		case 0x8143:
-			sprintf(buf, "%s Jitter too big", buf);
+			snprintf(buf, sizeof(buf), "%s Jitter too big", tmpbuf);
 			break;
 		case 0x817F:
-			sprintf(buf, "%s Error: 0x%X, 0x%X,0 0x%X", buf, msg.params[0], msg.params[1], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Error: 0x%X, 0x%X,0 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[1]);
 			break;
 		default: break;
 	}
-	strncpy(outbuf, buf, outbuflen);
+	strncpy(outbuf, tmpbuf, outbuflen);
 	return outbuflen;
 }

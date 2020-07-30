@@ -4,7 +4,7 @@
  * Common utilities for use with epics
  *
  */ 
-#include "util.h"
+#include "ekUtil.h"
 #include <memory.h>
 #include <stdlib.h>
 #include <vector>

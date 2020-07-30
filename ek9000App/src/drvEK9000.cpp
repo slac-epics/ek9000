@@ -34,7 +34,7 @@
 #include <queue>
 
 #include "drvEK9000.h"
-#include "util.h"
+#include "ekUtil.h"
 
 std::vector<drvEK9000*> devices;
 
