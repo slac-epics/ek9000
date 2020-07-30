@@ -34,34 +34,16 @@ ek9000Support_LIBS += modbus
 ek9000Support_LIBS += asyn
 ek9000Support_LIBS += motor
 
-#PROD_IOC = ek9000
-
-#
-#============================================
-# IOC stuff
-#============================================
-# ek9000.dbd will include these files:
-
-#ek9000_DBD += base.dbd
-#ek9000_DBD += ek9kDevices.dbd
-#ek9000_DBD += ek9000Include.dbd
-#ek9000_DBD += ek9kRecord.dbd
-
-# ek9000_registerRecordDeviceDriver.cpp derives from ek9000.dbd
-#ek9000_SRCS += ek9000_registerRecordDeviceDriver.cpp
-#ek9000_SRCS += ek9kDevices_registerRecordDeviceDriver.cpp
-
-# Build the main IOC entry point where needed
-#ek9000_SRCS_DEFAULT += ek9000Main.cpp
-#ek9000_SRCS_vxWorks += -nil-
-
-# Link in the code from our support library
-#ek9000_LIBS += ek9000Support
-
-# Finally link IOC to the EPICS Base libraries
-#ek9000_LIBS += $(EPICS_BASE_IOC_LIBS)
-
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD EXTRA GNUMAKE RULES BELOW HERE
 
+# WARNING: Requires BASH or a similar shell 
+clangdb_commands:
+	echo -e "[\n" > compile_commands.json 
+	for src in $(ek9000Support_SRCS); do \
+		echo -e "\t{ \"directory\": \"$(shell pwd)\", " >> compile_commands.json; \
+		echo -e "\t\"command\": \"-I$(MOTOR)/include -I$(ASYN)/include -I$(MODBUS)/include -I$(EPICS_BASE)/include $(USE_CXXFLAGS) -Dlinux -D_X86_ -DUNIX -D_GNU_SOURCE -D_DEFAULT_SOURCE\"," >> compile_commands.json; \
+		echo -e "\t\"file\": \"$$src\"}," >> compile_commands.json; \
+	done
+	echo "{}]" >> compile_commands.json
