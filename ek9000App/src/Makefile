@@ -11,10 +11,13 @@ DBD += devEK9000.dbd
 DBD += ek9000.dbd
 DBD += ek9000Include.dbd
 
+ifneq ($(NO_FORCE_CXX11),1)
 USR_CXXFLAGS += --std=c++11
+endif
 
-# Used for code improvement purposes
-#USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic
+ifeq ($(PEDANTIC),1)
+USE_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic
+endif
 
 # Records/Device support sources
 ek9000Support_SRCS += ekDiag.cpp
