@@ -126,20 +126,6 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 		return;
 	}
 }
-#if 0
-static void EL20XX_ReadOutputs(void* precord)
-{
-	boRecord* pRecord = (boRecord*)precord;
-	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
-	if(!dpvt->m_pTerminal)
-		return;
-	uint16_t buf = 0;
-	/* Read from the device */
-	dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_COILS,
-			dpvt->m_pTerminal->m_nOutputStart + (dpvt->m_nChannel * 2), &buf, 1);
-	pRecord->rval = buf;
-}
-#endif
 
 static long EL20XX_dev_report(int interest)
 {
