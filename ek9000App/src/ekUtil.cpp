@@ -119,7 +119,7 @@ void util::Error(const char* fmt, ...)
 	va_end(list);
 }
 
-long setupCallback(void* rec, void(*pCallback)(CALLBACK*)) 
+long util::setupCallback(void* rec, void(*pCallback)(CALLBACK*)) 
 {
 	CALLBACK* callback = (CALLBACK*)calloc(1, sizeof(CALLBACK));
 	*callback = *(CALLBACK*)pCallback;
