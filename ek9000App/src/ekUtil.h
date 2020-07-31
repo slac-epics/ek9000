@@ -9,6 +9,13 @@
 #include <initializer_list>
 #include <iocsh.h>
 
+/* Record includes */
+#include <boRecord.h>
+#include <biRecord.h>
+#include <aiRecord.h>
+#include <aoRecord.h>
+#include <epicsSpin.h>
+#include <epicsMutex.h>
 #include <epicsAtomic.h>
 
 /* List of all terminals */
@@ -20,6 +27,25 @@ typedef struct
 	int slave, terminal, channel;
 	int baseaddr, len;
 } terminal_dpvt_t;
+
+template<class MutexT>
+class CAutoLockWrapper
+{
+	MutexT* m_mutex;
+public:
+	CAutoLockWrapper(MutexT* mutex) :
+		m_mutex(mutex)
+	{
+		m_mutex->lock();
+	}
+
+	~CAutoLockWrapper()
+	{
+		m_mutex->unlock();
+	}
+};
+
+#define AUTO_LOCK(x) CAutoLockWrapper<epicsMutex> __auto_lock(x)
 
 namespace util
 {
@@ -42,5 +68,10 @@ namespace util
 	void Log(const char* fmt, ...);
 	void Warn(const char* fmt, ...);
 	void Error(const char* fmt, ...);
+
+        long setupCallback(boRecord* rec);
+        long setupCallback(biRecord* rec);
+        long setupCallback(aiRecord* rec);
+        long setupCallback(aoRecord* rec);
 }
 
