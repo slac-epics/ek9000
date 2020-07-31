@@ -118,3 +118,25 @@ void util::Error(const char* fmt, ...)
 	epicsVprintf(fmt, list);
 	va_end(list);
 }
+
+
+long setupCallback(boRecord* rec) 
+{
+
+}
+
+long setupCallback(biRecord* rec) 
+{
+
+}
+
+long setupCallback(aiRecord* rec) 
+{
+
+}
+
+long setupCallback(aoRecord* rec) 
+{
+	
+}
+
