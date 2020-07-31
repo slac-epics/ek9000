@@ -42,6 +42,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <functional>
+#include <list>
 
 #include "ekUtil.h"
 #include "ekDiag.h"
@@ -90,14 +91,10 @@
 
 /* Forward decls */
 class CEK9000Device;
-class CDeviceMgr;
 class CTerminalList;
-template <class T>
-class CSimpleList;
 struct CTerminal;
 
-/* Globals */
-extern CDeviceMgr *g_pDeviceMgr;
+extern std::list<CEK9000Device*> g_Devices;
 extern bool g_bDebug;
 
 /* Terminal types */
@@ -283,61 +280,6 @@ public:
 };
 
 //==========================================================//
-// class CDeviceMgr
-//		Manages devices and such
-//==========================================================//
-class CDeviceMgr
-{
-private:
-	class Node
-	{
-	public:
-		Node *next = NULL;
-		CEK9000Device *device = NULL;
-	};
-
-	Node *m_pRoot = NULL;
-
-	size_t m_nCount = 0;
-
-	/* for the first/next stuff */
-	mutable Node *ctx = NULL;
-
-	/* Mutex for multi-threaded stuff */
-	epicsMutexId m_Mutex = 0;
-
-public:
-	/* Used to quicky look up terminals */
-	CTerminalList m_Terminals;
-
-	friend class CEK9000Device;
-
-public:
-	/* Contructor */
-	CDeviceMgr();
-
-	/* Destructor */
-	~CDeviceMgr();
-
-	/* Initialize CDeviceMgr */
-	static int Init();
-
-	void Remove(CEK9000Device *dev);
-
-	int CanAdd(const CEK9000Device &dev);
-
-	void Add(CEK9000Device *dev);
-
-	/* Find device by name */
-	CEK9000Device *FindDevice(const char *name) const;
-
-	/* Get first device */
-	CEK9000Device *FirstDevice() const;
-
-	CEK9000Device *NextDevice() const;
-};
-
-//==========================================================//
 // class CEK9000Device
 //		Holds useful vars for interacting with EK9000/EL****
 //		hardware
@@ -390,6 +332,9 @@ public:
 
 	/* Make  sure to free everything */
 	~CEK9000Device();
+
+public:
+	static CEK9000Device* FindDevice(const char* name);
 
 public:
 	void QueueCallback(void(*callback)(void*), void* rec);
