@@ -155,31 +155,31 @@ public:
 		uint16_t internal_resistance, uint16_t full_steps, uint16_t enc_inc);
 
 	/* Move to home */
-	asynStatus move(double pos, int rel, double min_vel, double max_vel, double accel);
+	asynStatus move(double pos, int rel, double min_vel, double max_vel, double accel) override;
 
 	/* Move with a velocity */
-	asynStatus moveVelocity(double min_vel, double max_vel, double accel);
+	asynStatus moveVelocity(double min_vel, double max_vel, double accel) override;
 	
 	/* Move to home */
-	asynStatus home(double min_vel, double max_vel, double accel, int forwards);
+	asynStatus home(double min_vel, double max_vel, double accel, int forwards) override;
 
 	/* Stop with accel */
-	asynStatus stop(double accel);
+	asynStatus stop(double accel) override;
 	
 	/* Poll */
-	asynStatus poll(bool* moving);
+	asynStatus poll(bool* moving) override;
 
 	/* Set the position target */
-	asynStatus setPosition(double pos);
+	asynStatus setPosition(double pos) override;
 
 	/* Set the position of the encoder in steps from 0 */
-	asynStatus setEncoderPosition(double pos);
+	asynStatus setEncoderPosition(double pos) override;
 
 	/* Set if it's closed loop or not */
-	asynStatus setClosedLoop(bool closed);
+	asynStatus setClosedLoop(bool closed) override;
 
 	/* Report all detected motor axes */
-	void report(FILE* fd, int lvl);
+	void report(FILE* fd, int lvl) override;
 
 	/* Locks the driver */
 	void lock();
@@ -215,45 +215,13 @@ public:
 public:
 	el70x7Controller(CEK9000Device* dev, CTerminal* controller, const char* port, int numAxis);
 	
-	el70x7Axis* getAxis(int num);
-	el70x7Axis* getAxis(asynUser* axis);
+	el70x7Axis* getAxis(int num) override;
+	el70x7Axis* getAxis(asynUser* axis) override;
 
 	/* Report all parameters */
-	void report(FILE* fd, int lvl);
+	void report(FILE* fd, int lvl) override;
 
 	friend class el70x7Axis;
-};
-
-/*
-========================================================
-
-CoE parameters for the EL7047
-
-========================================================
-*/
-
-static const coe_param_t el7047_coe_params[] = {
-	{"maximal-current",  "mA",          0x8010, 0x1, coe_param_t::COE_PARAM_INT16, -1}, // 0
-	{"reduced-current",  "mA",          0x8010, 0x2, coe_param_t::COE_PARAM_INT16, -1}, // 1
-	{"nominal-voltage",  "10mV",        0x8010, 0x3, coe_param_t::COE_PARAM_INT16, -1}, // 2
-	{"coil-resistance",  "10mOhm",      0x8010, 0x4, coe_param_t::COE_PARAM_INT16, -1}, // 3
-	{"motor-emf",        "1mv/(rad/s)", 0x8010, 0x5, coe_param_t::COE_PARAM_INT16, -1}, // 4
-	{"motor-fullsteps",  "steps",       0x8010, 0x6, coe_param_t::COE_PARAM_INT16, -1}, // 5
-	{"motor-inductance", "0.01mH",      0x8010, 0xA, coe_param_t::COE_PARAM_INT16, -1}, // 6
-	{"target-window",    "no unit",     0x8020, 0xB, coe_param_t::COE_PARAM_INT16, -1}, // 7
-	{"velocity-max",     "steps/s",     0x8020, 0x2, coe_param_t::COE_PARAM_INT16, -1}, // 8
-	{"velocity-min",     "steps/s",     0x8020, 0x1, coe_param_t::COE_PARAM_INT16, -1}, // 9
-	{"max-diag-messages","n/a",         0x10F3, 0x1, coe_param_t::COE_PARAM_INT16, -1}, // 10
-	{"motor-supply-voltage", "1mV",     0xF900, 0x5, coe_param_t::COE_PARAM_INT16, -1}, // 11
-	{"control-voltage",  "1mV",         0xF900, 0x4, coe_param_t::COE_PARAM_INT16, -1}, // 12
-	{"velo-min",         "steps/s",     0x8020, 0x1, coe_param_t::COE_PARAM_INT16, -1}, // 13
-	{"velo-max",         "steps/s",     0x8020, 0x2, coe_param_t::COE_PARAM_INT16, -1}, // 14
-	{"accel-pos",        "steps/s^2",   0x8020, 0x3, coe_param_t::COE_PARAM_INT16, -1}, // 15
-	{"accel-neg",        "steps/s^2",   0x8020, 0x4, coe_param_t::COE_PARAM_INT16, -1}, // 16
-	{"deaccel-pos",      "steps/s^2",   0x8020, 0x5, coe_param_t::COE_PARAM_INT16, -1}, // 17
-	{"deaccel-neg",      "steps/s^2",   0x8020, 0x6, coe_param_t::COE_PARAM_INT16, -1}, // 18
-	{"emergency-deaccel","steps/s^2",   0x8020, 0x7, coe_param_t::COE_PARAM_INT16, -1}, // 19
-	{} /* Needed to terminate the list */
 };
 
 #define EL7047_VELO_MIN_INDEX 13
