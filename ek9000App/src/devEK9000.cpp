@@ -38,7 +38,6 @@
 
 /* EPICS includes */
 #include <epicsExport.h>
-#include <epicsMath.h>
 #include <epicsStdio.h>
 #include <epicsStdlib.h>
 #include <epicsAssert.h>
@@ -127,7 +126,7 @@ void PollThreadFunc(void* param)
 			device->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1);
 			device->Unlock();
 		}
-		epicsThreadSleep(g_nPollDelay/1000.0f);
+		epicsThreadSleep((float)g_nPollDelay / 1000.0f);
 	}
 }
 
@@ -185,7 +184,8 @@ CTerminal::CTerminal(const CTerminal& other)
 	this->m_TerminalFamily = other.m_TerminalFamily;
 }
 
-CTerminal::CTerminal()
+CTerminal::CTerminal() :
+	m_TerminalType(ETerminalType::UNKNOWN)
 {
 }
 
@@ -315,8 +315,7 @@ CEK9000Device::~CEK9000Device()
 		free(m_pName);
 	for (int i = 0; i < m_nTerms; i++)
 		free(m_pTerms[i].m_pRecordName);
-	if (m_pTerms)
-		free(m_pTerms);
+	delete m_pTerms;
 }
 
 CEK9000Device* CEK9000Device::FindDevice(const char* name)
@@ -337,8 +336,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 	pek->m_nTerms = terminal_count;
 
 	/* Allocate space for terminals */
-	pek->m_pTerms = (CTerminal *)malloc(sizeof(CTerminal) * terminal_count);
-	memset(pek->m_pTerms, 0, sizeof(CTerminal) * terminal_count);
+	pek->m_pTerms = new CTerminal[terminal_count];
 
 	/* Free the previously allocated stuff */
 	free(pek->m_pPortName);
@@ -408,7 +406,7 @@ int CEK9000Device::AddTerminal(const char *name, int type, int position)
 
 	if (term)
 	{
-		memcpy(&this->m_pTerms[position -1], term, sizeof(CTerminal));
+		this->m_pTerms[position-1] = *term;
 		return EK_EOK;
 	}
 	return EK_EERR;
