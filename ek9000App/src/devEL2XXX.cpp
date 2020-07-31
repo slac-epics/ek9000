@@ -187,20 +187,11 @@ static long EL20XX_init_record(void* precord)
 	}
 
 	dpvt->m_pDevice->Unlock();
-	//EL20XX_write_record(precord);
 	return 0;
 }
 
 static long EL20XX_write_record(void* precord)
 {
-	boRecord* pRecord = (boRecord*)precord;
-	SEL20XXSupportData* dat = (SEL20XXSupportData*)pRecord->dpvt;
-	CALLBACK* callback = (CALLBACK*)malloc(sizeof(CALLBACK));
-	*callback = *(CALLBACK*)EL20XX_WriteCallback;
-	callbackSetUser(pRecord, callback);
-	callbackSetPriority(priorityHigh, callback);
-	callbackSetCallback(EL20XX_WriteCallback, callback);
-	callbackRequest(callback);
-	//dat->m_pDevice->QueueCallback(EL20XX_WriteCallback, precord);
+	util::setupCallback(precord, EL20XX_WriteCallback);
 	return 0;
 }
