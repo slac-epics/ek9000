@@ -28,6 +28,7 @@ ek9000Support_SRCS += devEL3XXX.cpp
 ek9000Support_SRCS += devEL4XXX.cpp
 ek9000Support_SRCS += devEL50XX.cpp
 ek9000Support_SRCS += ekUtil.cpp
+ek9000Support_SRCS += ekCoE.cpp
 
 ek9000Support_LIBS += $(EPICS_BASE_IOC_LIBS)
 ek9000Support_LIBS += modbus
