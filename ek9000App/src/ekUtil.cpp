@@ -119,24 +119,13 @@ void util::Error(const char* fmt, ...)
 	va_end(list);
 }
 
-
-long setupCallback(boRecord* rec) 
+long setupCallback(void* rec, void(*pCallback)(CALLBACK*)) 
 {
-
+	CALLBACK* callback = (CALLBACK*)calloc(1, sizeof(CALLBACK));
+	*callback = *(CALLBACK*)pCallback;
+	callbackSetCallback(pCallback, callback);
+	callbackSetUser(rec, callback);
+	callbackSetPriority(priorityHigh, callback);
+	callbackRequest(callback);
+	return 0;
 }
-
-long setupCallback(biRecord* rec) 
-{
-
-}
-
-long setupCallback(aiRecord* rec) 
-{
-
-}
-
-long setupCallback(aoRecord* rec) 
-{
-	
-}
-

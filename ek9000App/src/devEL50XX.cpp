@@ -315,15 +315,8 @@ static long el5042_read_record(void* prec)
 
 	/* Just for utility */
 	dpvt->prec = static_cast<int64inRecord*>(prec);
-
-	/* Allocate and set callback */
-	CALLBACK *callback = (CALLBACK *)malloc(sizeof(CALLBACK));
-	*callback = *(CALLBACK*)el5042_read_callback;
-	callbackSetUser(precord, callback);
-	callbackSetCallback(el5042_read_callback, callback);
-	callbackSetPriority(priorityHigh, callback);
-	callbackRequest(callback);
-
+	
+	util::setupCallback(prec, el5042_read_callback);
 	return 0;
 }
 

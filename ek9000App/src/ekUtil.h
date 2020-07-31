@@ -69,9 +69,9 @@ namespace util
 	void Warn(const char* fmt, ...);
 	void Error(const char* fmt, ...);
 
-        long setupCallback(boRecord* rec);
-        long setupCallback(biRecord* rec);
-        long setupCallback(aiRecord* rec);
-        long setupCallback(aoRecord* rec);
+	/**
+	 * Call this to setup a callback. Can be used in-place of the read or write functions in the dpvt struct
+	 */ 
+        long setupCallback(void* rec, void(*pCallback)(CALLBACK*));
 }
 
