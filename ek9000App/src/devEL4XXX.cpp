@@ -185,13 +185,7 @@ static long EL40XX_init_record(void* record)
 
 static long EL40XX_write_record(void* record)
 {
-	aoRecord* pRecord = (aoRecord*)record;
-	CALLBACK* callback = (CALLBACK*)malloc(sizeof(CALLBACK));
-	*callback = *(CALLBACK*)EL40XX_WriteCallback;
-	callbackSetCallback(EL40XX_WriteCallback, callback);
-	callbackSetUser(pRecord, callback);
-	callbackSetPriority(priorityHigh, callback);
-	callbackRequest(callback);
+	util::setupCallback(record, EL40XX_WriteCallback);
 	return 0;
 }
 

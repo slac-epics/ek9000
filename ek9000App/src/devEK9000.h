@@ -41,8 +41,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-
 #include <functional>
+
+#include "ekUtil.h"
+#include "ekDiag.h"
 
 #define PORT_PREFIX "PORT_"
 
