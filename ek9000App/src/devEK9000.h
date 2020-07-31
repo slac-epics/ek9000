@@ -14,8 +14,7 @@
 // Authors: Jeremy L.
 // Date Created: July 6, 2019
 //======================================================//
-#ifndef _DEV_EK9K_H_
-#define _DEV_EK9K_H_
+#pragma once
 
 /* EPICS includes */
 #include <epicsExport.h>
@@ -46,6 +45,7 @@
 
 #include "ekUtil.h"
 #include "ekDiag.h"
+#include "ekCoE.h"
 
 #define PORT_PREFIX "PORT_"
 
@@ -71,49 +71,15 @@
 #define EK_EBADTERMID 16 /* Invalid terminal id */
 #define EK_EMODBUSERR 17 /* Modbus error */
 
-#define IMAGE_TYPE_BI 1
-#define IMAGE_TYPE_BO 2
-#define IMAGE_TYPE_AO 3
-#define IMAGE_TYPE_AI 4
-
 /* Forward decls */
 class CEK9000Device;
-class CTerminalList;
 struct CTerminal;
 
 extern std::list<CEK9000Device*> g_Devices;
 extern bool g_bDebug;
 
-/* Terminal types */
-enum class ETerminalType
-{
-	UNKNOWN = 0,
-	ANALOG,
-	DIGITAL,
-	MAX,
-};
-
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
-
-/* Errors and error types */
-enum EK9KError : int
-{
-	ERR_OK,
-	ERR_GENERIC,
-	ERR_NULLPARAM,
-	ERR_INVALPARAM,
-	ERR_BADID,
-	ERR_INVALTERMID,
-};
-
-/* Simple struct that holds some data for async processing */
-struct STerminalProcessInfo
-{
-	CALLBACK *m_pCallback;
-	CTerminal *m_pTerminal;
-	int m_nChannel;
-};
 
 void Info(const char* fmt, ...);
 void Warning(const char* fmt, ...);
@@ -142,11 +108,15 @@ public:
 	/* Do EK9000 IO */
 	int doEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
 
+	template<class T>
+	bool CoEWriteParameter(coe::param_t param, T value);
+
+	template<class T>
+	bool CoEReadParameter(coe::param_t param, T& outval);
+
 public:
 	/* Name of record */
 	char *m_pRecordName = NULL;
-	/* Type */
-	ETerminalType m_TerminalType;
 	/* Terminal family */
 	int m_TerminalFamily = 0;
 	/* Zero-based index of the terminal */
@@ -167,91 +137,6 @@ public:
 	int m_nInputStart = 0;
 	/* Output image start */
 	int m_nOutputStart = 0;
-};
-
-/* 
-
-class CTerminalList
-	Maintains a list of all terminals
-
-TODO: Performance NEEDS to be improved somehow. Possibly use a hash map.
-
-*/
-class CTerminalList
-{
-private:
-	class Node
-	{
-	public:
-		Node *m_pNext;
-		CTerminal *val;
-	};
-
-	Node *m_pRoot = NULL;
-
-public:
-public:
-	CTerminal *Find(const char *name) const
-	{
-		if (m_pRoot)
-		{
-			for (Node *node = m_pRoot; node; node = node->m_pNext)
-			{
-				if (strcmp(node->val->m_pRecordName, name) == 0)
-				{
-					return node->val;
-				}
-			}
-		}
-		return NULL;
-	}
-
-	void Add(CTerminal *term)
-	{
-		if (!term)
-			return;
-		if (m_pRoot)
-		{
-			for (Node *node = m_pRoot; node; node = node->m_pNext)
-			{
-				if (node->m_pNext == NULL)
-				{
-					node->m_pNext = new Node();
-					node->m_pNext->val = term;
-				}
-			}
-		}
-		else
-		{
-			m_pRoot = new Node();
-			m_pRoot->val = term;
-		}
-	}
-
-	void Remove(const char *name)
-	{
-		if (m_pRoot)
-		{
-			for (Node *node = m_pRoot, *prev = NULL; node; prev = node, node = node->m_pNext)
-			{
-				if (strcmp(node->val->m_pRecordName, name) == 0)
-				{
-					if (prev)
-					{
-						prev->m_pNext = node->m_pNext;
-						delete node;
-					}
-					else if (m_pRoot == node)
-					{
-						m_pRoot = NULL;
-						delete node;
-					}
-					else
-						delete node;
-				}
-			}
-		}
-	}
 };
 
 //==========================================================//
@@ -415,18 +300,6 @@ public:
 	/* Enable/disable writing to second modbus client */
 	int WriteWritelockMode(uint16_t mode);
 
-	/* Write to output process image */
-	/* Length of data should = process image data size */
-	int WriteOutput(uint16_t termid, uint16_t *data, int subindex = -1);
-
-	/* Read output process image */
-	/* Length of data should = process image data size */
-	int ReadOutput(uint16_t termid, uint16_t *data, int subindex = -1);
-
-	/* Read input process image */
-	/* Length of data should = process image data size */
-	int ReadInput(uint16_t termid, uint16_t *data, int subindex = -1);
-
 	/* Read terminal type */
 	int ReadTerminalID(uint16_t termid, uint16_t &termidout);
 
@@ -435,51 +308,9 @@ public:
 	/* Duration is the space between each request, timeout is the number of requests to timeout after */
 	inline int Poll(float duration, int timeout);
 
-	/* CoE Interface */
-
-	/* Read device name */
-	int CoEReadDeviceName(uint16_t termid, char *outbuf, size_t &outbufsize);
-
-	/* Read version infos */
-	int CoEReadVersionInfo(uint16_t termid, char *hardware_ver, size_t &outhardsize, char *software_ver, size_t &outsoftsize);
-
-	/* Read SN */
-	int CoEReadSN(uint16_t termid, uint32_t &sn);
-
-	/* Set presentation type, see configuration data in terminal manuals for this */
-	int CoESetPresentationType(uint16_t termid, int type);
-
-	/* Read presentation type */
-	int CoEReadPresentationType(uint16_t termid, int &type);
-
 	/* Try connect to terminal with CoE */
 	/* Returns 1 for connection, 0 for not */
 	int CoEVerifyConnection(uint16_t termid);
-
-public:
-	/* Process data interaction */
-
-	/* Termid is the term index */
-	/* channel is the output number and is 1-based */
-	/* data is the value, true for on, false for off */
-	int WriteDigitalOut(int termid, int channel, uint16_t data);
-
-	/* termid is the term index */
-	/* channel is the output number and is 1-based */
-	int WriteAnalogOut(int termid, int channel, uint32_t data);
-
-	/* Reads analog input of the specified terminal */
-	/* channel is a 1-based number that represents the signal number */
-	int ReadDigitalInput(int termid, int channel, uint16_t& data);
-
-	/* Reads analog output of the specified terminal */
-	/* channel is a 1-based number that represents the signal number */
-	int ReadAnalogInput(int termid, int channel, uint32_t& data);
-
-	/* Motor out */
-	/* TODO: Implement */
-	int WriteMotorOut(int termid);
-
 public:
 	/* Error reporting function, only prints on debug */
 	//void ReportError(int errorcode, const char* _msg = NULL);
@@ -494,62 +325,3 @@ public:
 		return (strcmp(this->m_pName, other.m_pName) == 0);
 	}
 };
-
-#include <type_traits>
-#include <typeinfo>
-
-template<class...Args>
-class iocshFunction
-{
-	iocshArg* args;
-	iocshFuncDef funcdef;
-	int nargs;
-	std::function<void(Args...)> func;
-public:
-	iocshFunction(const char* name, std::initializer_list<const char*> list, std::function<void(Args...)> fn) :
-		func(fn)
-	{
-		nargs = list.size();
-		if(nargs > 0)
-			args = (iocshArg*)malloc(list.size() * sizeof(iocshArg));
-		/* Use this to determine types */
-		std::vector<Args...> argbuf;
-	
-		/* Handle all of the types, probably in the worst way possible */
-		int i = 0;
-		for(auto x : list)
-		{
-			iocshArgType argtype = getArgType(typeid(argbuf[i]));
-			args[i] = {x,argtype};
-			i++;
-		}
-		/* Register the function */
-		funcdef = {name, nargs, this->args};
-		iocshRegister(&this->funcdef, fn);
-	}
-
-	~iocshFunction()
-	{
-		free(args);
-	}
-
-private:
-	void wrapper(const iocshArgBuf* argbuf)
-	{
-	}
-
-	iocshArgType getArgType(const std::type_info& info) const
-	{
-		if(info == typeid(int) || info == typeid(unsigned))
-			return iocshArgInt;
-		else if(info == typeid(float) || info == typeid(double) || info == typeid(long double))
-			return iocshArgDouble;
-		else if(info == typeid(const char*) || info == typeid(char*))
-			return iocshArgString;
-		else if(info == typeid(pdbbase))
-			return iocshArgPdbbase;
-		return iocshArgString;
-	}
-};
-
-#endif

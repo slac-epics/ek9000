@@ -14,3 +14,14 @@
 // Authors: Jeremy L.
 // Date Created: July 31, 2020
 //======================================================//
+#include "ekCoE.h"
+
+coe::param_t coe::FindParamByName(const char *name)
+{
+	return coe::param_t();
+}
+
+coe::param_t coe::FindParamByIndex(unsigned short index, unsigned short subindex)
+{
+	return coe::param_t();
+}

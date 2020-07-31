@@ -184,8 +184,7 @@ CTerminal::CTerminal(const CTerminal& other)
 	this->m_TerminalFamily = other.m_TerminalFamily;
 }
 
-CTerminal::CTerminal() :
-	m_TerminalType(ETerminalType::UNKNOWN)
+CTerminal::CTerminal()
 {
 }
 
@@ -286,6 +285,18 @@ int CTerminal::doEK9000IO(int type, int startaddr, uint16_t *buf, size_t len)
 		return (status + 0x100);
 	}
 	return EK_EOK;
+}
+
+template<class T>
+bool CTerminal::CoEReadParameter(coe::param_t param, T &outval)
+{
+	return 0;
+}
+
+template<class T>
+bool CTerminal::CoEWriteParameter(coe::param_t param, T value)
+{
+	return 0;
 }
 
 //==========================================================//
@@ -427,7 +438,7 @@ void CEK9000Device::Unlock()
 int CEK9000Device::InitTerminal(int term)
 {
 	if (term < 0 || term >= m_nTerms)
-		return ERR_INVALPARAM;
+		return EK_EBADPARAM;
 
 	/* Read ther terminal's id */
 	uint16_t tid = 0;
@@ -439,7 +450,7 @@ int CEK9000Device::InitTerminal(int term)
 	if (tid != terminal->m_nTerminalID)
 		return EK_ETERMIDMIS;
 
-	return ERR_OK;
+	return EK_EOK;
 }
 
 /* This will configure process image locations in each terminal */
