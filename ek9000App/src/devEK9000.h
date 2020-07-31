@@ -47,6 +47,9 @@
 #include "ekUtil.h"
 #include "ekDiag.h"
 
+#include "ekUtil.h"
+#include "ekDiag.h"
+
 #define PORT_PREFIX "PORT_"
 
 #define STRUCT_SIZE_TO_MODBUS_SIZE(_x) ((_x % 2) == 0 ? (_x) / 2 : ((_x)/2) + 1)
