@@ -88,6 +88,8 @@ epicsThreadId g_PollThread = 0;
 epicsMutexId g_ThreadMutex = 0;
 int g_nPollDelay = 250;
 
+std::list<CEK9000Device*> g_Devices;
+
 //==========================================================//
 // Utils
 //==========================================================//
@@ -104,29 +106,26 @@ void PollThreadFunc(void* param)
 {
 	while(true)
 	{
-		for(CEK9000Device* elem = g_pDeviceMgr->FirstDevice(); elem; elem = g_pDeviceMgr->NextDevice())
+		for(auto device : g_Devices)
 		{
-			if(elem)
+			int status = device->Lock();
+			/* check connection */
+			bool connected = device->VerifyConnection();
+			if(!connected && device->m_bConnected)
 			{
-				int status = elem->Lock();
-				/* check connection */
-				bool connected = elem->VerifyConnection();
-				if(!connected && elem->m_bConnected)
-				{
-					Warning("%s: Link status changed to DISCONNECTED\n", elem->m_pName);
-					elem->m_bConnected = false;
-				}
-				if(connected && !elem->m_bConnected)
-				{
-					Warning("%s: Link status changed to CONNECTED\n", elem->m_pName);
-					elem->m_bConnected = true;
-				}
-				if(status)
-					continue;
-				uint16_t buf = 1;
-				elem->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1);
-				elem->Unlock();
+				Warning("%s: Link status changed to DISCONNECTED\n", device->m_pName);
+				device->m_bConnected = false;
 			}
+			if(connected && !device->m_bConnected)
+			{
+				Warning("%s: Link status changed to CONNECTED\n", device->m_pName);
+				device->m_bConnected = true;
+			}
+			if(status)
+				continue;
+			uint16_t buf = 1;
+			device->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1);
+			device->Unlock();
 		}
 		epicsThreadSleep(g_nPollDelay/1000.0f);
 	}
@@ -267,7 +266,7 @@ CTerminal *CTerminal::ProcessRecordName(const char *recname, int &outindex, char
 	}
 	else
 	{
-		for (CEK9000Device *dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+		for(auto dev : g_Devices)
 		{
 			for (int i = 0; i < dev->m_nTerms; i++)
 			{
@@ -343,6 +342,15 @@ CEK9000Device::~CEK9000Device()
 		free(m_pTerms);
 }
 
+CEK9000Device* CEK9000Device::FindDevice(const char* name)
+{
+	for(auto dev : g_Devices)
+	{
+		if(!strcmp(name, dev->m_pName)) return dev;
+	}
+	return nullptr;
+}
+
 CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int terminal_count)
 {
 	if (terminal_count < 0 || !name || !ip)
@@ -410,7 +418,7 @@ CEK9000Device *CEK9000Device::Create(const char *name, const char *ip, int termi
 	uint16_t buf = 1;
 	pek->m_pDriver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
 
-	g_pDeviceMgr->Add(pek);
+	g_Devices.push_back(pek);
 	return pek;
 }
 
@@ -961,189 +969,6 @@ const char *CEK9000Device::ErrorToString(int i)
 }
 
 //==========================================================//
-// class CDeviceMgr (impl)
-//		Manages devices and such
-//==========================================================//
-CDeviceMgr::CDeviceMgr()
-{
-	this->m_Mutex = epicsMutexCreate();
-}
-
-CDeviceMgr::~CDeviceMgr()
-{
-	if(this->m_Mutex)
-		epicsMutexDestroy(this->m_Mutex);
-}
-
-int CDeviceMgr::Init()
-{
-	g_pDeviceMgr = new CDeviceMgr();
-	return 0;
-}
-
-int CDeviceMgr::CanAdd(const CEK9000Device &dev)
-{
-	int status = epicsMutexLock(m_Mutex);	
-	if(status)
-		return 0;
-	int ret = (this->FindDevice(dev.m_pName) == NULL);
-	epicsMutexUnlock(m_Mutex);
-	return ret;
-}
-
-CEK9000Device *CDeviceMgr::FindDevice(const char *name) const
-{
-	int status = epicsMutexLock(m_Mutex);
-	if(status)
-		return NULL;
-
-	if (!name)
-	{
-		epicsMutexUnlock(m_Mutex);
-		return NULL;
-	}
-
-	if (m_pRoot)
-	{
-		for (Node *node = m_pRoot; node; node = node->next)
-		{
-			if (strcmp(name, node->device->m_pName) == 0)
-			{
-				epicsMutexUnlock(m_Mutex);
-				return node->device;
-			}
-		}
-	}
-	epicsMutexUnlock(m_Mutex);
-	return NULL;
-}
-
-void CDeviceMgr::Add(CEK9000Device *dev)
-{
-	int status = epicsMutexLock(m_Mutex);
-	if(status)
-		return;
-
-	if (!dev)
-	{
-		epicsMutexUnlock(m_Mutex);
-		return;
-	}
-
-	if (!m_pRoot)
-	{
-		m_pRoot = new Node();
-		m_pRoot->device = dev;
-		m_nCount++;
-		epicsMutexUnlock(m_Mutex);
-		return;
-	}
-	else
-	{
-		for (Node *node = m_pRoot; node; node = node->next)
-		{
-			if (!node->next)
-			{
-				node->next = new Node();
-				node->next->device = dev;
-				m_nCount++;
-				epicsMutexUnlock(m_Mutex);
-				return;
-			}
-		}
-	}
-	epicsMutexUnlock(m_Mutex);
-}
-
-void CDeviceMgr::Remove(CEK9000Device *dev)
-{
-	int status = epicsMutexLock(m_Mutex);
-	if(status)
-		return;
-
-	if (!dev)
-	{
-		epicsMutexUnlock(m_Mutex);
-		return;
-	}
-
-	if (m_pRoot)
-	{
-		for (Node *node = m_pRoot, *prev = NULL; node; prev = node, node = node->next)
-		{
-			if (strcmp(dev->m_pName, node->device->m_pName) == 0)
-			{
-				if (prev)
-				{
-					prev->next = node->next;
-					delete node;
-					m_nCount--;
-					epicsMutexUnlock(m_Mutex);
-					return;
-				}
-				/* This must be root node */
-				else
-				{
-					delete m_pRoot;
-					m_nCount--;
-					epicsMutexUnlock(m_Mutex);
-					return;
-				}
-			}
-		}
-	}
-	epicsMutexUnlock(m_Mutex);
-}
-
-CEK9000Device *CDeviceMgr::FirstDevice() const
-{
-	/* TODO: Is locking really needed here? */
-	int status = epicsMutexLock(m_Mutex);
-	if(status)
-		return NULL;
-	
-	this->ctx = m_pRoot;
-	
-	if (ctx)
-	{
-		CEK9000Device* dev = ctx->device;
-		epicsMutexUnlock(m_Mutex);
-		return dev;
-	}
-	else
-	{
-		epicsMutexUnlock(m_Mutex);
-		return NULL;
-	}
-}
-
-CEK9000Device *CDeviceMgr::NextDevice() const
-{
-	int status = epicsMutexLock(m_Mutex);
-	if(status)
-		return NULL;
-
-	if (!ctx)
-	{
-		epicsMutexUnlock(m_Mutex);
-		return NULL;
-	}
-	this->ctx = ctx->next;
-
-	if (ctx)
-	{
-		CEK9000Device* dev = ctx->device;
-		epicsMutexUnlock(m_Mutex);
-		return dev;
-	}
-	else
-	{
-		epicsMutexUnlock(m_Mutex);
-		return NULL;
-	}
-}
-
-//==========================================================//
 // IOCsh functions here
 //==========================================================//
 void ek9000Configure(const iocshArgBuf *args)
@@ -1190,7 +1015,7 @@ void ek9000Configure(const iocshArgBuf *args)
 		return;
 	}
 
-	g_pDeviceMgr->Add(dev);
+	g_Devices.push_back(dev);
 }
 
 void ek9000ConfigureTerminal(const iocshArgBuf *args)
@@ -1206,7 +1031,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf *args)
 		return;
 	}
 
-	CEK9000Device *dev = g_pDeviceMgr->FindDevice(ek);
+	CEK9000Device *dev = CEK9000Device::FindDevice(ek);
 
 	/* If we cant find the device :( */
 	if (!dev)
@@ -1256,7 +1081,7 @@ void ek9000Stat(const iocshArgBuf *args)
 		epicsPrintf("Invalid parameter.\n");
 		return;
 	}
-	CEK9000Device *dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device *dev = CEK9000Device::FindDevice(ek9k);
 
 	if (!dev)
 	{
@@ -1333,7 +1158,7 @@ void ek9000DisableDebug(const iocshArgBuf* args)
 
 void ek9000List(const iocshArgBuf* args)
 {
-	for(CEK9000Device* dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+	for(auto dev : g_Devices)
 	{
 		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_pName, dev->m_nTerms);
 		epicsPrintf("\tIP: %s\n", dev->m_pIP);
@@ -1349,7 +1174,7 @@ void ek9000SetWatchdogTime(const iocshArgBuf* args)
 		return;
 	if(time < 0 || time > 60000)
 		return;
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device* dev = CEK9000Device::FindDevice(ek9k);
 	if(!dev)
 		return;
 	dev->WriteWatchdogTime((uint16_t)time);
@@ -1368,7 +1193,7 @@ void ek9000SetWatchdogType(const iocshArgBuf* args)
 		epicsPrintf("0 = enable on write\n");
 		return;
 	}
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device* dev = CEK9000Device::FindDevice(ek9k);
 	if(!dev) return;
 	dev->WriteWatchdogType(type);
 }
@@ -1379,7 +1204,7 @@ void ek9000SetPollTime(const iocshArgBuf* args)
 	int time = args[1].ival;
 	if(!ek9k) return;
 	if(time < 10 || time > 1000) return;
-	CEK9000Device* dev = g_pDeviceMgr->FindDevice(ek9k);
+	CEK9000Device* dev = CEK9000Device::FindDevice(ek9k);
 	if(!dev) return;
 	g_nPollDelay = time;
 }
@@ -1465,8 +1290,6 @@ int ek9000RegisterFunctions()
 		iocshRegister(&func, ek9000List);
 	}
 
-	CDeviceMgr::Init();
-
 	return 0;
 }
 epicsExportRegistrar(ek9000RegisterFunctions);
@@ -1504,7 +1327,7 @@ static long ek9000_init(int after)
 	if (after == 0)
 	{
 		epicsPrintf("Initializing EK9000 Couplers.\n");
-		for (CEK9000Device *dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+		for(auto dev : g_Devices)
 		{
 			if (!dev->m_bInit)
 				dev->InitTerminals();
@@ -1803,7 +1626,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param)
 		if(buf[i] == ',') buf[i] = 0;
 
 	/* Finally actually parse the integers, find the ek9k, etc. */
-	for(CEK9000Device* dev = g_pDeviceMgr->FirstDevice(); dev; dev = g_pDeviceMgr->NextDevice())
+	for(auto dev : g_Devices)
 	{
 		if(strncmp(dev->m_pName, buffers[0], strlen(dev->m_pName)) == 0)
 		{
@@ -2012,7 +1835,7 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param)
 	if(!preg) return 1;
 
 	/* Find the coupler */
-	param->ek9k = g_pDeviceMgr->FindDevice(pek9k);
+	param->ek9k = CEK9000Device::FindDevice(pek9k);
 	param->reg = strtol(preg, 0, 16);
 
 	if(!param->ek9k)
