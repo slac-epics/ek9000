@@ -179,13 +179,6 @@ static long EL10XX_init_record(void* precord)
 
 static long EL10XX_read_record(void* precord)
 {
-	biRecord* pRecord = (biRecord*)precord;
-	CALLBACK* callback = (CALLBACK*)calloc(1, sizeof(CALLBACK));
-	*callback = *(CALLBACK*)EL10XX_ReadCallback;
-	callbackSetCallback(EL10XX_ReadCallback, callback);
-	callbackSetUser(pRecord, callback);
-	callbackSetPriority(priorityHigh, callback);
-	/* Indicate processing active */
-	callbackRequest(callback);
+	util::setupCallback(precord, EL10XX_ReadCallback);
 	return 0;
 }

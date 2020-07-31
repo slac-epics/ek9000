@@ -231,15 +231,7 @@ static long EL30XX_init_record(void *precord)
 
 static long EL30XX_read_record(void *precord)
 {
-	aiRecord* pRecord = static_cast<aiRecord*>(precord);
-	/* Allocate and set callback */
-	CALLBACK *callback = (CALLBACK *)malloc(sizeof(CALLBACK));
-	*callback = *(CALLBACK*)EL30XX_ReadCallback;
-	callbackSetUser(pRecord, callback);
-	callbackSetCallback(EL30XX_ReadCallback, callback);
-	callbackSetPriority(priorityHigh, callback);
-	callbackRequest(callback);
-
+	util::setupCallback(precord, EL30XX_ReadCallback);
 	return 0;
 }
 
