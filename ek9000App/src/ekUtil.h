@@ -33,7 +33,7 @@ class CAutoLockWrapper
 {
 	MutexT* m_mutex;
 public:
-	CAutoLockWrapper(MutexT* mutex) :
+	explicit CAutoLockWrapper(MutexT* mutex) :
 		m_mutex(mutex)
 	{
 		m_mutex->lock();
