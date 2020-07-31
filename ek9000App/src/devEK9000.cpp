@@ -169,29 +169,6 @@ void Error(const char* fmt, ...)
 	va_end(list);
 }
 
-int strcmpnc(const char* str1, const char* str2)
-{
-	size_t str1l = strlen(str1);
-	size_t str2l = strlen(str2);
-	for(int i = 0; str1[i] && str2[i]; i++)
-	{
-		if(tolower(str1[i]) != tolower(str2[i]))
-			return 1;
-	}
-	if(str1l < str2l) return -1;
-	if(str2l < str1l) return 1;
-	return 0;
-}
-
-int strncmpnc(const char* str1, const char* str2, int n)
-{
-	for(int i = 0; i < n; i++)
-	{
-		if(tolower(str1[i]) != tolower(str2[i])) return 1;
-	}
-	return 0;
-}
-
 //==========================================================//
 // class CTerminal
 //		Holds important info about the terminals
@@ -1644,15 +1621,15 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param)
 	if(bufcnt < 4) return 1;
 
 	/* Determine the CoE type */
-	if(strncmpnc(buffers[4], "bool", 4) == 0)
+	if(epicsStrnCaseCmp(buffers[4], "bool", 4) == 0)
 		param->type = ek9k_coe_param_t::COE_TYPE_BOOL;
-	else if(strncmpnc(buffers[4], "int16", 5) == 0 || strncmpnc(buffers[4], "uint16", 6) == 0)
+	else if(epicsStrnCaseCmp(buffers[4], "int16", 5) == 0 || epicsStrnCaseCmp(buffers[4], "uint16", 6) == 0)
 		param->type = ek9k_coe_param_t::COE_TYPE_INT16;
-	else if(strncmpnc(buffers[4], "int32", 5) == 0 || strncmpnc(buffers[4], "uint32", 6) == 0)
+	else if(epicsStrnCaseCmp(buffers[4], "int32", 5) == 0 || epicsStrnCaseCmp(buffers[4], "uint32", 6) == 0)
 		param->type = ek9k_coe_param_t::COE_TYPE_INT32;
-	else if(strncmpnc(buffers[4], "int64", 5) == 0 || strncmpnc(buffers[4], "uint64", 6) == 0)
+	else if(epicsStrnCaseCmp(buffers[4], "int64", 5) == 0 || epicsStrnCaseCmp(buffers[4], "uint64", 6) == 0)
 		param->type = ek9k_coe_param_t::COE_TYPE_INT64;
-	else if(strncmpnc(buffers[4], "int8", 4) == 0 || strncmpnc(buffers[4], "uint8", 5) == 0)
+	else if(epicsStrnCaseCmp(buffers[4], "int8", 4) == 0 || epicsStrnCaseCmp(buffers[4], "uint8", 5) == 0)
 		param->type = ek9k_coe_param_t::COE_TYPE_INT8;
 	else
 		return 1;

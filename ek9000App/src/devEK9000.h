@@ -47,25 +47,9 @@
 #include "ekUtil.h"
 #include "ekDiag.h"
 
-#include "ekUtil.h"
-#include "ekDiag.h"
-
 #define PORT_PREFIX "PORT_"
 
 #define STRUCT_SIZE_TO_MODBUS_SIZE(_x) ((_x % 2) == 0 ? (_x) / 2 : ((_x)/2) + 1)
-
-/* Choice strings */
-#define EL2008_STRING "EL2008"
-#define EL1124_STRING "EL1124"
-#define EL3064_STRING "EL3064"
-#define EL1XXX_STRING "EL1XXX"
-#define EL2XXX_STRING "EL2XXX"
-#define EL3XXX_STRING "EL3XXX"
-#define EL4XXX_STRING "EL4XXX"
-#define EL5XXX_STRING "EL5XXX"
-#define EL6XXX_STRING "EL6XXX"
-#define EL7XXX_STRING "EL7XXX"
-#define EL9XXX_STIRNG "EL9XXX"
 
 /* This device's error types */
 #define EK_EOK 0		 /* OK */
@@ -104,14 +88,6 @@ extern bool g_bDebug;
 enum class ETerminalType
 {
 	UNKNOWN = 0,
-	EL10XX,
-	EL20XX,
-	EL30XX,
-	EL40XX,
-	EL5XXX,
-	EL6XXX,
-	EL7XXX,
-	EL9XXX,
 	ANALOG,
 	DIGITAL,
 	MAX,
@@ -146,10 +122,6 @@ void Error(const char* fmt, ...);
 #define DevInfo(fmt, ...) if(g_bDebug) { Info(fmt, __VA_ARGS__); }
 #define DevWarn(fmt, ...) if(g_bDebug) { Warning(fmt, __VA_ARGS__); }
 #define DevError(fmt, ...) if(g_bDebug) { Error(fmt, __VA_ARGS__); }
-
-/* Strcmp with no case (nc) */
-int strcmpnc(const char* str1, const char* str2);
-int strncmpnc(const char* str1, const char* str2, int n);
 
 class CTerminal
 {
