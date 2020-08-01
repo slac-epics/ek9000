@@ -190,7 +190,6 @@ public:
 public:
 	asynStatus UpdatePDO(bool locked = false);
 	asynStatus Execute(bool locked = false); /* Execute a move */
-	asynStatus UpdateParams();
 	void ResetExec();
 	void ResetIfRequired();
 	class el70x7Controller* pC_;

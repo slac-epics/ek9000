@@ -29,7 +29,6 @@
 //======================================================//
 /* EPICS includes */
 #include <epicsExport.h>
-#include <epicsMath.h>
 #include <epicsStdio.h>
 #include <epicsStdlib.h>
 #include <epicsAssert.h>
@@ -59,9 +58,10 @@
 #include <asynMotorAxis.h>
 #include <asynMotorController.h>
 
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <cmath>
 #include <vector>
 
 #include "asynDriver.h"
@@ -194,7 +194,7 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) :
 	tmp = 0;
 	this->pcoupler->doCoEIO(0, pcontroller->m_nTerminalIndex, param.index, 1, &tmp, param.subindex);
 	this->output.pos_velocity = tmp;
-	
+
 	param = el7047_coe_params[EL7047_ACCEL_POS_INDEX];
 	this->pcoupler->doCoEIO(0, pcontroller->m_nTerminalIndex, param.index, 1, &tmp, param.subindex);
 	this->output.pos_accel = tmp;
@@ -575,84 +575,6 @@ error:
 	return asynError;
 }
 
-
-/*
-Update the specified parameters
-*/
-asynStatus el70x7Axis::UpdateParams()
-{
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::UpdateParams\n",
-		__FUNCTION__, __LINE__);
-	int res = 0;
-	coe_param_t param;
-	/* Check which params have changed and then propagate changes */
-	const char* step = "";
-	/* Update positive acceleration */
-	/* This is ignored right now because we've got forward accel in the PDO */
-	if(curr_param.forward_accel != prev_param.forward_accel && false) 
-	{
-		step = "Update_Forward_Accel";
-		param = el7047_coe_params[EL7047_ACCEL_POS_INDEX];
-		asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n",
-			__FUNCTION__, __LINE__, step);
-		/* the 7047 takes accel in the units of ms, but the motor record gives it to us in steps/s^2 */
-		uint32_t data = (uint32_t)((curr_param.max_vel-curr_param.min_vel)/curr_param.forward_accel);
-		res = pcoupler->doCoEIO(1, pcontroller->m_nTerminalIndex, param.index, COE_INT16_SIZE, (uint16_t*)&data, param.subindex);
-		if(res) goto error;
-		prev_param.forward_accel = curr_param.forward_accel;
-	}
-	/* Backwards accel */
-	/* Also ignored for now */
-	if(curr_param.back_accel != prev_param.back_accel && false)
-	{
-		step = "Update_Back_Accel";
-		param = el7047_coe_params[EL7047_ACCEL_NEG_INDEX];
-		asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n",
-			__FUNCTION__, __LINE__, step);
-		/* same as forward accel */
-		uint32_t data = (uint32_t)((curr_param.max_vel-curr_param.min_vel)/curr_param.back_accel);
-		res = pcoupler->doCoEIO(1, pcontroller->m_nTerminalIndex, param.index, COE_INT16_SIZE, (uint16_t*)&data, param.subindex);
-		if(res) goto error;
-		prev_param.back_accel = curr_param.back_accel;
-	}
-	/* Set the max velocity parameter */
-	/* Ignored for now */
-	if(curr_param.max_vel != prev_param.max_vel && false)
-	{
-		step = "Update_Max_Vel";
-		param = el7047_coe_params[EL7047_VELO_MAX_INDEX];
-		asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n",
-			__FUNCTION__, __LINE__, step);
-		/* The speed is set on init of this axis, and it should not change during operation */
-		/* The el7047 takes speed in terms of the percentage of the max velocity, multiplied by 10,000 (it likes integers) */
-		uint32_t data = (uint32_t)((curr_param.max_vel/(double)this->speed)*10000);
-		res = pcoupler->doCoEIO(1, pcontroller->m_nTerminalIndex, param.index, COE_INT16_SIZE, (uint16_t*)&data, param.subindex);
-		if(res) goto error;
-		prev_param.max_vel = curr_param.max_vel;
-	}
-	/* Set the minimum velocity parameter */
-	/* Ignored for now */
-	if(curr_param.min_vel != prev_param.min_vel && false)
-	{
-		step = "Update_Min_Vel";
-		param = el7047_coe_params[EL7047_VELO_MIN_INDEX];
-		asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n",
-			__FUNCTION__, __LINE__, step);
-		uint32_t data = (uint32_t)((curr_param.min_vel/(double)this->speed)*10000);
-		res = pcoupler->doCoEIO(1, pcontroller->m_nTerminalIndex, 0x8020, 2, (uint16_t*)&data, 1);
-		if(res) goto error;
-		/* Need to propagate to STM Settings Part 1, 0x9: starting velocity */
-		res = pcoupler->doCoEIO(1, pcontroller->m_nTerminalIndex, param.index, COE_INT16_SIZE, (uint16_t*)&data, param.subindex);
-		prev_param.min_vel = curr_param.min_vel;
-	}
-	return asynSuccess;
-error:
-	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to update params. Error=%u Step=%s\n",
-		__FUNCTION__, __LINE__, res, step);
-	return asynError;
-}
-
-
 void el70x7Axis::report(FILE* fd, int lvl)
 {
 	if(lvl)
@@ -684,7 +606,7 @@ void el7047_Configure(const iocshArgBuf* args)
 		epicsPrintf("Please provide a port name.\n");
 		return;
 	}
-	CEK9000Device* dev = devices.FindDevice(ek9k);
+	CEK9000Device* dev = CEK9000Device::FindDevice(ek9k);
 
 	if(!dev)
 	{
@@ -708,7 +630,7 @@ void el7047_Stat(const iocshArgBuf* args)
 		epicsPrintf("Please provide an ek9000 name.\n");
 		return;
 	}
-	CEK9000Device* dev = devices.FindDevice(ek9k);
+	CEK9000Device* dev = CEK9000Device::FindDevice(ek9k);
 	if(!dev)
 	{
 		epicsPrintf("Invalid device.\n");
@@ -804,127 +726,6 @@ void el70x7PrintDiag(const iocshArgBuf* args)
 	}
 }
 
-void el70x7GetParam(const iocshArgBuf* args)
-{
-	const char* port = args[0].sval;
-	const char* param = args[1].sval;
-	if(!port || !param)
-	{
-		for(unsigned i = 0; i < sizeof(el7047_coe_params) / sizeof(coe_param_t); i++)
-			epicsPrintf("\t%s [%s]\n", el7047_coe_params[i].name, el7047_coe_params[i].unit);
-		return;
-	}
-	for(el70x7Controller* x : controllers)
-	{
-		if(strcmp(port, x->portName) == 0)
-		{
-			x->pcoupler->Lock();
-
-			for(unsigned i = 0; i < sizeof(el7047_coe_params)/sizeof(coe_param_t); i++)
-			{
-				coe_param_t cparam = el7047_coe_params[i];
-				if(!cparam.name) break;
-				if(strcmp(param, cparam.name) == 0)
-				{
-					uint16_t tmpval;
-					uint16_t tmpval32[2];
-					int status=0;
-					switch(el7047_coe_params[i].type)
-					{
-						case coe_param_t::COE_PARAM_INT16:
-							tmpval = 0;
-							status = x->pcoupler->doCoEIO(0,
-								x->pcontroller->m_nTerminalIndex, cparam.index, 1, &tmpval,
-								cparam.subindex);
-								epicsPrintf("%s: %u\n", cparam.name, tmpval);
-							if(status)
-								epicsPrintf("Could not get %s \n", cparam.name);
-							goto end;
-						case coe_param_t::COE_PARAM_INT32:
-							tmpval32[0] = 0;
-							status = x->pcoupler->doCoEIO(0,
-								x->pcontroller->m_nTerminalIndex, cparam.index, 4, tmpval32,
-								cparam.subindex);
-								epicsPrintf("%s: %u\n", cparam.name, tmpval32[0]);
-							if(status)
-								epicsPrintf("Could not get %s\n", cparam.name);
-							goto end;
-						case coe_param_t::COE_PARAM_STRING:
-						case coe_param_t::COE_PARAM_FLOAT32:
-						default: goto end;
-					}
-				}
-			}
-		end:
-			x->pcoupler->Unlock();
-			return;
-		}
-	}
-	epicsPrintf("Port not found.\n");
-}
-
-void el70x7SetParam(const iocshArgBuf* args)
-{
-	const char* port = args[0].sval;
-	const char* param = args[1].sval;
-	if(!port || !param)
-	{
-		for(unsigned i = 0; i < sizeof(el7047_coe_params) / sizeof(coe_param_t); i++)
-			epicsPrintf("\t%s [%s]\n", el7047_coe_params[i].name, el7047_coe_params[i].unit);
-		return;
-	}
-	for(el70x7Controller* x : controllers)
-	{
-		if(x->portName && strcmp(port, x->portName) == 0)
-		{
-			x->pcoupler->Lock();
-
-			for(unsigned i = 0; i < sizeof(el7047_coe_params)/sizeof(coe_param_t); i++)
-			{
-				coe_param_t cparam = el7047_coe_params[i];
-				if(!cparam.name) break;
-				if(strcmp(param, cparam.name) == 0)
-				{
-					uint16_t tmpval;
-					uint16_t tmpval32[2];
-					int status;
-					switch(el7047_coe_params[i].type)
-					{
-						case coe_param_t::COE_PARAM_INT16:
-							tmpval = args[2].ival;
-							status = x->pcoupler->doCoEIO(1,
-								x->pcontroller->m_nTerminalIndex, cparam.index, 1, &tmpval,
-								cparam.subindex);
-							if(status)
-								epicsPrintf("Could not set %s to %u\n", cparam.name, tmpval);
-							else
-								epicsPrintf("Set %s to %u\n", cparam.name, tmpval);
-							goto end;
-						case coe_param_t::COE_PARAM_INT32:
-							tmpval32[0] = args[2].ival;
-							status = x->pcoupler->doCoEIO(1,
-								x->pcontroller->m_nTerminalIndex, cparam.index, 1, tmpval32,
-								cparam.subindex);
-							if(status)
-								epicsPrintf("Could not set %s to %u\n", cparam.name, tmpval32[0]);
-							else
-								epicsPrintf("Set %s to %u\n", cparam.name, tmpval32[0]);
-							goto end;
-						case coe_param_t::COE_PARAM_STRING:
-						case coe_param_t::COE_PARAM_FLOAT32:
-						default: goto end;
-					}
-				}
-			}
-		end:
-			x->pcoupler->Unlock();
-			return;
-		}
-	}
-	epicsPrintf("Port not found.\n");
-}
-
-
 bool iszero(const char* str, int len)
 {
 	for(; len > 0; len--)
@@ -1005,30 +806,12 @@ void el7047_Register()
 		static const iocshFuncDef func = {"el70x7Stat", 1, args};
 		iocshRegister(&func, el7047_Stat);
 	}
-	/* el70x7SetParam */
-	{
-		static const iocshArg arg1 = {"EL70x7 Port Name", iocshArgString};
-		static const iocshArg arg2 = {"Param Name", iocshArgString};
-		static const iocshArg arg3 = {"Value", iocshArgInt};
-		static const iocshArg* const args[] = {&arg1, &arg2, &arg3};
-		static const iocshFuncDef func = {"el70x7SetParam", 3, args};
-		iocshRegister(&func, el70x7SetParam);
-	}
 	/* el70x7PrintMessages */
 	{
 		static const iocshArg arg1 = {"Port", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
 		static const iocshFuncDef func = {"el70x7PrintMessages", 1, args};
 		iocshRegister(&func, el70x7PrintMessages);
-	}
-	/* el70x7GetParam */
-	{
-		static const iocshArg arg1 = {"EL70x7 Port Name", iocshArgString};
-		static const iocshArg arg2 = {"Param Name", iocshArgString};
-		static const iocshArg arg3 = {"Value", iocshArgInt};
-		static const iocshArg* const args[] = {&arg1, &arg2, &arg3};
-		static const iocshFuncDef func = {"el70x7GetParam", 3, args};
-		iocshRegister(&func, el70x7GetParam);
 	}
 	/* el70x7Reset */
 	{
