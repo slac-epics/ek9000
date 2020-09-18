@@ -1,0 +1,780 @@
+{
+    "terminals": [
+        {
+            "name": "EL1001",
+            "type": "DigIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 1,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1002",
+            "type": "DigIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1004",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1008",
+            "type": "DigIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1012",
+            "type": "DigIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1014",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1018",
+            "type": "DigIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1024",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1034",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1084",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1088",
+            "type": "DigIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1094",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1098",
+            "type": "DigIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1104",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1114",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1124",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1134",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1144",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1184",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1202",
+            "type": "DigIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1382",
+            "type": "DigIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1702",
+            "type": "DigIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1712",
+            "type": "DigIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1722",
+            "type": "DigIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1804",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1808",
+            "type": "DigIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1809",
+            "type": "DigIn",
+            "inputs": 16,
+            "outputs": 0,
+            "pdo_in_size": 16,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1814",
+            "type": "DigIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL1819",
+            "type": "DigIn",
+            "inputs": 16,
+            "outputs": 0,
+            "pdo_in_size": 16,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL2001",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 1,
+            "pdo_in_size": 0,
+            "pdo_out_size": 1
+        },
+        {
+            "name": "EL2002",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 2,
+            "pdo_in_size": 0,
+            "pdo_out_size": 2
+        },
+        {
+            "name": "EL2004",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 4,
+            "pdo_in_size": 0,
+            "pdo_out_size": 4
+        },
+        {
+            "name": "EL2008",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 8,
+            "pdo_in_size": 0,
+            "pdo_out_size": 8
+        },
+        {
+            "name": "EL2022",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 2,
+            "pdo_in_size": 0,
+            "pdo_out_size": 2
+        },
+        {
+            "name": "EL2024",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 4,
+            "pdo_in_size": 0,
+            "pdo_out_size": 4
+        },
+        {
+            "name": "EL2042",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 2,
+            "pdo_in_size": 0,
+            "pdo_out_size": 2
+        },
+        {
+            "name": "EL2084",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 4,
+            "pdo_in_size": 0,
+            "pdo_out_size": 4
+        },
+        {
+            "name": "EL2088",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 8,
+            "pdo_in_size": 0,
+            "pdo_out_size": 8
+        },
+        {
+            "name": "EL2124",
+            "type": "DigOut",
+            "inputs": 0,
+            "outputs": 4,
+            "pdo_in_size": 0,
+            "pdo_out_size": 4
+        },
+        {
+            "name": "EL3001",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3002",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3004",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 16,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3008",
+            "type": "AnalogIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 32,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3012",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3014",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3021",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3022",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3024",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3041",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3042",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3044",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3048",
+            "type": "AnalogIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 16,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3051",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3052",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3054",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3058",
+            "type": "AnalogIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 16,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3061",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3062",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3064",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3068",
+            "type": "AnalogIn",
+            "inputs": 8,
+            "outputs": 0,
+            "pdo_in_size": 16,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3101",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3102",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3104",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3111",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3112",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3114",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3121",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3122",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3124",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3141",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3142",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3144",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3151",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3152",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3154",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3161",
+            "type": "AnalogIn",
+            "inputs": 1,
+            "outputs": 0,
+            "pdo_in_size": 2,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3162",
+            "type": "AnalogIn",
+            "inputs": 2,
+            "outputs": 0,
+            "pdo_in_size": 4,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3164",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+        {
+            "name": "EL3174",
+            "type": "AnalogIn",
+            "inputs": 4,
+            "outputs": 0,
+            "pdo_in_size": 8,
+            "pdo_out_size": 0
+        },
+		{
+			"name": "EL3202",
+			"type": "AnalogIn",
+			"inputs": 2,
+			"outputs": 0,
+			"pdo_in_size": 4,
+			"pdo_out_size": 0
+		},
+		{
+            "name": "EL4001",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 1,
+            "pdo_in_size": 0,
+            "pdo_out_size": 1
+        },
+        {
+            "name": "EL4002",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 2,
+            "pdo_in_size": 0,
+            "pdo_out_size": 2
+        },
+        {
+            "name": "EL4004",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 4,
+            "pdo_in_size": 0,
+            "pdo_out_size": 4
+        },
+        {
+            "name": "EL4008",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 8,
+            "pdo_in_size": 0,
+            "pdo_out_size": 8
+        },
+        {
+            "name": "EL4011",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 1,
+            "pdo_in_size": 0,
+            "pdo_out_size": 1
+        },
+        {
+            "name": "EL4012",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 2,
+            "pdo_in_size": 0,
+            "pdo_out_size": 2
+        },
+        {
+            "name": "EL4014",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 4,
+            "pdo_in_size": 0,
+            "pdo_out_size": 4
+        },
+        {
+            "name": "EL4018",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 8,
+            "pdo_in_size": 0,
+            "pdo_out_size": 8
+        },
+        {
+            "name": "EL4021",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 1,
+            "pdo_in_size": 0,
+            "pdo_out_size": 1
+        },
+        {
+            "name": "EL4022",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 2,
+            "pdo_in_size": 0,
+            "pdo_out_size": 2
+        },
+        {
+            "name": "EL4024",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 4,
+            "pdo_in_size": 0,
+            "pdo_out_size": 4
+        },
+        {
+            "name": "EL4028",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 8,
+            "pdo_in_size": 0,
+            "pdo_out_size": 8
+        },
+        {
+            "name": "EL4031",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 1,
+            "pdo_in_size": 0,
+            "pdo_out_size": 1
+        },
+        {
+            "name": "EL4032",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 2,
+            "pdo_in_size": 0,
+            "pdo_out_size": 2
+        },
+        {
+            "name": "EL4034",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 4,
+            "pdo_in_size": 0,
+            "pdo_out_size": 4
+        },
+        {
+            "name": "EL4038",
+            "type": "AnalogOut",
+            "inputs": 0,
+            "outputs": 8,
+            "pdo_in_size": 0,
+            "pdo_out_size": 8
+        },
+		{
+			"name": "EL7047",
+			"type": "AnalogOut",
+			"inputs": 0,
+			"outputs": 0,
+			"pdo_in_size": 14,
+			"pdo_out_size": 14
+		}
+    ]
+}
