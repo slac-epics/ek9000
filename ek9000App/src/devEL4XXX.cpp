@@ -179,7 +179,7 @@ static long EL40XX_init_record(void* record)
 		Error("EL40XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
-	//EL40XX_write_record(record);
+	
 	return 0;
 }
 
@@ -191,10 +191,6 @@ static long EL40XX_write_record(void* record)
 
 static long EL40XX_linconv(void* precord, int after)
 {
-	if(!after) return 0;
-	aoRecord* pRecord = (aoRecord*)precord;
-	pRecord->eslo = (pRecord->eguf - pRecord->egul) / 0x7FFF;
-	pRecord->roff = 0; /* NO offset is needed */
 	return 0;
 }
 
