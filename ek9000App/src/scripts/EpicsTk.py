@@ -48,9 +48,8 @@ class Template:
 			fs.write("}\n\n")
 
 	def write_subs(self, file: str):
-		with open(file, "w+") as fs:
-			fs.write("gay")
-
+		raise NotImplementedError()
+	
 	# adds the specified override with the specified val into the list
 	# if one already exists, it will return False indicatinga failure
 	def add_override(self, name: str, val: str) -> bool:
