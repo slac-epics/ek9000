@@ -3,7 +3,7 @@
 .vscode/ipch
 bin/
 lib/
-
+__pycache__
 *.o
 *.a
 *.so
