@@ -21,7 +21,6 @@
 # ==========================================================
 ASYN_MODULE_VERSION=R4.32-1.0.1
 MODBUS_MODULE_VERSION=R3.0.0-0.2.0
-EK9000_MODULE_VERSION=R1.2.0-0.1.0
 
 # ==========================================================
 # Define module paths using pattern
@@ -31,7 +30,6 @@ EK9000_MODULE_VERSION=R1.2.0-0.1.0
 # ==========================================================
 ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
 MODBUS=$(EPICS_MODULES)/modbus/$(MODBUS_MODULE_VERSION)
-EK9000=$(EPICS_MODULES)/ek9000/$(EK9000_MODULE_VERSION)
 
 # ============================================================
 #  Module Location
