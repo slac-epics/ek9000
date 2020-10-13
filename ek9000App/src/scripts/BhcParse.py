@@ -30,6 +30,10 @@ except Exception as e:
 	print(str(e))
 	sys.exit(1)
 
+# Make a file to log the supported terminals in
+fp = open("../../../SupportedDevices.md", "w")
+fp.write("## Supported Devices\n\n")
+
 #
 # Header generation 
 #
@@ -55,6 +59,8 @@ try:
 	for terminal in json_stuff["terminals"]:
 		count = count + 1
 		name = terminal["name"]
+		fp.write("* " + name)
+		fp.write("\n")
 		vars.append("&" + name + "_Info")
 		outsize = terminal["pdo_out_size"]
 		insize = terminal["pdo_in_size"]
@@ -73,7 +79,4 @@ except KeyError as e:
 	print("Malformed JSON:")
 	print("\tMissing the array key 'terminals'.")
 
-
-#
-# Template/subs generation
-#
+fp.close()
