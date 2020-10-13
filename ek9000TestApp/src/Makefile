@@ -15,7 +15,6 @@ DBD += ek9000Test.dbd
 # ek9000Test.dbd will be made up from these files:
 ek9000Test_DBD += base.dbd
 ek9000Test_DBD += devEK9000.dbd
-ek9000Test_DBD += motorSupport.dbd
 ek9000Test_DBD += asyn.dbd
 ek9000Test_DBD += modbusSupport.dbd
 ek9000Test_DBD += drvAsynIPPort.dbd
@@ -24,7 +23,6 @@ ek9000Test_DBD += drvAsynIPPort.dbd
 
 # Add all the support libraries needed by this IOC
 ek9000Test_LIBS += ek9000Support
-ek9000Test_LIBS += motor 
 ek9000Test_LIBS += asyn
 ek9000Test_LIBS += modbus
 
