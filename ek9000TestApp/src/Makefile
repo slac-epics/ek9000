@@ -23,8 +23,8 @@ ek9000Test_DBD += drvAsynIPPort.dbd
 
 # Add all the support libraries needed by this IOC
 ek9000Test_LIBS += ek9000Support
-ek9000Test_LIBS += asyn
 ek9000Test_LIBS += modbus
+ek9000Test_LIBS += asyn
 
 # ek9000Test_registerRecordDeviceDriver.cpp derives from ek9000Test.dbd
 ek9000Test_SRCS += ek9000Test_registerRecordDeviceDriver.cpp
