@@ -41,16 +41,16 @@
 #include "devEK9000.h"
 
 //======================================================//
-// 
+//
 //	EL30XX Device support
 //
 //======================================================//
-static void EL30XX_ReadCallback(CALLBACK* callback);
-static long	EL30XX_dev_report(int interest);
+static void EL30XX_ReadCallback(CALLBACK *callback);
+static long EL30XX_dev_report(int interest);
 static long EL30XX_init(int after);
 static long EL30XX_init_record(void *precord);
 static long EL30XX_read_record(void *precord);
-static long EL30XX_linconv(void* precord, int after);
+static long EL30XX_linconv(void *precord, int after);
 
 struct
 {
@@ -62,13 +62,13 @@ struct
 	DEVSUPFUN read_record;
 	DEVSUPFUN linconv;
 } devEL30XX = {
-	6,
-	(DEVSUPFUN)EL30XX_dev_report,
-	(DEVSUPFUN)EL30XX_init,
-	(DEVSUPFUN)EL30XX_init_record,
-	NULL,
-	(DEVSUPFUN)EL30XX_read_record,
-	(DEVSUPFUN)EL30XX_linconv,
+    6,
+    (DEVSUPFUN)EL30XX_dev_report,
+    (DEVSUPFUN)EL30XX_init,
+    (DEVSUPFUN)EL30XX_init_record,
+    NULL,
+    (DEVSUPFUN)EL30XX_read_record,
+    (DEVSUPFUN)EL30XX_linconv,
 };
 
 epicsExportAddress(dset, devEL30XX);
@@ -101,33 +101,34 @@ struct SEL30XXCompactInputPDO
 
 struct SEL30XXSupportData
 {
-	CTerminal* m_pTerminal;
-	CEK9000Device* m_pDevice;
+	CTerminal *m_pTerminal;
+	CEK9000Device *m_pDevice;
 	int m_nChannel;
 	/* Compact or standard PDO used */
 	bool m_bCompactPDO;
 };
 
-static void EL30XX_ReadCallback(CALLBACK* callback)
+static void EL30XX_ReadCallback(CALLBACK *callback)
 {
-	void* record;
-	SEL30XXStandardInputPDO* spdo;
-	SEL30XXCompactInputPDO* cpdo;
+	void *record;
+	SEL30XXStandardInputPDO *spdo;
+	SEL30XXCompactInputPDO *cpdo;
 	uint16_t buf[2];
+	static_assert(sizeof(buf) == sizeof(SEL30XXStandardInputPDO));
 
 	callbackGetUser(record, callback);
-	aiRecord* pRecord = static_cast<aiRecord*>(record);
-	SEL30XXSupportData* dpvt = static_cast<SEL30XXSupportData*>(pRecord->dpvt);
+	aiRecord *pRecord = static_cast<aiRecord *>(record);
+	SEL30XXSupportData *dpvt = static_cast<SEL30XXSupportData *>(pRecord->dpvt);
 	free(callback);
 
 	/* Check for invalid */
-	if(!dpvt->m_pTerminal)
+	if (!dpvt->m_pTerminal)
 		return;
 
 	/* Lock mutex */
 	int status = dpvt->m_pTerminal->m_pDevice->Lock();
 
-	if(status != epicsMutexLockOK)
+	if (status != epicsMutexLockOK)
 	{
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
@@ -135,23 +136,21 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	}
 
 	/* Compact PDO sends ONLY the data, no status bits */
-	if(dpvt->m_bCompactPDO)
+	if (dpvt->m_bCompactPDO)
 	{
-		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
-			((dpvt->m_nChannel-1)), buf, 1);
-		cpdo = reinterpret_cast<SEL30XXCompactInputPDO*>(buf);
+		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel - 1)), buf, 1);
+		cpdo = reinterpret_cast<SEL30XXCompactInputPDO *>(buf);
 		pRecord->rval = cpdo->value;
 	}
 	else
 	{
-		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart +
-			((dpvt->m_nChannel-1) * 2), buf, 2);
-		spdo = reinterpret_cast<SEL30XXStandardInputPDO*>(buf);
+		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel - 1) * 2), buf, 2);
+		spdo = reinterpret_cast<SEL30XXStandardInputPDO *>(buf);
 		pRecord->rval = spdo->value;
 
 		/* For standard PDO types, we have limits, so we should set alarms based on these,
 		   apparently the error bit is just equal to (overrange || underrange) */
-		if(spdo->overrange || spdo->underrange)
+		if (spdo->overrange || spdo->underrange)
 		{
 			recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
 		}
@@ -163,10 +162,10 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	dpvt->m_pTerminal->m_pDevice->Unlock();
 
 	/* Check for error */
-	if(status)
+	if (status)
 	{
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		if(status > 0x100)
+		if (status > 0x100)
 		{
 			DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
 			return;
@@ -177,7 +176,7 @@ static void EL30XX_ReadCallback(CALLBACK* callback)
 	return;
 }
 
-static long	EL30XX_dev_report(int interest)
+static long EL30XX_dev_report(int interest)
 {
 	return 0;
 }
@@ -189,14 +188,14 @@ static long EL30XX_init(int after)
 
 static long EL30XX_init_record(void *precord)
 {
-	aiRecord* pRecord = static_cast<aiRecord*>(precord);
+	aiRecord *pRecord = static_cast<aiRecord *>(precord);
 	pRecord->dpvt = calloc(1, sizeof(SEL30XXSupportData));
-	SEL30XXSupportData* dpvt = static_cast<SEL30XXSupportData*>(pRecord->dpvt);
+	SEL30XXSupportData *dpvt = static_cast<SEL30XXSupportData *>(pRecord->dpvt);
 
 	/* Get the terminal */
-	char* recname = NULL;
+	char *recname = NULL;
 	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
-	if(!dpvt->m_pTerminal)
+	if (!dpvt->m_pTerminal)
 	{
 		Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
@@ -207,7 +206,7 @@ static long EL30XX_init_record(void *precord)
 	dpvt->m_pDevice->Lock();
 
 	/* Check connection to terminal */
-	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
+	if (!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
 	{
 		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		dpvt->m_pDevice->Unlock();
@@ -220,12 +219,12 @@ static long EL30XX_init_record(void *precord)
 	dpvt->m_pDevice->Unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
-	if(termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
+	if (termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
 	{
 		Error("EL30XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -235,7 +234,177 @@ static long EL30XX_read_record(void *precord)
 	return 0;
 }
 
-static long EL30XX_linconv(void* precord, int after)
+static long EL30XX_linconv(void *precord, int after)
+{
+	return 0;
+}
+
+//======================================================//
+//
+//	EL36XX Device support
+//
+//======================================================//
+static void EL36XX_ReadCallback(CALLBACK *callback);
+static long EL36XX_dev_report(int interest);
+static long EL36XX_init(int after);
+static long EL36XX_init_record(void *precord);
+static long EL36XX_read_record(void *precord);
+static long EL36XX_linconv(void *precord, int after);
+
+struct
+{
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN read_record;
+	DEVSUPFUN linconv;
+} devEL36XX = {
+    6,
+    (DEVSUPFUN)EL36XX_dev_report,
+    (DEVSUPFUN)EL36XX_init,
+    (DEVSUPFUN)EL36XX_init_record,
+    NULL,
+    (DEVSUPFUN)EL36XX_read_record,
+    (DEVSUPFUN)EL36XX_linconv,
+};
+
+struct SEL36XXSupportData
+{
+	CTerminal *m_pTerminal;
+	CEK9000Device *m_pDevice;
+	int m_nChannel;
+};
+
+epicsExportAddress(dset, devEL36XX);
+
+#pragma pack(1)
+struct SEL36XXInput 
+{
+	uint32_t inp;
+	uint16_t status;
+};
+#pragma pack()
+
+#define EL36XX_OVERRANGE_MASK 0x2
+#define EL36XX_UNDERRANGE_MASK 0x1
+
+static void EL36XX_ReadCallback(CALLBACK *callback)
+{
+	void *record;
+	uint16_t buf[3];
+	SEL36XXInput* pdo = NULL;
+	static_assert(sizeof(SEL36XXInput) == sizeof(buf));
+
+	callbackGetUser(record, callback);
+	aiRecord *pRecord = static_cast<aiRecord *>(record);
+	SEL36XXSupportData *dpvt = static_cast<SEL36XXSupportData *>(pRecord->dpvt);
+	free(callback);
+
+	/* Check for invalid */
+	if (!dpvt->m_pTerminal)
+		return;
+
+	/* Lock mutex */
+	int status = dpvt->m_pTerminal->m_pDevice->Lock();
+
+	if (status != epicsMutexLockOK)
+	{
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
+		DevError("EL36XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
+		return;
+	}
+
+	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel - 1) * 2), buf, 2);
+	pdo = reinterpret_cast<SEL36XXInput*>(buf);
+	pRecord->rval = pdo->inp;
+
+	/* Check the overrange and underrange flags */
+	if ((pdo->status & EL36XX_OVERRANGE_MASK) || (pdo->status & EL36XX_UNDERRANGE_MASK))
+	{
+		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
+	}
+
+	/* Set props */
+	pRecord->pact = FALSE;
+	pRecord->udf = FALSE;
+	dpvt->m_pTerminal->m_pDevice->Unlock();
+
+	/* Check for error */
+	if (status)
+	{
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
+		if (status > 0x100)
+		{
+			DevError("EL36XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
+			return;
+		}
+		DevError("EL36XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(status));
+		return;
+	}
+	return;
+}
+
+static long EL36XX_dev_report(int interest)
+{
+	return 0;
+}
+
+static long EL36XX_init(int after)
+{
+	return 0;
+}
+
+static long EL36XX_init_record(void *precord)
+{
+	aiRecord *pRecord = static_cast<aiRecord *>(precord);
+	pRecord->dpvt = calloc(1, sizeof(SEL36XXSupportData));
+	SEL36XXSupportData *dpvt = static_cast<SEL36XXSupportData *>(pRecord->dpvt);
+
+	/* Get the terminal */
+	char *recname = NULL;
+	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
+	if (!dpvt->m_pTerminal)
+	{
+		Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		return 1;
+	}
+	free(recname);
+
+	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
+	dpvt->m_pDevice->Lock();
+
+	/* Check connection to terminal */
+	if (!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
+	{
+		Error("EL36XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		dpvt->m_pDevice->Unlock();
+		return 1;
+	}
+
+	/* Check that slave # is OK */
+	uint16_t termid = 0;
+	dpvt->m_pTerminal->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
+	dpvt->m_pDevice->Unlock();
+
+	/* This is important; if the terminal id is different than what we want, report an error */
+	if (termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
+	{
+		Error("EL36XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		return 1;
+	}
+
+	return 0;
+}
+
+static long EL36XX_read_record(void *precord)
+{
+	util::setupCallback(precord, EL36XX_ReadCallback);
+	return 0;
+}
+
+static long EL36XX_linconv(void *precord, int after)
 {
 	return 0;
 }
