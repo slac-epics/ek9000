@@ -28,7 +28,6 @@
 //		EL2XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/EL20xx_EL2124en.pdf
 //		EL3XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el30xxen.pdf
 //		EL4XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el40xxen.pdf
-//		EL7XXX:
 // Revisions:
 //	-	July 15, 2019: Improved error propagation and added
 //		new init routines.

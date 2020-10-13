@@ -28,6 +28,14 @@ typedef struct
 	int baseaddr, len;
 } terminal_dpvt_t;
 
+typedef struct 
+{
+	const char* m_name;
+	uint32_t m_id;
+	uint16_t m_outputSize;
+	uint16_t m_inputSize;
+} terminal_info_t;
+
 template<class MutexT>
 class CAutoLockWrapper
 {
@@ -73,5 +81,8 @@ namespace util
 	 * Call this to setup a callback. Can be used in-place of the read or write functions in the dpvt struct
 	 */ 
         long setupCallback(void* rec, void(*pCallback)(CALLBACK*));
+
+	terminal_info_t getTerminalInfo(uint32_t id);
+	terminal_info_t getTerminalInfo(const char* id);
 }
 
