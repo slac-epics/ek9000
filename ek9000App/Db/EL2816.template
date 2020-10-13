@@ -1,0 +1,148 @@
+#
+# EL2008 template.
+#
+
+record(bo,"$(TERMINAL):1")
+{
+	field(DESC,  "$(DESC1)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM1)")
+	field(ONAM,  "$(ONAM1)")
+	field(PINI,  "$(PINI1)")
+}
+
+record(bo,"$(TERMINAL):2")
+{
+	field(DESC,  "$(DESC2)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM2)")
+	field(ONAM,  "$(ONAM2)")
+	field(PINI,  "$(PINI2)")
+}
+
+record(bo,"$(TERMINAL):3")
+{
+	field(DESC,  "$(DESC3)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM3)")
+	field(ONAM,  "$(ONAM3)")
+	field(PINI,  "$(PINI3)")
+}
+
+record(bo,"$(TERMINAL):4")
+{
+	field(DESC,  "$(DESC4)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM4)")
+	field(ONAM,  "$(ONAM4)")
+	field(PINI,  "$(PINI4)")
+}
+
+record(bo,"$(TERMINAL):5")
+{
+	field(DESC,  "$(DESC5)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM5)")
+	field(ONAM,  "$(ONAM5)")
+	field(PINI,  "$(PINI5)")
+}
+
+record(bo,"$(TERMINAL):6")
+{
+	field(DESC,  "$(DESC6)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM6)")
+	field(ONAM,  "$(ONAM6)")
+	field(PINI,  "$(PINI6)")
+}
+
+record(bo,"$(TERMINAL):7")
+{
+	field(DESC,  "$(DESC7)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM7)")
+	field(ONAM,  "$(ONAM7)")
+	field(PINI,  "$(PINI7)")
+}
+
+record(bo,"$(TERMINAL):8")
+{
+	field(DESC,  "$(DESC8)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM8)")
+	field(ONAM,  "$(ONAM8)")
+	field(PINI,  "$(PINI8)")
+}
+
+record(bo,"$(TERMINAL):9")
+{
+	field(DESC,  "$(DESC9)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM9)")
+	field(ONAM,  "$(ONAM9)")
+	field(PINI,  "$(PINI9)")
+}
+
+record(bo,"$(TERMINAL):10")
+{
+	field(DESC,  "$(DESC10)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM10)")
+	field(ONAM,  "$(ONAM10)")
+	field(PINI,  "$(PINI10)")
+}
+
+record(bo,"$(TERMINAL):11")
+{
+	field(DESC,  "$(DESC11)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM11)")
+	field(ONAM,  "$(ONAM11)")
+	field(PINI,  "$(PINI11)")
+}
+
+record(bo,"$(TERMINAL):12")
+{
+	field(DESC,  "$(DESC12)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM12)")
+	field(ONAM,  "$(ONAM12)")
+	field(PINI,  "$(PINI12)")
+}
+
+record(bo,"$(TERMINAL):13")
+{
+	field(DESC,  "$(DESC13)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM13)")
+	field(ONAM,  "$(ONAM13)")
+	field(PINI,  "$(PINI13)")
+}
+
+record(bo,"$(TERMINAL):14")
+{
+	field(DESC,  "$(DESC14)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM14)")
+	field(ONAM,  "$(ONAM14)")
+	field(PINI,  "$(PINI14)")
+}
+
+record(bo,"$(TERMINAL):15")
+{
+	field(DESC,  "$(DESC15)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM15)")
+	field(ONAM,  "$(ONAM15)")
+	field(PINI,  "$(PINI15)")
+}
+
+record(bo,"$(TERMINAL):16")
+{
+	field(DESC,  "$(DESC16)")
+	field(DTYP,  "EL20XX")
+	field(ZNAM,  "$(ZNAM16)")
+	field(ONAM,  "$(ONAM16)")
+	field(PINI,  "$(PINI16)")
+}
+
