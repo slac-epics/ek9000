@@ -39,3 +39,6 @@ R1.1.1 - Feb 20, 2020
 R1.1.2 - Jun 19, 2020
 * Add support for EL2808 digital IO terminals
 
+R1.2.0 Development - Oct 13, 2020
+* Added support for EL4104, EL4134, EL4114, EL3681 and EL2816 terminals
+* Added new device type EL36XX for EL36XX terminals
