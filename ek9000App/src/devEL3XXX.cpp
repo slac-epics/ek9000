@@ -114,7 +114,6 @@ static void EL30XX_ReadCallback(CALLBACK *callback)
 	SEL30XXStandardInputPDO *spdo;
 	SEL30XXCompactInputPDO *cpdo;
 	uint16_t buf[2];
-	static_assert(sizeof(buf) == sizeof(SEL30XXStandardInputPDO));
 
 	callbackGetUser(record, callback);
 	aiRecord *pRecord = static_cast<aiRecord *>(record);
@@ -295,7 +294,6 @@ static void EL36XX_ReadCallback(CALLBACK *callback)
 	void *record;
 	uint16_t buf[3];
 	SEL36XXInput* pdo = NULL;
-	static_assert(sizeof(SEL36XXInput) == sizeof(buf));
 
 	callbackGetUser(record, callback);
 	aiRecord *pRecord = static_cast<aiRecord *>(record);
