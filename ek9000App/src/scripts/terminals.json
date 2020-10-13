@@ -841,14 +841,6 @@
 			"pdo_out_size": 2
 		},
 		{
-			"name": "EL4112",
-			"type": "AnalogOut",
-			"inputs": 0,
-			"outputs": 2,
-			"pdo_in_size": 0,
-			"pdo_out_size": 2
-		},
-		{
 			"name": "EL7047",
 			"type": "AnalogOut",
 			"inputs": 0,
