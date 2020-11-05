@@ -269,6 +269,7 @@ struct
     (DEVSUPFUN)EL36XX_read_record,
     (DEVSUPFUN)EL36XX_linconv,
 };
+epicsExportAddress(dset, devEL36XX);
 
 struct SEL36XXSupportData
 {
@@ -276,8 +277,6 @@ struct SEL36XXSupportData
 	CEK9000Device *m_pDevice;
 	int m_nChannel;
 };
-
-epicsExportAddress(dset, devEL36XX);
 
 #pragma pack(1)
 struct SEL36XXInput 

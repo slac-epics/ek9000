@@ -1,2 +1,30 @@
 # SNL programs or functions to be invoked from iocsh
 registrar(ek9000RegisterFunctions)
+
+
+#
+# ANALOG INPUT TERMINALS
+#
+device(ai,INST_IO,devEL30XX,"EL30XX")
+device(ai,INST_IO,devEL36XX,"EL36XX")
+
+#
+# ANALOG OUTPUT TERMINALS
+#
+device(ao,INST_IO,devEL40XX,"EL40XX")
+
+#
+# DIGITAL INPUT TERMINALS
+#
+device(bi,INST_IO,devEL10XX,"EL10XX")
+
+#
+# DIGITAL OUTPUT TERMINALS
+#
+device(bo,INST_IO,devEL20XX,"EL20XX")
+
+#
+# ENCODER TERMINALS
+#
+device(longin,INST_IO,devEL50XX,"EL50XX")
+device(longin,INST_IO,devEL5042,"EL5042")
