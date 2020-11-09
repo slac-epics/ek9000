@@ -18,6 +18,10 @@
 #include <epicsMutex.h>
 #include <epicsAtomic.h>
 
+/* STL includes */
+#include <string>
+#include <list>
+
 /* List of all terminals */
 #include "terminals.h"
 
@@ -84,5 +88,27 @@ namespace util
 
 	terminal_info_t getTerminalInfo(uint32_t id);
 	terminal_info_t getTerminalInfo(const char* id);
+
+	enum ELinkType 
+	{
+		BAD = 0,
+		LINK_INST_IO,
+	};
+
+	struct LinkParameter_t 
+	{
+		char* key;
+		char* value;
+	};
+
+	struct LinkSpecification_t
+	{
+		LinkParameter_t* params;
+		int numParams;
+	};
+
+	bool ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t& spec);
+
+	void DestroyLinkSpecification(LinkSpecification_t& spec);
 }
 
