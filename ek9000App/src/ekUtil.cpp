@@ -15,6 +15,8 @@
 #include <epicsStdlib.h>
 #include <epicsString.h>
 
+#include "devEK9000.h"
+
 using namespace util;
 
 /* Maintain a list of handles to iocsh args */
@@ -227,4 +229,103 @@ void util::DestroyLinkSpecification(LinkSpecification_t& spec)
 		free(spec.params);
 	spec.params = nullptr;
 	spec.numParams = 0;
+}
+
+/**
+ * We also handle some backwards compatibility here.
+ */ 
+template<class RecordT>
+bool util::setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt)
+{
+	const char* function = "util::setupCommonDpvt<RecordT>()";
+	if(!util::ParseLinkSpecification(prec->INP, util::LINK_INST_IO, dpvt.linkSpec))
+	{
+		/* Try to work with legacy stuff */
+		// TODO: STUB
+		return false;
+	}
+
+	/* Parse the params passed via INST_IO stuff */
+	for(int i = 0; i < dpvt.linkSpec.numParams; i++)
+	{
+		LinkParameter_t param = dpvt.linkSpec.params[i];
+		
+		/* Device name */
+		if(strcmp(param.key, "device") == 0)
+		{
+			bool found = false;
+			for(const auto& x : g_Devices)
+			{
+				if(strcmp(x->m_pName, param.value) == 0) {
+					dpvt.pdrv = x;
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
+				epicsPrintf("%s (when parsing %s): invalid device name: %s\n", function,
+					prec->NAME, param.value);
+				return false;
+			}
+		}
+		/* Terminal position in rail (1 based) */
+		else if(strcmp(param.key, "terminal") == 0)
+		{
+			int term = atoi(param.value);
+			/* Max supported devices by the EK9K is 255 */
+			if(term < 0 || term > 255) {
+				epicsPrintf("%s (when parsing %s): invalid slave number: %i\n", function, 
+					prec->NAME, term);
+				return false;
+			}
+			dpvt.slave = term;
+		}
+		/* Channel number */
+		else if(strcmp(param.key, "channel") == 0)
+		{
+			int channel = atoi(param.value);
+			/* No real max here, but I think it's good to limit this to 8k as nothing has this many channels */
+			if(channel < 0 || channel > 8192) {
+				epicsPrintf("%s (when parsing %s): invalid channel: %i\n", function, 
+					prec->NAME, channel);
+				return false;
+			}
+			dpvt.channel = channel;
+		}
+		/* Terminal type string e.g. EL3064 */
+		else if(strcmp(param.key, "type") == 0)
+		{
+			dpvt.terminalType = epicsStrDup(param.value);
+		}
+		/* Representation. Generally used for analog termianls */
+		else if(strcmp(param.key, "repres") == 0)
+		{
+			dpvt.representation = epicsStrDup(param.value);
+		}
+		/* Mapping type. Terminals generally have different mapping types. */
+		/* Ex: compact, compact w/status, standard, standard w/status */
+		/* Can be changed by iocsh */
+		else if(strcmp(param.key, "mapping") == 0)
+		{
+			dpvt.mapping = epicsStrDup(param.value);
+		}
+		else
+		{
+			epicsPrintf("%s (when parsing %s): ignored unknown param %s\n", function, prec->NAME, param.key);
+		}
+	}
+}
+
+
+template<class RecordT>
+void util::destroyDpvt(RecordT* prec, terminal_dpvt_t& dpvt)
+{
+
+}
+
+terminal_dpvt_t util::emptyDpvt()
+{
+	terminal_dpvt_t d;
+	memset(&d, 0, sizeof(terminal_dpvt_t));
+	return d;
 }
