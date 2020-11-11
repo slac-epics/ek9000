@@ -1,0 +1,33 @@
+{
+	"name": "ek9000",
+	"type": "cppshlib",
+	"generators": [
+	    "clangdb"
+	],
+	"rules": [
+	    {
+		"files": [
+		    "ek9000App/src/**.cpp",
+		    "ek9000App/src/**.h"
+		],
+		"virtual-folder": "src",
+		"includes": [
+			"ek9000App/src/",
+			"/epics/base/include/"
+		],
+		"defines": [
+			"-D_X86_=1",
+			"-DUNIX=1",
+			"-Dlinux=1",
+			"-D_GNU_SOURCE=1",
+			"-D_DEFAULT_SOURCE"
+		],
+		"flags": [
+			"-std=c++17"
+		],
+		"compiler": "g++"
+	    }
+	],
+	"tasks": [
+	]
+    }
