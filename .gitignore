@@ -41,3 +41,6 @@ tparse\.py
 
 ek9000App/src/BhcConfigFiles/
 ek9000App/src/BhcConfigFiles.zip
+
+.idea
+.vscode
