@@ -70,11 +70,11 @@ struct
 
 epicsExportAddress(dset, devEL20XX);
 
-struct SEL20XXSupportData
+struct EL20XXDpvt_t
 {
-	int m_nChannel;
-	CTerminal* m_pTerminal;
-	CEK9000Device* m_pDevice;
+	int channel;
+	CTerminal* terminal;
+	CEK9000Device* device;
 };
 
 static void EL20XX_WriteCallback(CALLBACK* callback)
@@ -83,15 +83,15 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	void* record;
 	callbackGetUser(record, callback);
 	pRecord = (boRecord*)record;
-	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
+	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
 	free(callback);
 	
 	/* Check for invalid */
-	if(!dpvt->m_pTerminal)
+	if(!dpvt->terminal)
 		return;
 
 	/* Lock & verify mutex */
-	int status = dpvt->m_pDevice->Lock();
+	int status = dpvt->device->Lock();
 	
 	if(status != epicsMutexLockOK)
 	{
@@ -104,10 +104,10 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	uint16_t buf = pRecord->val;
 
 	/* Write to buffer */
-	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, 
-		dpvt->m_pTerminal->m_nOutputStart + (dpvt->m_nChannel-2), &buf, 1);
+	status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS,
+	                                    dpvt->terminal->m_nOutputStart + (dpvt->channel - 2), &buf, 1);
 
-	dpvt->m_pDevice->Unlock();
+	dpvt->device->Unlock();
 
 	/* Processing done */
 	pRecord->pact = FALSE;
@@ -140,32 +140,32 @@ static long EL20XX_init(int after)
 static long EL20XX_init_record(void* precord)
 {
 	boRecord* pRecord = (boRecord*)precord;
-	pRecord->dpvt = malloc(sizeof(SEL20XXSupportData));
-	SEL20XXSupportData* dpvt = (SEL20XXSupportData*)pRecord->dpvt;
+	pRecord->dpvt = malloc(sizeof(EL20XXDpvt_t));
+	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
 	
 	/* Grab terminal info */
 	char* recname = NULL;
-	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
+	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
 
 	/* Verify terminal */
-	if(dpvt->m_pTerminal == NULL)
+	if(dpvt->terminal == NULL)
 	{
 		Error("EL20XX_init_record(): Unable to find terminal for %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
 	/* Just another param reference */
-	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
+	dpvt->device = dpvt->terminal->m_pDevice;
 	
 	/* Verify the connection */
-	if(!dpvt->m_pDevice->VerifyConnection())
+	if(!dpvt->device->VerifyConnection())
 	{
 		Error("EL20XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
 	/* Lock mutex for modbus */
-	int status = dpvt->m_pTerminal->m_pDevice->Lock();
+	int status = dpvt->terminal->m_pDevice->Lock();
 
 	/* Check mutex status */
 	if(status != epicsMutexLockOK)
@@ -176,17 +176,17 @@ static long EL20XX_init_record(void* precord)
 
 	/* Read terminal ID */
 	uint16_t termid = 0;
-	dpvt->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
+	dpvt->device->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
 
 	/* Verify terminal ID */
-	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
+	if(termid == 0 || termid != dpvt->terminal->m_nTerminalID)
 	{
 		Error("EL20XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
-		dpvt->m_pDevice->Unlock();
+		dpvt->device->Unlock();
 		return 1;
 	}
 
-	dpvt->m_pDevice->Unlock();
+	dpvt->device->Unlock();
 	return 0;
 }
 

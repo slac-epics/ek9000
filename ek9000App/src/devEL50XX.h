@@ -10,7 +10,7 @@
 #pragma pack(1)
 
 /* Input data from an el5001 terminal */
-struct SEL5001Output
+struct EL5001Output_t
 {
 	union
 	{
@@ -31,7 +31,7 @@ struct SEL5001Output
 };
 
 /* Input data from an el5002 slave, given it has the extended status byte enabled */
-struct SEL5002Output
+struct EL5002Output_t
 {
 	uint8_t data_error : 1;
 	uint8_t frame_error : 1;

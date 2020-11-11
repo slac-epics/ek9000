@@ -152,7 +152,7 @@ terminal_info_t util::getTerminalInfo(const char *id)
  * 
  */ 
 
-bool util::ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t outSpec)
+bool util::ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t& outSpec)
 {
 	if(!link) return false;
 

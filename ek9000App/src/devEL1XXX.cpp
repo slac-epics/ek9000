@@ -40,11 +40,11 @@
 
 #include "devEK9000.h"
 
-struct SEL10XXSupportData
+struct EL10XXDpvt_t
 {
-	int m_nChannel;
-	CTerminal* m_pTerminal;
-	CEK9000Device* m_pDevice;
+	int channel;
+	CTerminal* terminal;
+	CEK9000Device* device;
 };
 
 static void EL10XX_ReadCallback(CALLBACK* callback);
@@ -79,15 +79,15 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 	if(!usr)
 		return;
 	biRecord* pRecord = (biRecord*)usr;
-	SEL10XXSupportData* dpvt = (SEL10XXSupportData*)pRecord->dpvt;
+	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
 	free(callback);
 	
 	/* Check for invalid */
-	if(!dpvt->m_pTerminal)
+	if(!dpvt->terminal)
 		return;
 
 	/* Lock for modbus io */
-	int status = dpvt->m_pDevice->Lock();
+	int status = dpvt->device->Lock();
 
 	if(status != epicsMutexLockOK)
 	{
@@ -99,10 +99,10 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 
 	/* Do the actual IO */
 	uint16_t buf = 0;
-	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_DISCRETE_INPUTS, dpvt->m_pTerminal->m_nInputStart +
-		(dpvt->m_nChannel-2), &buf, 1);
+	status = dpvt->terminal->doEK9000IO(MODBUS_READ_DISCRETE_INPUTS, dpvt->terminal->m_nInputStart +
+	                                                                 (dpvt->channel - 2), &buf, 1);
 	
-	dpvt->m_pDevice->Unlock();
+	dpvt->device->Unlock();
 
 	/* Error states */
 	if(status)
@@ -136,22 +136,22 @@ static long EL10XX_init(int after)
 static long EL10XX_init_record(void* precord)
 {
 	biRecord* pRecord = (biRecord*)precord;
-	pRecord->dpvt = malloc(sizeof(SEL10XXSupportData));
-	SEL10XXSupportData* dpvt = (SEL10XXSupportData*)pRecord->dpvt;
+	pRecord->dpvt = malloc(sizeof(EL10XXDpvt_t));
+	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
 	/* Get terminal */
 	char* name = NULL;
-	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, name);
+	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, name);
 	
 	/* Verify terminal */
-	if(!dpvt->m_pTerminal)
+	if(!dpvt->terminal)
 	{
 		Error("EL10XX_init_record(): Unable to terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(name);
-	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
+	dpvt->device = dpvt->terminal->m_pDevice;
 	/* Lock mutex for modbus io */
-	int status = dpvt->m_pDevice->Lock();
+	int status = dpvt->device->Lock();
 
 	/* Verify lock OK */
 	if(status != epicsMutexLockOK)
@@ -162,14 +162,14 @@ static long EL10XX_init_record(void* precord)
 
 	/* Read termid */
 	uint16_t termid = 0;
-	dpvt->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
+	dpvt->device->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
 	
-	dpvt->m_pDevice->Unlock();
+	dpvt->device->Unlock();
 	
 	pRecord->udf = FALSE;
 
 	/* Invalid term id */
-	if(termid == 0 || termid != dpvt->m_pTerminal->m_nTerminalID)
+	if(termid == 0 || termid != dpvt->terminal->m_nTerminalID)
 	{
 		Error("EL10XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;

@@ -40,13 +40,13 @@
 
 #include "devEK9000.h"
 
-struct SEL40XXSupportData
+struct EL40XXDpvt_t
 {
-	int m_nChannel;
-	CTerminal* m_pTerminal;
-	CEK9000Device* m_pDevice;
+	int channel;
+	CTerminal* terminal;
+	CEK9000Device* device;
 	/* Standard or compact PDO used */
-	bool m_bCompactPDO;
+	bool compactPDO;
 };
 
 static long EL40XX_dev_report(int after);
@@ -81,15 +81,15 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	void* record = NULL;
 	callbackGetUser(record, callback);
 	aoRecord* pRecord = (aoRecord*)record;
-	SEL40XXSupportData* dpvt = (SEL40XXSupportData*)pRecord->dpvt;
+	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
 	free(callback);
 
 	/* Check for invalid */
-	if(!dpvt->m_pTerminal)
+	if(!dpvt->terminal)
 		return;
 
 	/* Verify connection */
-	if(!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
+	if(!dpvt->terminal->m_pDevice->VerifyConnection())
 	{
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
@@ -98,15 +98,15 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	}
 
 	/* Lock the mutex */
-	dpvt->m_pTerminal->m_pDevice->Lock();
+	dpvt->terminal->m_pDevice->Lock();
 	
 	/* Set buffer & do write */
 	uint16_t buf = (int16_t)pRecord->rval;
-	int status = dpvt->m_pTerminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS, dpvt->m_pTerminal->m_nOutputStart + 
-		(dpvt->m_nChannel-1), &buf, 1);
+	int status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS, dpvt->terminal->m_nOutputStart +
+	                                                                         (dpvt->channel - 1), &buf, 1);
 	
 	/* Unlock mutex */
-	dpvt->m_pTerminal->m_pDevice->Unlock();
+	dpvt->terminal->m_pDevice->Unlock();
 
 	/* No more processing */
 	pRecord->pact = FALSE;
@@ -141,24 +141,24 @@ static long EL40XX_init(int after)
 static long EL40XX_init_record(void* record)
 {
 	aoRecord* pRecord = (aoRecord*)record;
-	pRecord->dpvt = calloc(1, sizeof(SEL40XXSupportData));
-	SEL40XXSupportData* dpvt = (SEL40XXSupportData*)pRecord->dpvt;
+	pRecord->dpvt = calloc(1, sizeof(EL40XXDpvt_t));
+	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
 
 	/* Find record name */
 	char* out = NULL;
-	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, out);
+	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, out);
 	
 	/* Verify terminal */
-	if(!dpvt->m_pTerminal)
+	if(!dpvt->terminal)
 	{
 		Error("EL40XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(out);
-	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
+	dpvt->device = dpvt->terminal->m_pDevice;
 	
 	/* Lock mutex for IO */
-	int status = dpvt->m_pTerminal->m_pDevice->Lock();
+	int status = dpvt->terminal->m_pDevice->Lock();
 	/* Verify it's error free */
 	if(status)
 	{
@@ -169,12 +169,12 @@ static long EL40XX_init_record(void* record)
 
 	/* Read terminal ID */
 	uint16_t termid = 0;
-	dpvt->m_pTerminal->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
+	dpvt->terminal->m_pDevice->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
 	
-	dpvt->m_pDevice->Unlock();
+	dpvt->device->Unlock();
 
 	/* Verify terminal ID */
-	if(termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
+	if(termid != dpvt->terminal->m_nTerminalID || termid == 0)
 	{
 		Error("EL40XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;

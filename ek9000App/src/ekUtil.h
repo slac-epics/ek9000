@@ -39,7 +39,7 @@ struct LinkSpecification_t
 
 typedef struct 
 {
-	class devEK9000* pdrv;
+	class CEK9000Device* pdrv;
 	int slave, terminal, channel;
 	int baseaddr, len;
 	LinkSpecification_t linkSpec;
@@ -117,7 +117,7 @@ namespace util
 
 	/* Performs common dpvt setup */
 	template<class RecordT>
-	void setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt);
+	bool setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt);
 
 	terminal_dpvt_t emptyDpvt();
 

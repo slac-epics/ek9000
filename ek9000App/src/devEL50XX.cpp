@@ -16,7 +16,7 @@
 #include "devEK9000.h"
 #include "devEL50XX.h"
 
-struct SEL50XXSupportData
+struct EL50XXDpvt_t
 {
 	uint32_t tid;
 	CTerminal* pterm;
@@ -24,8 +24,8 @@ struct SEL50XXSupportData
 	longinRecord* precord;
 	union
 	{
-		SEL5001Output el5001_output;
-		SEL5002Output el5002_output;
+		EL5001Output_t el5001_output;
+		EL5002Output_t el5002_output;
 	};
 };
 
@@ -61,7 +61,7 @@ static void el50xx_read_callback(CALLBACK* callback)
 	void* usr;
 	callbackGetUser(usr, callback);
 	longinRecord* precord = static_cast<longinRecord*>(usr);
-	SEL50XXSupportData* dpvt = static_cast<SEL50XXSupportData*>(precord->dpvt);
+	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(precord->dpvt);
 
 	if(!dpvt || !dpvt->pterm || !dpvt->pcoupler)
 		return;
@@ -83,7 +83,7 @@ static void el50xx_read_callback(CALLBACK* callback)
 	{
 		case 5001:
 		{
-			SEL5001Output* output = reinterpret_cast<SEL5001Output*>(data);
+			EL5001Output_t* output = reinterpret_cast<EL5001Output_t*>(data);
 			if(output->data_error || output->sync_err)
 				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
 			if(output->frame_error)
@@ -93,7 +93,7 @@ static void el50xx_read_callback(CALLBACK* callback)
 		}
 		case 5002:
 		{
-			SEL5002Output* output = reinterpret_cast<SEL5002Output*>(data);
+			EL5002Output_t* output = reinterpret_cast<EL5002Output_t*>(data);
 			if(output->data_error)
 				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
 			if(output->frame_error)
@@ -125,8 +125,8 @@ static long el50xx_init(int after)
 static long el50xx_init_record(void* precord)
 {
 	longinRecord* record = static_cast<longinRecord*>(precord);
-	record->dpvt = calloc(1, sizeof(SEL50XXSupportData));
-	SEL50XXSupportData* dpvt = static_cast<SEL50XXSupportData*>(record->dpvt);
+	record->dpvt = calloc(1, sizeof(EL50XXDpvt_t));
+	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(record->dpvt);
 
 	/* Get the terminal */
 	char* recname = NULL;
@@ -168,7 +168,7 @@ static long el50xx_init_record(void* precord)
 static long el50xx_read_record(void* precord)
 {
 	longinRecord* prec = (longinRecord*)precord;
-	SEL50XXSupportData* dpvt = (SEL50XXSupportData*)prec->dpvt;
+	EL50XXDpvt_t* dpvt = (EL50XXDpvt_t*)prec->dpvt;
 	dpvt->precord = static_cast<longinRecord*>(precord);
 
 	/* Indicate processing */
@@ -209,7 +209,7 @@ extern "C" {
 	epicsExportAddress(dset, devEL5042);
 }
 
-struct SEL5042SupportData
+struct EL5042Dpvt_t
 {
 	int64inRecord* prec;
 	CTerminal* pterm;
@@ -217,7 +217,7 @@ struct SEL5042SupportData
 };
 
 #pragma pack(1)
-struct SEL5042InputPDO
+struct EL5042InputPDO_t
 {
 	uint8_t warning : 1;
 	uint8_t error : 1;
@@ -250,8 +250,8 @@ Initialize the specified record
 static long el5042_init_record(void* prec)
 {
 	longinRecord* record = static_cast<longinRecord*>(prec);
-	record->dpvt = calloc(1, sizeof(SEL50XXSupportData));
-	SEL5042SupportData* dpvt = static_cast<SEL5042SupportData*>(record->dpvt);
+	record->dpvt = calloc(1, sizeof(EL50XXDpvt_t));
+	EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(record->dpvt);
 
 	/* Get the terminal */
 	char* recname = NULL;
@@ -309,7 +309,7 @@ Called to read the specified record
 static long el5042_read_record(void* prec)
 {
 	int64inRecord* precord = static_cast<int64inRecord*>(prec);
-	SEL5042SupportData* dpvt = static_cast<SEL5042SupportData*>(precord->dpvt);
+	EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(precord->dpvt);
 
 	precord->pact = 1;
 
@@ -331,24 +331,24 @@ static void el5042_read_callback(CALLBACK* callback)
 {
 	int64inRecord* precord;
 	void* record;
-	SEL5042SupportData* dpvt;
-	SEL5042InputPDO* pdo;
+	EL5042Dpvt_t* dpvt;
+	EL5042InputPDO_t* pdo;
 
 	if(!callback) return;
 
 	callbackGetUser(record, callback);
 	if(!record) return;
 	precord = static_cast<int64inRecord*>(record);
-	dpvt = static_cast<SEL5042SupportData*>(precord->dpvt);
+	dpvt = static_cast<EL5042Dpvt_t*>(precord->dpvt);
 	if(!dpvt) return;
 
 	/* Read the stuff */
 	uint16_t buf[32];
 	dpvt->pcoupler->doEK9000IO(0, dpvt->pterm->m_nInputStart,
-		STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(SEL5042InputPDO)), buf);
+	                           STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)), buf);
 
 	/* Cast it to our pdo type */
-	pdo = reinterpret_cast<SEL5042InputPDO*>(buf);
+	pdo = reinterpret_cast<EL5042InputPDO_t*>(buf);
 
 	/* Update our params */
 	precord->pact = 0;

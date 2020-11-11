@@ -80,7 +80,7 @@ but the docs say they come before! What!
 Never had this issue with ANY other terminal type. I feel dirty and wrong
 for swapping the bytes around here.
 */
-struct SEL30XXStandardInputPDO
+struct EL30XXStandardInputPDO_t
 {
 	uint8_t underrange : 1;
 	uint8_t overrange : 1;
@@ -93,40 +93,42 @@ struct SEL30XXStandardInputPDO
 	uint16_t value;
 };
 
-struct SEL30XXCompactInputPDO
+struct EL30XXCompactInputPDO_t
 {
 	uint16_t value;
 };
 #pragma pack()
 
-struct SEL30XXSupportData
+/* Passed to device private */
+struct EL30XXDPVT_t
 {
-	CTerminal *m_pTerminal;
-	CEK9000Device *m_pDevice;
-	int m_nChannel;
+	CTerminal *terminal;
+	CEK9000Device *device;
+	int channel;
 	/* Compact or standard PDO used */
-	bool m_bCompactPDO;
+	bool compactPDO;
+	terminal_dpvt_t newDpvt;
 };
 
 static void EL30XX_ReadCallback(CALLBACK *callback)
 {
 	void *record;
-	SEL30XXStandardInputPDO *spdo;
-	SEL30XXCompactInputPDO *cpdo;
+	EL30XXStandardInputPDO_t *spdo;
+	EL30XXCompactInputPDO_t *cpdo;
 	uint16_t buf[2];
-	static_assert(sizeof(buf) <= sizeof(SEL30XXStandardInputPDO), "SEL30XXStandardInputPDO is greater than 4 bytes in size, contact the author about this error!");
+	static_assert(sizeof(buf) <= sizeof(EL30XXStandardInputPDO_t), "SEL30XXStandardInputPDO is greater than 4 bytes in size, contact the author about this error!");
 
 	callbackGetUser(record, callback);
 	aiRecord *pRecord = static_cast<aiRecord *>(record);
-	SEL30XXSupportData *dpvt = static_cast<SEL30XXSupportData *>(pRecord->dpvt);
+	EL30XXDPVT_t *dpvt = static_cast<EL30XXDPVT_t *>(pRecord->dpvt);
 	free(callback);
 
 	/* Check for invalid */
-	if (!dpvt->m_pTerminal)
+	if (!dpvt->terminal)
 		return;
 
 	/* Lock mutex */
-	int status = dpvt->m_pTerminal->m_pDevice->Lock();
+	int status = dpvt->terminal->m_pDevice->Lock();
 
 	if (status != epicsMutexLockOK)
 	{
@@ -136,16 +138,16 @@ static void EL30XX_ReadCallback(CALLBACK *callback)
 	}
 
 	/* Compact PDO sends ONLY the data, no status bits */
-	if (dpvt->m_bCompactPDO)
+	if (dpvt->compactPDO)
 	{
-		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel - 1)), buf, 1);
-		cpdo = reinterpret_cast<SEL30XXCompactInputPDO *>(buf);
+		status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_nInputStart + ((dpvt->channel - 1)), buf, 1);
+		cpdo = reinterpret_cast<EL30XXCompactInputPDO_t *>(buf);
 		pRecord->rval = cpdo->value;
 	}
 	else
 	{
-		status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel - 1) * 2), buf, 2);
-		spdo = reinterpret_cast<SEL30XXStandardInputPDO *>(buf);
+		status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_nInputStart + ((dpvt->channel - 1) * 2), buf, 2);
+		spdo = reinterpret_cast<EL30XXStandardInputPDO_t *>(buf);
 		pRecord->rval = spdo->value;
 
 		/* For standard PDO types, we have limits, so we should set alarms based on these,
@@ -159,7 +161,7 @@ static void EL30XX_ReadCallback(CALLBACK *callback)
 	/* Set props */
 	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
-	dpvt->m_pTerminal->m_pDevice->Unlock();
+	dpvt->terminal->m_pDevice->Unlock();
 
 	/* Check for error */
 	if (status)
@@ -189,37 +191,41 @@ static long EL30XX_init(int after)
 static long EL30XX_init_record(void *precord)
 {
 	aiRecord *pRecord = static_cast<aiRecord *>(precord);
-	pRecord->dpvt = calloc(1, sizeof(SEL30XXSupportData));
-	SEL30XXSupportData *dpvt = static_cast<SEL30XXSupportData *>(pRecord->dpvt);
+	pRecord->dpvt = calloc(1, sizeof(EL30XXDPVT_t));
+	EL30XXDPVT_t *dpvt = static_cast<EL30XXDPVT_t *>(pRecord->dpvt);
+
+	dpvt->newDpvt = util::emptyDpvt();
+	util::setupCommonDpvt<aiRecord>(pRecord, dpvt->newDpvt);
+	
 
 	/* Get the terminal */
 	char *recname = NULL;
-	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
-	if (!dpvt->m_pTerminal)
+	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	if (!dpvt->terminal)
 	{
 		Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
 
-	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
-	dpvt->m_pDevice->Lock();
+	dpvt->device = dpvt->terminal->m_pDevice;
+	dpvt->device->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
+	if (!dpvt->terminal->m_pDevice->VerifyConnection())
 	{
 		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
-		dpvt->m_pDevice->Unlock();
+		dpvt->device->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->m_pTerminal->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
-	dpvt->m_pDevice->Unlock();
+	dpvt->terminal->m_pDevice->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
+	dpvt->device->Unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
+	if (termid != dpvt->terminal->m_nTerminalID || termid == 0)
 	{
 		Error("EL30XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
@@ -261,25 +267,25 @@ struct
 	DEVSUPFUN read_record;
 	DEVSUPFUN linconv;
 } devEL36XX = {
-    6,
-    (DEVSUPFUN)EL36XX_dev_report,
-    (DEVSUPFUN)EL36XX_init,
-    (DEVSUPFUN)EL36XX_init_record,
-    NULL,
-    (DEVSUPFUN)EL36XX_read_record,
-    (DEVSUPFUN)EL36XX_linconv,
+	6,
+	(DEVSUPFUN)EL36XX_dev_report,
+	(DEVSUPFUN)EL36XX_init,
+	(DEVSUPFUN)EL36XX_init_record,
+	NULL,
+	(DEVSUPFUN)EL36XX_read_record,
+	(DEVSUPFUN)EL36XX_linconv,
 };
 epicsExportAddress(dset, devEL36XX);
 
-struct SEL36XXSupportData
+struct EL36XXDpvt_t
 {
-	CTerminal *m_pTerminal;
-	CEK9000Device *m_pDevice;
-	int m_nChannel;
+	CTerminal *terminal;
+	CEK9000Device *device;
+	int channel;
 };
 
 #pragma pack(1)
-struct SEL36XXInput 
+struct EL36XXInputPDO_t
 {
 	uint32_t inp;
 	uint16_t status;
@@ -293,20 +299,20 @@ static void EL36XX_ReadCallback(CALLBACK *callback)
 {
 	void *record;
 	uint16_t buf[3];
-	SEL36XXInput* pdo = NULL;
-	static_assert(sizeof(SEL36XXInput) <= sizeof(buf), "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
+	EL36XXInputPDO_t* pdo = NULL;
+	static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf), "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
 
 	callbackGetUser(record, callback);
 	aiRecord *pRecord = static_cast<aiRecord *>(record);
-	SEL36XXSupportData *dpvt = static_cast<SEL36XXSupportData *>(pRecord->dpvt);
+	EL36XXDpvt_t *dpvt = static_cast<EL36XXDpvt_t *>(pRecord->dpvt);
 	free(callback);
 
 	/* Check for invalid */
-	if (!dpvt->m_pTerminal)
+	if (!dpvt->terminal)
 		return;
 
 	/* Lock mutex */
-	int status = dpvt->m_pTerminal->m_pDevice->Lock();
+	int status = dpvt->terminal->m_pDevice->Lock();
 
 	if (status != epicsMutexLockOK)
 	{
@@ -315,8 +321,8 @@ static void EL36XX_ReadCallback(CALLBACK *callback)
 		return;
 	}
 
-	status = dpvt->m_pTerminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->m_pTerminal->m_nInputStart + ((dpvt->m_nChannel - 1) * 2), buf, 2);
-	pdo = reinterpret_cast<SEL36XXInput*>(buf);
+	status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_nInputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
 	pRecord->rval = pdo->inp;
 
 	/* Check the overrange and underrange flags */
@@ -328,7 +334,7 @@ static void EL36XX_ReadCallback(CALLBACK *callback)
 	/* Set props */
 	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
-	dpvt->m_pTerminal->m_pDevice->Unlock();
+	dpvt->terminal->m_pDevice->Unlock();
 
 	/* Check for error */
 	if (status)
@@ -358,37 +364,37 @@ static long EL36XX_init(int after)
 static long EL36XX_init_record(void *precord)
 {
 	aiRecord *pRecord = static_cast<aiRecord *>(precord);
-	pRecord->dpvt = calloc(1, sizeof(SEL36XXSupportData));
-	SEL36XXSupportData *dpvt = static_cast<SEL36XXSupportData *>(pRecord->dpvt);
+	pRecord->dpvt = calloc(1, sizeof(EL36XXDpvt_t));
+	EL36XXDpvt_t *dpvt = static_cast<EL36XXDpvt_t *>(pRecord->dpvt);
 
 	/* Get the terminal */
 	char *recname = NULL;
-	dpvt->m_pTerminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->m_nChannel, recname);
-	if (!dpvt->m_pTerminal)
+	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	if (!dpvt->terminal)
 	{
 		Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
 
-	dpvt->m_pDevice = dpvt->m_pTerminal->m_pDevice;
-	dpvt->m_pDevice->Lock();
+	dpvt->device = dpvt->terminal->m_pDevice;
+	dpvt->device->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->m_pTerminal->m_pDevice->VerifyConnection())
+	if (!dpvt->terminal->m_pDevice->VerifyConnection())
 	{
 		Error("EL36XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
-		dpvt->m_pDevice->Unlock();
+		dpvt->device->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->m_pTerminal->m_pDevice->ReadTerminalID(dpvt->m_pTerminal->m_nTerminalIndex, termid);
-	dpvt->m_pDevice->Unlock();
+	dpvt->terminal->m_pDevice->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
+	dpvt->device->Unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->m_pTerminal->m_nTerminalID || termid == 0)
+	if (termid != dpvt->terminal->m_nTerminalID || termid == 0)
 	{
 		Error("EL36XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
