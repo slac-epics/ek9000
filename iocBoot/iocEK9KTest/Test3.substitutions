@@ -12,7 +12,7 @@ file "../../db/EL2008.template"
 		DESC8,	ZNAM8,	ONAM8,	PINI8	
 	}
 	{
-		"TestTerm1-BO",
+		"BO:1",
 		"Sig1", "",		"",		"",
 		"Sig2", "",		"",		"",
 		"Sig3", "",		"",		"",
@@ -38,7 +38,7 @@ file "../../db/EL2008.template"
 		DESC8,	ZNAM8,	ONAM8,	PINI8	
 	}
 	{
-		"TestTerm3-BO",
+		"BO:2",
 		"Sig1", "",		"",		"",
 		"Sig2", "",		"",		"",
 		"Sig3", "",		"",		"",
@@ -60,7 +60,7 @@ file "../../db/EL3054.template"
 		DESC4,	SCAN4,	ADEL4,	EGUF4,	EGUL4,	HIGH4,	HIHI4,	HOPR4,	HYST4,	LOLO4,	LOPR4,	LOW4,	MDEL4,	SMOO4,	EGU4	
 	}
 	{
-		"TestTerm4-AI",
+		"AI:1",
 		"Signal1", ".1 second", "", "20", "4", "",		"",		"",		"",		"",		"",		"",		"",		"",		"mA",
 		"Signal2", ".1 second", "", "20", "4", "",		"",		"",		"",		"",		"",		"",		"",		"",		"mA",
 		"Signal3", ".1 second", "", "20", "4", "",		"",		"",		"",		"",		"",		"",		"",		"",		"mA",
@@ -79,7 +79,7 @@ file "../../db/EL1004.template"
 		DESC4,	ZNAM4,	ONAM4,	ZSV4,	OSV4,	COSV4,	SCAN4
 	}
 	{
-		"TestTerm2-BI",
+		"BI:1",
 		"",		"",		"",		"",		"",		"",		".1 second",
 		"",		"",		"",		"",		"",		"",		".1 second",
 		"",		"",		"",		"",		"",		"",		".1 second",
