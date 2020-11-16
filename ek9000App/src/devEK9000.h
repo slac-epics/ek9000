@@ -16,6 +16,16 @@
 //======================================================//
 #pragma once
 
+
+/* Record types */
+#include <aiRecord.h>
+#include <aoRecord.h>
+#include <biRecord.h>
+#include <boRecord.h>
+#include <longinRecord.h>
+#include <longoutRecord.h>
+
+
 /* EPICS includes */
 #include <epicsExport.h>
 #include <epicsMath.h>
@@ -78,6 +88,8 @@ struct CTerminal;
 extern std::list<CEK9000Device*> g_Devices;
 extern bool g_bDebug;
 
+std::list<CEK9000Device*>& GlobalDeviceList();
+
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
 
@@ -88,6 +100,37 @@ void Error(const char* fmt, ...);
 #define DevInfo(fmt, ...) if(g_bDebug) { Info(fmt, __VA_ARGS__); }
 #define DevWarn(fmt, ...) if(g_bDebug) { Warning(fmt, __VA_ARGS__); }
 #define DevError(fmt, ...) if(g_bDebug) { Error(fmt, __VA_ARGS__); }
+
+struct LinkParameter_t 
+{
+	char* key;
+	char* value;
+};
+
+struct LinkSpecification_t
+{
+	LinkParameter_t* params;
+	int numParams;
+};
+
+typedef struct 
+{
+	class CEK9000Device* pdrv;
+	int slave, terminal, channel;
+	int baseaddr, len;
+	LinkSpecification_t linkSpec;
+	char* terminalType;
+	char* mapping;
+	char* representation;
+} terminal_dpvt_t;
+
+enum ELinkType 
+{
+	BAD = 0,
+	LINK_INST_IO,
+};
+
+
 
 class CTerminal
 {
@@ -324,4 +367,116 @@ public:
 	{
 		return (strcmp(this->m_pName, other.m_pName) == 0);
 	}
+
+
+	/* Couple utility functions */
+	template<class RecordT>
+	static bool setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt);
+
+	template<class RecordT>
+	static void destroyDpvt(RecordT* prec, terminal_dpvt_t& dpvt);
+	
+	static terminal_dpvt_t emptyDpvt()
+	{
+		terminal_dpvt_t dpvt;
+		memset(&dpvt, 0, sizeof(terminal_dpvt_t));
+		return dpvt;
+	}
+
+	static void DestroyLinkSpecification(LinkSpecification_t& spec);
+	static bool ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t& outSpec);
 };
+
+/**
+ * We also handle some backwards compatibility here.
+ */ 
+template<class RecordT>
+bool CEK9000Device::setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt)
+{
+	const char* function = "util::setupCommonDpvt<RecordT>()";
+	if(!CEK9000Device::ParseLinkSpecification(prec->inp.text, LINK_INST_IO, dpvt.linkSpec))
+	{
+		/* Try to work with legacy stuff */
+		// TODO: STUB
+		return false;
+	}
+
+	/* Parse the params passed via INST_IO stuff */
+	for(int i = 0; i < dpvt.linkSpec.numParams; i++)
+	{
+		LinkParameter_t param = dpvt.linkSpec.params[i];
+		
+		/* Device name */
+		if(strcmp(param.key, "device") == 0)
+		{
+			bool found = false;
+			for(const auto& x : GlobalDeviceList())
+			{
+				if(strcmp(x->m_pName, param.value) == 0) {
+					dpvt.pdrv = x;
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
+				epicsPrintf("%s (when parsing %s): invalid device name: %s\n", function,
+					prec->name, param.value);
+				return false;
+			}
+		}
+		/* Terminal position in rail (1 based) */
+		else if(strcmp(param.key, "terminal") == 0)
+		{
+			int term = atoi(param.value);
+			/* Max supported devices by the EK9K is 255 */
+			if(term < 0 || term > 255) {
+				epicsPrintf("%s (when parsing %s): invalid slave number: %i\n", function, 
+					prec->name, term);
+				return false;
+			}
+			dpvt.slave = term;
+		}
+		/* Channel number */
+		else if(strcmp(param.key, "channel") == 0)
+		{
+			int channel = atoi(param.value);
+			/* No real max here, but I think it's good to limit this to 8k as nothing has this many channels */
+			if(channel < 0 || channel > 8192) {
+				epicsPrintf("%s (when parsing %s): invalid channel: %i\n", function, 
+					prec->name, channel);
+				return false;
+			}
+			dpvt.channel = channel;
+		}
+		/* Terminal type string e.g. EL3064 */
+		else if(strcmp(param.key, "type") == 0)
+		{
+			dpvt.terminalType = epicsStrDup(param.value);
+		}
+		/* Representation. Generally used for analog termianls */
+		else if(strcmp(param.key, "repres") == 0)
+		{
+			dpvt.representation = epicsStrDup(param.value);
+		}
+		/* Mapping type. Terminals generally have different mapping types. */
+		/* Ex: compact, compact w/status, standard, standard w/status */
+		/* Can be changed by iocsh */
+		else if(strcmp(param.key, "mapping") == 0)
+		{
+			dpvt.mapping = epicsStrDup(param.value);
+		}
+		else
+		{
+			epicsPrintf("%s (when parsing %s): ignored unknown param %s\n", function, prec->name, param.key);
+		}
+	}
+}
+
+
+template<class RecordT>
+void CEK9000Device::destroyDpvt(RecordT* prec, terminal_dpvt_t& dpvt)
+{
+
+}
+
+

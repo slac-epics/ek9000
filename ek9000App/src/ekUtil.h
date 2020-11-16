@@ -22,31 +22,8 @@
 #include <string>
 #include <list>
 
-/* List of all terminals */
 #include "terminals.h"
-
-struct LinkParameter_t 
-{
-	char* key;
-	char* value;
-};
-
-struct LinkSpecification_t
-{
-	LinkParameter_t* params;
-	int numParams;
-};
-
-typedef struct 
-{
-	class CEK9000Device* pdrv;
-	int slave, terminal, channel;
-	int baseaddr, len;
-	LinkSpecification_t linkSpec;
-	char* terminalType;
-	char* mapping;
-	char* representation;
-} terminal_dpvt_t;
+#include "devEK9000.h"
 
 typedef struct 
 {
@@ -111,17 +88,7 @@ namespace util
 		LINK_INST_IO,
 	};
 
-	bool ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t& spec);
 
-	void DestroyLinkSpecification(LinkSpecification_t& spec);
-
-	/* Performs common dpvt setup */
-	template<class RecordT>
-	bool setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt);
-
-	terminal_dpvt_t emptyDpvt();
-
-	template<class RecordT>
-	void destroyDpvt(RecordT* prec, terminal_dpvt_t& dpvt);
 }
+
 

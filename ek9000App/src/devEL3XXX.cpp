@@ -194,8 +194,8 @@ static long EL30XX_init_record(void *precord)
 	pRecord->dpvt = calloc(1, sizeof(EL30XXDPVT_t));
 	EL30XXDPVT_t *dpvt = static_cast<EL30XXDPVT_t *>(pRecord->dpvt);
 
-	dpvt->newDpvt = util::emptyDpvt();
-	util::setupCommonDpvt<aiRecord>(pRecord, dpvt->newDpvt);
+	dpvt->newDpvt = CEK9000Device::emptyDpvt();
+        CEK9000Device::setupCommonDpvt<aiRecord>(pRecord, dpvt->newDpvt);
 	
 
 	/* Get the terminal */
