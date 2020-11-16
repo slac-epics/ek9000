@@ -19,8 +19,8 @@
 struct EL50XXDpvt_t
 {
 	uint32_t tid;
-	CTerminal* pterm;
-	CEK9000Device* pcoupler;
+	devEK9000Terminal* pterm;
+	devEK9000* pcoupler;
 	longinRecord* precord;
 	union
 	{
@@ -75,8 +75,8 @@ static void el50xx_read_callback(CALLBACK* callback)
 
 	/* Read into a buffer that's plenty big enough for any terminal type */
 	uint16_t data[32];
-	dpvt->pcoupler->doEK9000IO(0, dpvt->pterm->m_nInputStart, 
-		STRUCT_SIZE_TO_MODBUS_SIZE(dpvt->pterm->m_nInputSize), data);
+	dpvt->pcoupler->doEK9000IO(0, dpvt->pterm->m_inputStart,
+				   STRUCT_SIZE_TO_MODBUS_SIZE(dpvt->pterm->m_inputSize), data);
 
 	/* Handle individual terminal pdo types */
 	switch(dpvt->tid)
@@ -131,7 +131,7 @@ static long el50xx_init_record(void* precord)
 	/* Get the terminal */
 	char* recname = NULL;
 	int channel = 0;
-	dpvt->pterm = CTerminal::ProcessRecordName(record->name, channel, recname);
+	dpvt->pterm = devEK9000Terminal::ProcessRecordName(record->name, channel, recname);
 	if(!dpvt->pterm)
 	{
 		Error("EL50XX_init_record(): Unable to find terminal for record %s\n", record->name);
@@ -139,26 +139,26 @@ static long el50xx_init_record(void* precord)
 	}
 	free(recname);
 	
-	dpvt->pcoupler = dpvt->pterm->m_pDevice;
+	dpvt->pcoupler = dpvt->pterm->m_device;
 	dpvt->pcoupler->Lock();
 
 	/* Check connection to terminal */
 	if(!dpvt->pcoupler->VerifyConnection())
 	{
-		Error("EL50XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		Error("EL50XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->pcoupler->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->pterm->m_pDevice->ReadTerminalID(dpvt->pterm->m_nTerminalIndex, termid);
+	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 	dpvt->pcoupler->Unlock();
 	dpvt->tid = termid;
 
-	if(termid != dpvt->pterm->m_nTerminalID || termid == 0)
+	if(termid != dpvt->pterm->m_terminalId || termid == 0)
 	{
-		Error("EL50XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), record->name, termid);
+		Error("EL50XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
 		return 1;
 	}
 
@@ -212,8 +212,8 @@ extern "C" {
 struct EL5042Dpvt_t
 {
 	int64inRecord* prec;
-	CTerminal* pterm;
-	CEK9000Device* pcoupler;
+	devEK9000Terminal* pterm;
+	devEK9000* pcoupler;
 };
 
 #pragma pack(1)
@@ -256,7 +256,7 @@ static long el5042_init_record(void* prec)
 	/* Get the terminal */
 	char* recname = NULL;
 	int channel = 0;
-	dpvt->pterm = CTerminal::ProcessRecordName(record->name, channel, recname);
+	dpvt->pterm = devEK9000Terminal::ProcessRecordName(record->name, channel, recname);
 	if(!dpvt->pterm)
 	{
 		Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
@@ -264,25 +264,25 @@ static long el5042_init_record(void* prec)
 	}
 	free(recname);
 	
-	dpvt->pcoupler = dpvt->pterm->m_pDevice;
+	dpvt->pcoupler = dpvt->pterm->m_device;
 	dpvt->pcoupler->Lock();
 
 	/* Check connection to terminal */
 	if(!dpvt->pcoupler->VerifyConnection())
 	{
-		Error("EL5042_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		Error("EL5042_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->pcoupler->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->pterm->m_pDevice->ReadTerminalID(dpvt->pterm->m_nTerminalIndex, termid);
+	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 	dpvt->pcoupler->Unlock();
 	dpvt->prec = static_cast<int64inRecord*>(prec);
-	if(termid != dpvt->pterm->m_nTerminalID || termid == 0)
+	if(termid != dpvt->pterm->m_terminalId || termid == 0)
 	{
-		Error("EL5042_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), record->name, termid);
+		Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
 		return 1;
 	}
 
@@ -344,7 +344,7 @@ static void el5042_read_callback(CALLBACK* callback)
 
 	/* Read the stuff */
 	uint16_t buf[32];
-	dpvt->pcoupler->doEK9000IO(0, dpvt->pterm->m_nInputStart,
+	dpvt->pcoupler->doEK9000IO(0, dpvt->pterm->m_inputStart,
 	                           STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)), buf);
 
 	/* Cast it to our pdo type */

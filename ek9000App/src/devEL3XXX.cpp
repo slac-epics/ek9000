@@ -102,12 +102,12 @@ struct EL30XXCompactInputPDO_t
 /* Passed to device private */
 struct EL30XXDPVT_t
 {
-	CTerminal *terminal;
-	CEK9000Device *device;
+	devEK9000Terminal *terminal;
+	devEK9000 *device;
 	int channel;
 	/* Compact or standard PDO used */
 	bool compactPDO;
-	terminal_dpvt_t newDpvt;
+	TerminalDpvt_t newDpvt;
 };
 
 static void EL30XX_ReadCallback(CALLBACK *callback)
@@ -128,25 +128,25 @@ static void EL30XX_ReadCallback(CALLBACK *callback)
 		return;
 
 	/* Lock mutex */
-	int status = dpvt->terminal->m_pDevice->Lock();
+	int status = dpvt->terminal->m_device->Lock();
 
 	if (status != epicsMutexLockOK)
 	{
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
+		DevError("EL30XX_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
 
 	/* Compact PDO sends ONLY the data, no status bits */
 	if (dpvt->compactPDO)
 	{
-		status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_nInputStart + ((dpvt->channel - 1)), buf, 1);
+		status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart + ((dpvt->channel - 1)), buf, 1);
 		cpdo = reinterpret_cast<EL30XXCompactInputPDO_t *>(buf);
 		pRecord->rval = cpdo->value;
 	}
 	else
 	{
-		status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_nInputStart + ((dpvt->channel - 1) * 2), buf, 2);
+		status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 		spdo = reinterpret_cast<EL30XXStandardInputPDO_t *>(buf);
 		pRecord->rval = spdo->value;
 
@@ -161,7 +161,7 @@ static void EL30XX_ReadCallback(CALLBACK *callback)
 	/* Set props */
 	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
-	dpvt->terminal->m_pDevice->Unlock();
+	dpvt->terminal->m_device->Unlock();
 
 	/* Check for error */
 	if (status)
@@ -169,10 +169,10 @@ static void EL30XX_ReadCallback(CALLBACK *callback)
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		if (status > 0x100)
 		{
-			DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
+			DevError("EL30XX_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
-		DevError("EL30XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(status));
+		DevError("EL30XX_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
 		return;
 	}
 	return;
@@ -194,13 +194,13 @@ static long EL30XX_init_record(void *precord)
 	pRecord->dpvt = calloc(1, sizeof(EL30XXDPVT_t));
 	EL30XXDPVT_t *dpvt = static_cast<EL30XXDPVT_t *>(pRecord->dpvt);
 
-	dpvt->newDpvt = CEK9000Device::emptyDpvt();
-        CEK9000Device::setupCommonDpvt<aiRecord>(pRecord, dpvt->newDpvt);
+	dpvt->newDpvt = devEK9000::emptyDpvt();
+        devEK9000::setupCommonDpvt<aiRecord>(pRecord, dpvt->newDpvt);
 	
 
 	/* Get the terminal */
 	char *recname = NULL;
-	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
 	if (!dpvt->terminal)
 	{
 		Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
@@ -208,26 +208,26 @@ static long EL30XX_init_record(void *precord)
 	}
 	free(recname);
 
-	dpvt->device = dpvt->terminal->m_pDevice;
+	dpvt->device = dpvt->terminal->m_device;
 	dpvt->device->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->terminal->m_pDevice->VerifyConnection())
+	if (!dpvt->terminal->m_device->VerifyConnection())
 	{
-		Error("EL30XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		Error("EL30XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->device->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->terminal->m_pDevice->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
+	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
 	dpvt->device->Unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->terminal->m_nTerminalID || termid == 0)
+	if (termid != dpvt->terminal->m_terminalId || termid == 0)
 	{
-		Error("EL30XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		Error("EL30XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 
@@ -279,8 +279,8 @@ epicsExportAddress(dset, devEL36XX);
 
 struct EL36XXDpvt_t
 {
-	CTerminal *terminal;
-	CEK9000Device *device;
+	devEK9000Terminal *terminal;
+	devEK9000 *device;
 	int channel;
 };
 
@@ -312,16 +312,16 @@ static void EL36XX_ReadCallback(CALLBACK *callback)
 		return;
 
 	/* Lock mutex */
-	int status = dpvt->terminal->m_pDevice->Lock();
+	int status = dpvt->terminal->m_device->Lock();
 
 	if (status != epicsMutexLockOK)
 	{
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		DevError("EL36XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
+		DevError("EL36XX_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
 
-	status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_nInputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
 	pRecord->rval = pdo->inp;
 
@@ -334,7 +334,7 @@ static void EL36XX_ReadCallback(CALLBACK *callback)
 	/* Set props */
 	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
-	dpvt->terminal->m_pDevice->Unlock();
+	dpvt->terminal->m_device->Unlock();
 
 	/* Check for error */
 	if (status)
@@ -342,10 +342,10 @@ static void EL36XX_ReadCallback(CALLBACK *callback)
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		if (status > 0x100)
 		{
-			DevError("EL36XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
+			DevError("EL36XX_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
-		DevError("EL36XX_ReadCallback(): %s\n", CEK9000Device::ErrorToString(status));
+		DevError("EL36XX_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
 		return;
 	}
 	return;
@@ -369,7 +369,7 @@ static long EL36XX_init_record(void *precord)
 
 	/* Get the terminal */
 	char *recname = NULL;
-	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
 	if (!dpvt->terminal)
 	{
 		Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
@@ -377,26 +377,26 @@ static long EL36XX_init_record(void *precord)
 	}
 	free(recname);
 
-	dpvt->device = dpvt->terminal->m_pDevice;
+	dpvt->device = dpvt->terminal->m_device;
 	dpvt->device->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->terminal->m_pDevice->VerifyConnection())
+	if (!dpvt->terminal->m_device->VerifyConnection())
 	{
-		Error("EL36XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		Error("EL36XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->device->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->terminal->m_pDevice->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
+	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
 	dpvt->device->Unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->terminal->m_nTerminalID || termid == 0)
+	if (termid != dpvt->terminal->m_terminalId || termid == 0)
 	{
-		Error("EL36XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		Error("EL36XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 

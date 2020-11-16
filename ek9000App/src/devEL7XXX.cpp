@@ -89,7 +89,7 @@ NOTES:
 ========================================================
 */
 
-el70x7Controller::el70x7Controller(CEK9000Device* dev, CTerminal* controller, const char* port, int numAxis) :
+el70x7Controller::el70x7Controller(devEK9000* dev, devEK9000Terminal* controller, const char* port, int numAxis) :
 	asynMotorController(port, numAxis, 0, 0, 0, ASYN_MULTIDEVICE | ASYN_CANBLOCK, 1, 0, 0)
 {
 	pcoupler = dev;
@@ -116,9 +116,9 @@ void el70x7Controller::report(FILE* fd, int lvl)
 {
 	if(lvl)
 	{
-		fprintf(fd, "el70x7Controller slave=%u\n", this->pcontroller->m_nTerminalIndex);
-		fprintf(fd, "\tek9000_name=%s\n", pcoupler->m_pName);
-		fprintf(fd, "\tterminalno=%u\n", pcontroller->m_nTerminalIndex);
+		fprintf(fd, "el70x7Controller slave=%u\n", this->pcontroller->m_terminalIndex);
+		fprintf(fd, "\tek9000_name=%s\n", pcoupler->m_name);
+		fprintf(fd, "\tterminalno=%u\n", pcontroller->m_terminalIndex);
 		fprintf(fd, "\tport=%s\n", this->portName);
 		fprintf(fd, "\tnumaxes=%u\n", this->numAxes_);
 	}	
@@ -154,18 +154,18 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) :
 	pC_= pC;
 	this->pcoupler = pC->pcoupler;
 	this->pcontroller = pC->pcontroller;
-	this->pdrv = pC->pcoupler->m_pDriver;
+	this->pdrv = pC->pcoupler->m_driver;
 	this->lock();
 	/* Set previous params to random values */
 	/* Grab initial values */
-	int status = this->pcoupler->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 
-		pcontroller->m_nOutputStart, (uint16_t*)&this->output, pcontroller->m_nOutputSize % 2 == 0 ? pcontroller->m_nOutputSize / 2 : pcontroller->m_nOutputSize / 2 + 1);
+	int status = this->pcoupler->m_driver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS,
+							  pcontroller->m_outputStart, (uint16_t*)&this->output, pcontroller->m_outputSize % 2 == 0 ? pcontroller->m_outputSize / 2 : pcontroller->m_outputSize / 2 + 1);
 	if(status) goto error;
-	status = this->pcoupler->m_pDriver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS,
-		pcontroller->m_nInputStart, (uint16_t*)&this->input, pcontroller->m_nInputSize % 2 == 0 ? pcontroller->m_nInputSize / 2 : pcontroller->m_nInputSize / 2 + 1);
+	status = this->pcoupler->m_driver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS,
+						      pcontroller->m_inputStart, (uint16_t*)&this->input, pcontroller->m_inputSize % 2 == 0 ? pcontroller->m_inputSize / 2 : pcontroller->m_inputSize / 2 + 1);
 	/* Read the configured speed */
 	spd = 0;
-	this->pcoupler->doCoEIO(0, pcontroller->m_nTerminalIndex, 0x8012, 1, &spd, 0x05);
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, 0x8012, 1, &spd, 0x05);
 	/* THIS IS IMPORTANT: Set everything to zero initially */
 	this->curr_param.back_accel = 0.0;
 	this->curr_param.forward_accel = 0.0;
@@ -192,11 +192,11 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) :
 	/* For acceleration and decel and velocity we want to grab the initial values from the CoE parameters */
 	param = el7047_coe_params[EL7047_VELO_MIN_INDEX];
 	tmp = 0;
-	this->pcoupler->doCoEIO(0, pcontroller->m_nTerminalIndex, param.index, 1, &tmp, param.subindex);
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, param.index, 1, &tmp, param.subindex);
 	this->output.pos_velocity = tmp;
 
 	param = el7047_coe_params[EL7047_ACCEL_POS_INDEX];
-	this->pcoupler->doCoEIO(0, pcontroller->m_nTerminalIndex, param.index, 1, &tmp, param.subindex);
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, param.index, 1, &tmp, param.subindex);
 	this->output.pos_accel = tmp;
 	this->output.pos_decel = tmp;
 	this->UpdatePDO();
@@ -235,7 +235,7 @@ asynStatus el70x7Axis::setMotorParameters(uint16_t min_start_vel,
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u\n",
 		__FUNCTION__, __LINE__);
-	uint16_t tid = pcontroller->m_nTerminalIndex;
+	uint16_t tid = pcontroller->m_terminalIndex;
 	int stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &max_coil_current, 0x1);
 	if(stat) goto error;
 	stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &reduced_coil_currrent, 0x2);
@@ -524,22 +524,22 @@ asynStatus el70x7Axis::UpdatePDO(bool locked)
 	/* Update input pdos */
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n",
 		__FUNCTION__, __LINE__, pStep);
-	int stat = pcoupler->m_pDriver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, pcontroller->m_nInputStart,
-		(uint16_t*)&this->input, sizeof(SPositionInterface_Input) % 2 == 0 ? sizeof(SPositionInterface_Input) / 2 : sizeof(SPositionInterface_Input) / 2 + 1);
+	int stat = pcoupler->m_driver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, pcontroller->m_inputStart,
+						  (uint16_t*)&this->input, sizeof(SPositionInterface_Input) % 2 == 0 ? sizeof(SPositionInterface_Input) / 2 : sizeof(SPositionInterface_Input) / 2 + 1);
 	if(stat) goto error;
 	pStep = "PROPAGATE_PDO";
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n",
 		__FUNCTION__, __LINE__, pStep);
 	/* Propagate changes from our internal pdo */
-	stat = pcoupler->m_pDriver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, pcontroller->m_nOutputStart,
-		(uint16_t*)&this->output, sizeof(SPositionInterface_Output) % 2 == 0 ? sizeof(SPositionInterface_Output) / 2 : sizeof(SPositionInterface_Output) / 2 + 1);
+	stat = pcoupler->m_driver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, pcontroller->m_outputStart,
+					      (uint16_t*)&this->output, sizeof(SPositionInterface_Output) % 2 == 0 ? sizeof(SPositionInterface_Output) / 2 : sizeof(SPositionInterface_Output) / 2 + 1);
 	if(stat) goto error;
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Error while updating PDOs. Error=%u Step=%s Input Start=%u"
 			" Input size=%u Output Start=%u Output Size=%u\n",
-		__FUNCTION__, __LINE__, stat, pStep, pcontroller->m_nInputStart, pcontroller->m_nInputSize/2,
-		pcontroller->m_nOutputStart, pcontroller->m_nOutputSize/2);
+		  __FUNCTION__, __LINE__, stat, pStep, pcontroller->m_inputStart, pcontroller->m_inputSize / 2,
+		  pcontroller->m_outputStart, pcontroller->m_outputSize / 2);
 	/* Reset to previous on error */
 	this->input = old_input;
 	//this->output = old_output;
@@ -581,7 +581,7 @@ void el70x7Axis::report(FILE* fd, int lvl)
 	{
 		fprintf(fd, "asynMotorAxis");
 		fprintf(fd, "\tport=%s\n", this->pC_->portName);
-		fprintf(fd, "\tterminal=%u\n", this->pcontroller->m_nTerminalIndex);
+		fprintf(fd, "\tterminal=%u\n", this->pcontroller->m_terminalIndex);
 	}
 	asynMotorAxis::report(fd, lvl);
 }
@@ -606,17 +606,17 @@ void el7047_Configure(const iocshArgBuf* args)
 		epicsPrintf("Please provide a port name.\n");
 		return;
 	}
-	CEK9000Device* dev = CEK9000Device::FindDevice(ek9k);
+	devEK9000* dev = devEK9000::FindDevice(ek9k);
 
 	if(!dev)
 	{
 		epicsPrintf("Device not found.\n");
 		return;
 	}
-	CTerminal* term = &dev->m_pTerms[slaveid-1];
+	devEK9000Terminal* term = &dev->m_terms[slaveid - 1];
 	dev->AddTerminal(rec, 7047, slaveid);
-	term->m_nInputSize = 14;
-	term->m_nOutputSize = 14;
+	term->m_inputSize = 14;
+	term->m_outputSize = 14;
 	el70x7Controller* pctl = new el70x7Controller(dev, term, port, 1);
 	printf("Created motor port %s\n", port);
 	controllers.push_back(pctl);
@@ -630,7 +630,7 @@ void el7047_Stat(const iocshArgBuf* args)
 		epicsPrintf("Please provide an ek9000 name.\n");
 		return;
 	}
-	CEK9000Device* dev = CEK9000Device::FindDevice(ek9k);
+	devEK9000* dev = devEK9000::FindDevice(ek9k);
 	if(!dev)
 	{
 		epicsPrintf("Invalid device.\n");
@@ -642,7 +642,7 @@ void el7047_Stat(const iocshArgBuf* args)
 		{
 			el70x7Axis* axis = x->getAxis(i);
 			if(!axis) break;
-			epicsPrintf("%s\n", x->pcontroller->m_pRecordName);
+			epicsPrintf("%s\n", x->pcontroller->m_recordName);
 			epicsPrintf("\tSpeed [steps/s]:      %u\n", axis->speed);
 			epicsPrintf("\tEncoder pos:          %u\n", axis->enc_pos);
 		}
@@ -667,7 +667,7 @@ void el70x7ReadCoE(const iocshArgBuf* args)
 		{
 			x->pcoupler->Lock();
 			uint16_t data[32];
-			x->pcoupler->doCoEIO(0, x->pcontroller->m_nTerminalIndex, 
+			x->pcoupler->doCoEIO(0, x->pcontroller->m_terminalIndex,
 				index, len, data, subindex);
 			for(int j = 0; j < len; j++)
 				epicsPrintf("%u ", data[j]);
@@ -717,7 +717,7 @@ void el70x7PrintDiag(const iocshArgBuf* args)
 			int i = 0;
 			for(diag_info_t info = diag_info[0]; info.name; info = diag_info[++i])
 			{
-				x->pcoupler->doCoEIO(0, x->pcontroller->m_nTerminalIndex, 
+				x->pcoupler->doCoEIO(0, x->pcontroller->m_terminalIndex,
 					info.index, 1, &data, info.subindex);
 				epicsPrintf("\t%s: %s\n", info.name, data == 0 ? "false" : "true");
 			}
@@ -745,11 +745,11 @@ void el70x7PrintMessages(const iocshArgBuf* args)
 		{
 			x->pcoupler->Lock();
 			uint16_t string[15];
-			x->pcoupler->doCoEIO(0, x->pcontroller->m_nTerminalIndex, 0x1008, 5, string, 0);
+			x->pcoupler->doCoEIO(0, x->pcontroller->m_terminalIndex, 0x1008, 5, string, 0);
 			string[5] = 0;
 			for(int i = 0x6; i < 0x38; i++)
 			{
-				x->pcoupler->doCoEIO(0, x->pcontroller->m_nTerminalIndex, 0x10f3, 14, string, i);
+				x->pcoupler->doCoEIO(0, x->pcontroller->m_terminalIndex, 0x10f3, 14, string, i);
 				string[14] = 0;
 				const char* cstring = (const char*)string;
 				if(iszero(cstring, 30)) continue;

@@ -82,13 +82,13 @@
 #define EK_EMODBUSERR 17 /* Modbus error */
 
 /* Forward decls */
-class CEK9000Device;
-struct CTerminal;
+class devEK9000;
+struct devEK9000Terminal;
 
-extern std::list<CEK9000Device*> g_Devices;
+extern std::list<devEK9000*> g_Devices;
 extern bool g_bDebug;
 
-std::list<CEK9000Device*>& GlobalDeviceList();
+std::list<devEK9000*>& GlobalDeviceList();
 
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
@@ -115,14 +115,14 @@ struct LinkSpecification_t
 
 typedef struct 
 {
-	class CEK9000Device* pdrv;
+	class devEK9000* pdrv;
 	int slave, terminal, channel;
 	int baseaddr, len;
 	LinkSpecification_t linkSpec;
 	char* terminalType;
 	char* mapping;
 	char* representation;
-} terminal_dpvt_t;
+} TerminalDpvt_t;
 
 enum ELinkType 
 {
@@ -132,19 +132,19 @@ enum ELinkType
 
 
 
-class CTerminal
+class devEK9000Terminal
 {
 public:
 	/* Copy constructor */
-	CTerminal(const CTerminal& other);
-	CTerminal();
-	~CTerminal();
+	devEK9000Terminal(const devEK9000Terminal& other);
+	devEK9000Terminal();
+	~devEK9000Terminal();
 
 	/* device is parent device, termid is 3064 in el3064 */
-	static CTerminal* Create(CEK9000Device* device, uint32_t termid, int termindex, const char* record);
+	static devEK9000Terminal* Create(devEK9000* device, uint32_t termid, int termindex, const char* record);
 
 	/* Process record name */
-	static CTerminal* ProcessRecordName(const char* recname, int& outindex, char* outname);
+	static devEK9000Terminal* ProcessRecordName(const char* recname, int& outindex, char* outname);
 
 	static void GetTerminalInfo(int termid, int& inp_size, int& out_size);
 
@@ -159,37 +159,37 @@ public:
 
 public:
 	/* Name of record */
-	char *m_pRecordName = NULL;
+	char *m_recordName = NULL;
 	/* Terminal family */
-	int m_TerminalFamily = 0;
+	int m_terminalFamily = 0;
 	/* Zero-based index of the terminal */
-	int m_nTerminalIndex = 0;
+	int m_terminalIndex = 0;
 	/* the device */
-	CEK9000Device *m_pDevice = NULL;
+	devEK9000 *m_device = NULL;
 	/* Terminal id, aka the 1124 in EL1124 */
-	int m_nTerminalID = 0;
+	int m_terminalId = 0;
 	/* Number of inputs */
-	int m_nInputs = 0;
+	int m_inputs = 0;
 	/* Number of outputs */
-	int m_nOutputs = 0;
+	int m_outputs = 0;
 	/* Size of inputs */
-	int m_nInputSize = 0;
+	int m_inputSize = 0;
 	/* Size of outputs */
-	int m_nOutputSize = 0;
+	int m_outputSize = 0;
 	/* input image start */
-	int m_nInputStart = 0;
+	int m_inputStart = 0;
 	/* Output image start */
-	int m_nOutputStart = 0;
+	int m_outputStart = 0;
 };
 
 //==========================================================//
-// class CEK9000Device
+// class devEK9000
 //		Holds useful vars for interacting with EK9000/EL****
 //		hardware
 //==========================================================//
 
 /* This holds various useful info about each ek9000 coupler */
-class CEK9000Device
+class devEK9000
 {
 private:
 	friend class CDeviceMgr;
@@ -204,26 +204,26 @@ public:
 
 	/* List of attached terminals */
 	/* TODO: Redefine terminal struct */
-	CTerminal *m_pTerms = NULL;
+	devEK9000Terminal *m_terms = NULL;
 
 	/* Number of attached terminals */
-	int m_nTerms = 0;
+	int m_numTerms = 0;
 
 	/* The driver */
-	drvModbusAsyn *m_pDriver = NULL;
+	drvModbusAsyn *m_driver = NULL;
 
-	char *m_pName = NULL;
-	char *m_pPortName = NULL;
-	char *m_pIP = NULL;
+	char *m_name = NULL;
+	char *m_portName = NULL;
+	char *m_ip = NULL;
 
-	bool m_bConnected = false;
-	bool m_bInit = false;
+	bool m_connected = false;
+	bool m_init = false;
 
 	/* Enable/disable debugging messages */
-	bool m_bDebug = false;
+	bool m_debug = false;
 
 	/* last device err */
-	int m_nError = EK_EOK;
+	int m_error = EK_EOK;
 
 	/* Message queue */
 	epicsMessageQueue* queue;
@@ -231,13 +231,13 @@ public:
 	int LastADSErr = 0;
 
 public:
-	CEK9000Device();
+	devEK9000();
 
 	/* Make  sure to free everything */
-	~CEK9000Device();
+	~devEK9000();
 
 public:
-	static CEK9000Device* FindDevice(const char* name);
+	static devEK9000* FindDevice(const char* name);
 
 public:
 	void QueueCallback(void(*callback)(void*), void* rec);
@@ -245,13 +245,13 @@ public:
 	void ExecuteCallbacks();
 
 	/* Allows for better error handling (instead of using print statements to indicate error) */
-	static CEK9000Device *Create(const char *name, const char *ip, int terminal_count);
+	static devEK9000 *Create(const char *name, const char *ip, int terminal_count);
 
 	int AddTerminal(const char *name, int type, int position);
 
-	CTerminal *GetTerminal(const char *recordname);
+	devEK9000Terminal *GetTerminal(const char *recordname);
 
-	CTerminal *GetAllTerminals() { return m_pTerms; }
+	devEK9000Terminal *GetAllTerminals() { return m_terms; }
 
 	/* Initializes a terminal (after it's been added). This should be called from the init_record routines */
 	int InitTerminal(int termindex);
@@ -359,27 +359,27 @@ public:
 	//void ReportError(int errorcode, const char* _msg = NULL);
 
 	/* Enable/disable debug */
-	//void EnableDebug(bool enabled) { m_bDebug = enabled; };
+	//void EnableDebug(bool enabled) { m_debug = enabled; };
 
 public:
 	/* Needed for the list impl */
-	bool operator==(const CEK9000Device &other) const
+	bool operator==(const devEK9000 &other) const
 	{
-		return (strcmp(this->m_pName, other.m_pName) == 0);
+		return (strcmp(this->m_name, other.m_name) == 0);
 	}
 
 
 	/* Couple utility functions */
 	template<class RecordT>
-	static bool setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt);
+	static bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
 
 	template<class RecordT>
-	static void destroyDpvt(RecordT* prec, terminal_dpvt_t& dpvt);
+	static void destroyDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
 	
-	static terminal_dpvt_t emptyDpvt()
+	static TerminalDpvt_t emptyDpvt()
 	{
-		terminal_dpvt_t dpvt;
-		memset(&dpvt, 0, sizeof(terminal_dpvt_t));
+		TerminalDpvt_t dpvt;
+		memset(&dpvt, 0, sizeof(TerminalDpvt_t));
 		return dpvt;
 	}
 
@@ -391,10 +391,10 @@ public:
  * We also handle some backwards compatibility here.
  */ 
 template<class RecordT>
-bool CEK9000Device::setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt)
+bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt)
 {
 	const char* function = "util::setupCommonDpvt<RecordT>()";
-	if(!CEK9000Device::ParseLinkSpecification(prec->inp.text, LINK_INST_IO, dpvt.linkSpec))
+	if(!devEK9000::ParseLinkSpecification(prec->inp.text, LINK_INST_IO, dpvt.linkSpec))
 	{
 		/* Try to work with legacy stuff */
 		// TODO: STUB
@@ -412,7 +412,7 @@ bool CEK9000Device::setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt)
 			bool found = false;
 			for(const auto& x : GlobalDeviceList())
 			{
-				if(strcmp(x->m_pName, param.value) == 0) {
+				if(strcmp(x->m_name, param.value) == 0) {
 					dpvt.pdrv = x;
 					found = true;
 					break;
@@ -474,7 +474,7 @@ bool CEK9000Device::setupCommonDpvt(RecordT* prec, terminal_dpvt_t& dpvt)
 
 
 template<class RecordT>
-void CEK9000Device::destroyDpvt(RecordT* prec, terminal_dpvt_t& dpvt)
+void devEK9000::destroyDpvt(RecordT* prec, TerminalDpvt_t& dpvt)
 {
 
 }

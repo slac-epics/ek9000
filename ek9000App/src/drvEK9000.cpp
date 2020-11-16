@@ -277,13 +277,13 @@ void drvEK9000::MapTerminals()
 		{
 			case terminal_t::AI:
 			case terminal_t::AO:
-				terminals[i].in_size = info->m_nInputSize;
-				terminals[i].out_size = info->m_nOutputSize;
+				terminals[i].in_size = info->m_inputSize;
+				terminals[i].out_size = info->m_outputSize;
 				break;
 			case terminal_t::BI:
 			case terminal_t::BO:
-				terminals[i].inb_size = info->m_nInputSize;
-				terminals[i].outb_size = info->m_nOutputSize;
+				terminals[i].inb_size = info->m_inputSize;
+				terminals[i].outb_size = info->m_outputSize;
 				break;
 			default:
 				break;
@@ -292,8 +292,8 @@ void drvEK9000::MapTerminals()
 		/* Ignore everything less than 3k as we're only doing the analog mapping right now */
 		if(info->m_nID < 3000) continue;
 
-		inp_start += info->m_nInputSize;
-		outp_start += info->m_nOutputSize;
+		inp_start += info->m_inputSize;
+		outp_start += info->m_outputSize;
 	}
 
 	/* Do the same for the input bits */
@@ -303,8 +303,8 @@ void drvEK9000::MapTerminals()
 		if(!info) continue;
 		if(info->m_nID >= 3000) continue;
 
-		outb_start += info->m_nOutputSize;
-		inb_start += info->m_nInputSize;
+		outb_start += info->m_outputSize;
+		inb_start += info->m_inputSize;
 	}
 }
 

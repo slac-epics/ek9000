@@ -43,8 +43,8 @@
 struct EL40XXDpvt_t
 {
 	int channel;
-	CTerminal* terminal;
-	CEK9000Device* device;
+	devEK9000Terminal* terminal;
+	devEK9000* device;
 	/* Standard or compact PDO used */
 	bool compactPDO;
 };
@@ -89,24 +89,24 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 		return;
 
 	/* Verify connection */
-	if(!dpvt->terminal->m_pDevice->VerifyConnection())
+	if(!dpvt->terminal->m_device->VerifyConnection())
 	{
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		pRecord->pact = 0;
 		return;
 	}
 
 	/* Lock the mutex */
-	dpvt->terminal->m_pDevice->Lock();
+	dpvt->terminal->m_device->Lock();
 	
 	/* Set buffer & do write */
 	uint16_t buf = (int16_t)pRecord->rval;
-	int status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS, dpvt->terminal->m_nOutputStart +
-	                                                                         (dpvt->channel - 1), &buf, 1);
+	int status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS, dpvt->terminal->m_outputStart +
+										 (dpvt->channel - 1), &buf, 1);
 	
 	/* Unlock mutex */
-	dpvt->terminal->m_pDevice->Unlock();
+	dpvt->terminal->m_device->Unlock();
 
 	/* No more processing */
 	pRecord->pact = FALSE;
@@ -117,12 +117,12 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		if(status > 0x100)
 		{
-			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
+			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
 		else
 		{
-			DevError("EL40XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
+			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
 		}
 		return;
 	}
@@ -146,7 +146,7 @@ static long EL40XX_init_record(void* record)
 
 	/* Find record name */
 	char* out = NULL;
-	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, out);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, out);
 	
 	/* Verify terminal */
 	if(!dpvt->terminal)
@@ -155,28 +155,28 @@ static long EL40XX_init_record(void* record)
 		return 1;
 	}
 	free(out);
-	dpvt->device = dpvt->terminal->m_pDevice;
+	dpvt->device = dpvt->terminal->m_device;
 	
 	/* Lock mutex for IO */
-	int status = dpvt->terminal->m_pDevice->Lock();
+	int status = dpvt->terminal->m_device->Lock();
 	/* Verify it's error free */
 	if(status)
 	{
-		Error("EL40XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
+		Error("EL40XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
 		return 1;
 	}
 
 
 	/* Read terminal ID */
 	uint16_t termid = 0;
-	dpvt->terminal->m_pDevice->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
+	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
 	
 	dpvt->device->Unlock();
 
 	/* Verify terminal ID */
-	if(termid != dpvt->terminal->m_nTerminalID || termid == 0)
+	if(termid != dpvt->terminal->m_terminalId || termid == 0)
 	{
-		Error("EL40XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		Error("EL40XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 	

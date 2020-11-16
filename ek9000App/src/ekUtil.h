@@ -81,14 +81,6 @@ namespace util
 
 	terminal_info_t getTerminalInfo(uint32_t id);
 	terminal_info_t getTerminalInfo(const char* id);
-
-	enum ELinkType 
-	{
-		BAD = 0,
-		LINK_INST_IO,
-	};
-
-
 }
 
 

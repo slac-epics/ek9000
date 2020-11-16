@@ -73,8 +73,8 @@ epicsExportAddress(dset, devEL20XX);
 struct EL20XXDpvt_t
 {
 	int channel;
-	CTerminal* terminal;
-	CEK9000Device* device;
+	devEK9000Terminal* terminal;
+	devEK9000* device;
 };
 
 static void EL20XX_WriteCallback(CALLBACK* callback)
@@ -95,7 +95,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	
 	if(status != epicsMutexLockOK)
 	{
-		DevError("EL20XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
+		DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		pRecord->pact = 0;
 		return;
@@ -105,7 +105,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 
 	/* Write to buffer */
 	status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS,
-	                                    dpvt->terminal->m_nOutputStart + (dpvt->channel - 2), &buf, 1);
+					    dpvt->terminal->m_outputStart + (dpvt->channel - 2), &buf, 1);
 
 	dpvt->device->Unlock();
 
@@ -119,10 +119,10 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		if(status > 0x100)
 		{
-			DevError("EL20XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(EK_EMODBUSERR));
+			DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
-		DevError("EL20XX_WriteCallback(): %s\n", CEK9000Device::ErrorToString(status));
+		DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
 		return;
 	}
 }
@@ -145,7 +145,7 @@ static long EL20XX_init_record(void* precord)
 	
 	/* Grab terminal info */
 	char* recname = NULL;
-	dpvt->terminal = CTerminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
 
 	/* Verify terminal */
 	if(dpvt->terminal == NULL)
@@ -155,33 +155,33 @@ static long EL20XX_init_record(void* precord)
 	}
 	free(recname);
 	/* Just another param reference */
-	dpvt->device = dpvt->terminal->m_pDevice;
+	dpvt->device = dpvt->terminal->m_device;
 	
 	/* Verify the connection */
 	if(!dpvt->device->VerifyConnection())
 	{
-		Error("EL20XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_ENOCONN));
+		Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
 	/* Lock mutex for modbus */
-	int status = dpvt->terminal->m_pDevice->Lock();
+	int status = dpvt->terminal->m_device->Lock();
 
 	/* Check mutex status */
 	if(status != epicsMutexLockOK)
 	{
-		Error("EL20XX_init_record(): %s\n", CEK9000Device::ErrorToString(EK_EMUTEXTIMEOUT));
+		Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
 		return 1;
 	}
 
 	/* Read terminal ID */
 	uint16_t termid = 0;
-	dpvt->device->ReadTerminalID(dpvt->terminal->m_nTerminalIndex, termid);
+	dpvt->device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
 
 	/* Verify terminal ID */
-	if(termid == 0 || termid != dpvt->terminal->m_nTerminalID)
+	if(termid == 0 || termid != dpvt->terminal->m_terminalId)
 	{
-		Error("EL20XX_init_record(): %s: %s != %u\n", CEK9000Device::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		Error("EL20XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		dpvt->device->Unlock();
 		return 1;
 	}

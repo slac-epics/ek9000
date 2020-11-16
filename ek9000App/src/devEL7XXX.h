@@ -123,8 +123,8 @@ class epicsShareClass el70x7Axis : public asynMotorAxis
 {
 public:
 
-	CEK9000Device* pcoupler;
-	CTerminal* pcontroller;
+	devEK9000* pcoupler;
+	devEK9000Terminal* pcontroller;
 	drvModbusAsyn* pdrv;
 	SPositionInterface_Input input;
 	SPositionInterface_Output output;
@@ -208,11 +208,11 @@ class EL70X7Axis
 class epicsShareClass el70x7Controller : public asynMotorController
 {
 public:
-	CEK9000Device* pcoupler;
-	CTerminal* pcontroller;
+	devEK9000* pcoupler;
+	devEK9000Terminal* pcontroller;
 	el70x7Axis** paxis;
 public:
-	el70x7Controller(CEK9000Device* dev, CTerminal* controller, const char* port, int numAxis);
+	el70x7Controller(devEK9000* dev, devEK9000Terminal* controller, const char* port, int numAxis);
 	
 	el70x7Axis* getAxis(int num) override;
 	el70x7Axis* getAxis(asynUser* axis) override;
