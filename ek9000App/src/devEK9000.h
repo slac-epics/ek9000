@@ -87,14 +87,20 @@ struct devEK9000Terminal;
 
 extern std::list<devEK9000*> g_Devices;
 extern bool g_bDebug;
+extern int g_verbosity;
+
+#define VERBOSITY_NORMAL 0
+#define VERBOSITY_DEVINFO 1
+#define VERBOSITY_EXTRAINFO 2
+#define VERBOSITY_EVERYTHING 3
 
 std::list<devEK9000*>& GlobalDeviceList();
 
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
 
-void Info(const char* fmt, ...);
-void Warning(const char* fmt, ...);
+void Info(int v, const char* fmt, ...);
+void Warning(int v, const char* fmt, ...);
 void Error(const char* fmt, ...);
 
 #define DevInfo(fmt, ...) if(g_bDebug) { Info(fmt, __VA_ARGS__); }
@@ -129,7 +135,6 @@ enum ELinkType
 	BAD = 0,
 	LINK_INST_IO,
 };
-
 
 
 class devEK9000Terminal

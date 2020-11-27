@@ -85,7 +85,7 @@ bool g_bDebug = false;
 epicsThreadId g_PollThread = 0;
 epicsMutexId g_ThreadMutex = 0;
 int g_nPollDelay = 250;
-
+int g_verbosity = VERBOSITY_NORMAL;
 std::list<devEK9000*> g_Devices;
 
 /* Global list accessor */
@@ -118,12 +118,12 @@ void PollThreadFunc(void* param)
 			bool connected = device->VerifyConnection();
 			if(!connected && device->m_connected)
 			{
-				Warning("%s: Link status changed to DISCONNECTED\n", device->m_name);
+				Warning(0, "%s: Link status changed to DISCONNECTED\n", device->m_name);
 				device->m_connected = false;
 			}
 			if(connected && !device->m_connected)
 			{
-				Warning("%s: Link status changed to CONNECTED\n", device->m_name);
+				Warning(0, "%s: Link status changed to CONNECTED\n", device->m_name);
 				device->m_connected = true;
 			}
 			if(status)
@@ -136,8 +136,9 @@ void PollThreadFunc(void* param)
 	}
 }
 
-void Info(const char* fmt, ...)
+void Info(int v, const char* fmt, ...)
 {
+	if (v > g_verbosity) return;
 	time_t clk = time(0);
 	tm _tm;
 	epicsTime_localtime(&clk, &_tm);
@@ -148,8 +149,9 @@ void Info(const char* fmt, ...)
 	va_end(list);
 }
 
-void Warning(const char* fmt, ...)
+void Warning(int v, const char* fmt, ...)
 {	
+	if (v > g_verbosity) return;
 	epicsTimeStamp stmp;
 	epicsTimeGetCurrent(&stmp);
 	char txt[40];
@@ -1201,8 +1203,26 @@ void ek9000SetPollTime(const iocshArgBuf* args)
 	g_nPollDelay = time;
 }
 
+void ek9000SetVerbosity(const iocshArgBuf* args)
+{
+	int lvl = args[0].ival;
+	if(lvl < 0 || lvl > 10) {
+		epicsPrintf("Verbosity level must be between 0 and 10\n");
+		return;
+	}
+	g_verbosity = lvl;
+}
+
 int ek9000RegisterFunctions()
 {
+	/* ek90000SetVerbosity */
+	{
+		static const iocshArg arg1 = {"level", iocshArgInt};
+		static const iocshArg* const args[] = {&arg1};
+		static const iocshFuncDef func = {"ek9000SetVerbosity", 1, args};
+		iocshRegister(&func, ek9000SetVerbosity);
+	}
+
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
 		static const iocshArg arg1 = {"Name", iocshArgString};
