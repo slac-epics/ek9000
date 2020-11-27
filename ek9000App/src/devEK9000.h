@@ -103,6 +103,8 @@ void Info(int v, const char* fmt, ...);
 void Warning(int v, const char* fmt, ...);
 void Error(const char* fmt, ...);
 
+#define TraceInfo(fmt, ...) Info(VERBOSITY_EVERYTHING, fmt, __VA_ARGS__)
+
 #define DevInfo(fmt, ...) if(g_bDebug) { Info(fmt, __VA_ARGS__); }
 #define DevWarn(fmt, ...) if(g_bDebug) { Warning(fmt, __VA_ARGS__); }
 #define DevError(fmt, ...) if(g_bDebug) { Error(fmt, __VA_ARGS__); }
