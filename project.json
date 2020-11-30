@@ -17,7 +17,8 @@
 			"/epics/modules/motor-r7-2/include/",
 			"/epics/modules/asyn-r4-39/include/",
 			"/epics/modules/modbus-r3-0/include/",
-			"/epics/base/include/os/Linux"
+			"/epics/base/include/os/Linux",
+			"/epics/base/include/compiler/gcc"
 		],
 		"defines": [
 			"-D_X86_=1",
