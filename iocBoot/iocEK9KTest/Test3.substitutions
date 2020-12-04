@@ -22,7 +22,7 @@ file "../../db/EL2008.template"
 		"Sig7", "",		"",		"",
 		"Sig8", "",		"",		""
 	}
-}
+} 
 
 file "../../db/EL2008.template"
 { 	pattern 
