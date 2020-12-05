@@ -1,0 +1,10 @@
+
+file EL3202.template
+{       pattern
+        {
+                TERMINAL,
+
+        }
+        {
+        }
+}

@@ -1,0 +1,10 @@
+
+file EL4122.template
+{       pattern
+        {
+                TERMINAL,
+
+        }
+        {
+        }
+}
