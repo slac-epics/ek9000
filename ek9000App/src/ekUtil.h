@@ -55,17 +55,11 @@ public:
 namespace util
 {
 	void iocshRegister(const char* name, void(*pfn)(const iocshArgBuf*), std::initializer_list<iocshArg> args);
-	
-	/*
-	 * Parses and creates a device private structure for the terminal
-	 * instio is your instio string passed into the record's INP field.
-	 */ 
-	void* parseAndCreateDpvt(char* instio);
 
 	/**
 	 * Look up a terminal by ID and return a structure containing info about it
 	 */ 
-	const STerminalInfoConst_t* FindTerminal(int id);
+	const STerminalInfoConst_t* FindTerminal(unsigned int id);
 
 	/**
 	 * Logging routines

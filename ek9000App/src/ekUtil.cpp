@@ -36,44 +36,18 @@ void util::iocshRegister(const char *name, void (*pfn)(const iocshArgBuf *), std
 	handle->args = static_cast<iocshArg *>(malloc(args.size() * sizeof(iocshArg)));
 	handle->pargs = static_cast<iocshArg **>(malloc(args.size() * sizeof(iocshArg *)));
 	auto it = args.begin();
-	for (int i = 0; i < args.size() && it; i++, it++)
+	for (size_t i = 0; i < args.size() && it; i++, it++)
 		handle->args[i] = *it;
-	for (int i = 0; i < args.size(); i++)
+	for (size_t i = 0; i < args.size(); i++)
 		handle->pargs[i] = &handle->args[i];
 	handle->func = {name, (int)args.size(), handle->pargs};
 	::iocshRegister(&handle->func, pfn);
 	functions.push_back(handle);
 }
 
-/*
- * @ek9k_name,slave_num,channel
- */
-void *util::parseAndCreateDpvt(char *instio)
+const STerminalInfoConst_t *util::FindTerminal(unsigned int id)
 {
-	if (!instio)
-		return nullptr;
-	int pindex = 0;
-
-	for (char *subst = strtok(instio, ","); subst; subst = strtok(NULL, ","), pindex++)
-	{
-	}
-
-	if (pindex < 2)
-	{
-		epicsPrintf("Syntax error in instio string: %s\n", instio);
-		return nullptr;
-	}
-
-	int ncommas = 0;
-	size_t len = strlen(instio);
-	for (int i = 0; i < len; i++)
-	{
-	}
-}
-
-const STerminalInfoConst_t *util::FindTerminal(int id)
-{
-	for (int i = 0; i < NUM_TERMINALS; i++)
+	for (unsigned int i = 0; i < NUM_TERMINALS; i++)
 		if (g_pTerminalInfos[i]->m_nID == id)
 			return g_pTerminalInfos[i];
 	return nullptr;
