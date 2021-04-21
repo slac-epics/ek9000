@@ -78,9 +78,4 @@ namespace util
 	 * Call this to setup a callback. Can be used in-place of the read or write functions in the dpvt struct
 	 */ 
         long setupCallback(void* rec, void(*pCallback)(CALLBACK*));
-
-	terminal_info_t getTerminalInfo(uint32_t id);
-	terminal_info_t getTerminalInfo(const char* id);
 }
-
-

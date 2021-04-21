@@ -134,12 +134,3 @@ long util::setupCallback(void *rec, void (*pCallback)(CALLBACK *))
 	return 0;
 }
 
-terminal_info_t util::getTerminalInfo(uint32_t id)
-{
-}
-
-terminal_info_t util::getTerminalInfo(const char *id)
-{
-}
-
-
