@@ -128,12 +128,12 @@ static void EL40XX_WriteCallback(CALLBACK* callback)
 	}
 }
 
-static long EL40XX_dev_report(int after)
+static long EL40XX_dev_report(int)
 {
 	return 0;
 }
 
-static long EL40XX_init(int after)
+static long EL40XX_init(int)
 {
 	return 0;
 }
@@ -189,7 +189,7 @@ static long EL40XX_write_record(void* record)
 	return 0;
 }
 
-static long EL40XX_linconv(void* precord, int after)
+static long EL40XX_linconv(void*, int)
 {
 	return 0;
 }

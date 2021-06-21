@@ -41,7 +41,6 @@
 #include <epicsStdlib.h>
 #include <epicsAssert.h>
 #include <epicsPrint.h>
-#include <dbAccess.h>
 #include <devSup.h>
 #include <alarm.h>
 #include <epicsString.h>
@@ -107,7 +106,7 @@ void Utl_InitThread()
 		epicsThreadGetStackSize(epicsThreadStackMedium), PollThreadFunc, NULL);
 }
 
-void PollThreadFunc(void* param)
+void PollThreadFunc(void*)
 {
 	while(true)
 	{
@@ -293,18 +292,6 @@ int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t *buf, size_t
 		return (status + 0x100);
 	}
 	return EK_EOK;
-}
-
-template<class T>
-bool devEK9000Terminal::CoEReadParameter(coe::param_t param, T &outval)
-{
-	return 0;
-}
-
-template<class T>
-bool devEK9000Terminal::CoEWriteParameter(coe::param_t param, T value)
-{
-	return 0;
 }
 
 //==========================================================//
@@ -617,39 +604,6 @@ int devEK9000::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint
 	}	
 }
 
-int devEK9000::doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex)
-{
-	int status = epicsMutexLock(m_Mutex);
-	if(status != epicsMutexLockOK)
-	{
-		if(status == epicsMutexLockTimeout)
-			return EK_EMUTEXTIMEOUT;
-		return EK_EBADMUTEX;
-	}
-	
-	/* write */
-	if (rw)
-	{
-		status = this->m_driver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, addr, data, len);
-		if(status)
-		{
-			epicsMutexUnlock(m_Mutex);
-			return status + 0x100;
-		}
-		return EK_EOK;
-	}
-	else
-	{
-		status = this->m_driver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, addr, data, len);
-		if(status)
-		{
-			epicsMutexUnlock(m_Mutex);
-			return status + 0x100;
-		}
-		return EK_EOK;
-	}
-}
-
 int devEK9000::doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t *data)
 {
 	int status = 0;
@@ -679,6 +633,7 @@ int devEK9000::doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t *data)
 /* Read terminal type */
 int devEK9000::ReadTerminalType(uint16_t termid, int &id)
 {
+	(void)termid;
 	uint16_t dat = 0;
 	this->doEK9000IO(0, 0x6000, 1, &dat);
 	id = dat;
@@ -904,23 +859,6 @@ struct SMsg_t
 	void(*callback)(void*);
 };
 
-void devEK9000::QueueCallback(void(*callback)(void*), void* rec)
-{
-//	SMsg_t* msg = new SMsg_t;
-//	this->queue->trySend(&msg, sizeof(callback));
-}
-
-void devEK9000::ExecuteCallbacks()
-{
-	this->Lock();
-	SMsg_t* msg;
-	while(this->queue->tryReceive(&msg, sizeof(msg)))
-	{
-		msg->callback(msg->rec);
-	}
-	this->Unlock();
-}
-
 const char *devEK9000::ErrorToString(int i)
 {
 	if(i == EK_EADSERR)
@@ -1138,19 +1076,19 @@ void ek9000Stat(const iocshArgBuf *args)
 	dev->Unlock();
 }
 
-void ek9000EnableDebug(const iocshArgBuf* args)
+void ek9000EnableDebug(const iocshArgBuf*)
 {
 	g_bDebug = true;
 	epicsPrintf("Debug enabled.\n");
 }
 
-void ek9000DisableDebug(const iocshArgBuf* args)
+void ek9000DisableDebug(const iocshArgBuf*)
 {
 	g_bDebug = false;
 	epicsPrintf("Debug disabled.\n");
 }
 
-void ek9000List(const iocshArgBuf* args)
+void ek9000List(const iocshArgBuf*)
 {
 	for(auto dev : g_Devices)
 	{
@@ -1217,56 +1155,61 @@ int ek9000RegisterFunctions()
 {
 	/* ek90000SetVerbosity */
 	{
+		static const char* usage = "ek9000SetVerbosity device level";
 		static const iocshArg arg1 = {"level", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000SetVerbosity", 1, args};
-		static const iocshFuncDef func2 = {"ek9kSetVerbosity", 1, args};
+		static const iocshFuncDef func = {"ek9000SetVerbosity", 1, args, usage};
+		static const iocshFuncDef func2 = {"ek9kSetVerbosity", 1, args, usage};
 		iocshRegister(&func, ek9000SetVerbosity);
 		iocshRegister(&func2, ek9000SetVerbosity);
 	}
 
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
+		static const char* usage = "ek9000SetWatchdogTime device time";
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Time", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetWatchdogTime", 2, args};
-		static const iocshFuncDef func2 = {"ek9kSetWdTime", 2, args};
+		static const iocshFuncDef func = {"ek9000SetWatchdogTime", 2, args, usage};
+		static const iocshFuncDef func2 = {"ek9kSetWdTime", 2, args, usage};
 		iocshRegister(&func, ek9000SetWatchdogTime);
 		iocshRegister(&func2, ek9000SetWatchdogTime);
 	}
 
 	/* ek9000SetWatchdogType(ek9k, type[int]) */
 	{
+		static const char* usage = "ek9000SetWatchdogType device type";
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Type", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetWatchdogType", 2, args};
-		static const iocshFuncDef func2 = {"ek9kSetWdType", 2, args};
+		static const iocshFuncDef func = {"ek9000SetWatchdogType", 2, args, usage};
+		static const iocshFuncDef func2 = {"ek9kSetWdType", 2, args, usage};
 		iocshRegister(&func, ek9000SetWatchdogType);
 		iocshRegister(&func2, ek9000SetWatchdogType);
 	}
 	
 	/* ek9000SetPollTime(ek9k, type[int]) */
 	{
+		static const char* usage = "ek9000SetPollTime device time";
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Type", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetPollTime", 2, args};
-		static const iocshFuncDef func2 = {"ek9kSetPollTime", 2, args};
+		static const iocshFuncDef func = {"ek9000SetPollTime", 2, args, usage};
+		static const iocshFuncDef func2 = {"ek9kSetPollTime", 2, args, usage};
 		iocshRegister(&func, ek9000SetPollTime);
 		iocshRegister(&func2, ek9000SetPollTime);
 	}
 	
 	/* ek9000Configure(name, ip, termcount) */
 	{
+		static const char* usage = "ek9000Configure name ip port num_terminals";
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"IP", iocshArgString};
 		static const iocshArg arg3 = {"Port", iocshArgInt};
 		static const iocshArg arg4 = {"# of Terminals", iocshArgInt};
 		static const iocshArg *const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"ek9000Configure", 4, args};
-		static const iocshFuncDef func2 = {"ek9kConfigure", 4, args};
+		static const iocshFuncDef func = {"ek9000Configure", 4, args, usage};
+		static const iocshFuncDef func2 = {"ek9kConfigure", 4, args, usage};
 		iocshRegister(&func, ek9000Configure);		
 		iocshRegister(&func2, ek9000Configure);
 
@@ -1274,51 +1217,55 @@ int ek9000RegisterFunctions()
 
 	/* ek9000ConfigureTerminal(ek9000, name, type, position) */
 	{
+		static const char* usage = "ek9000ConfigureTerminal ek9k_name record_name type position";
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg arg2 = {"Record Name", iocshArgString};
 		static const iocshArg arg3 = {"Type", iocshArgString};
 		static const iocshArg arg4 = {"Positon", iocshArgInt};
 		static const iocshArg *const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"ek9000ConfigureTerminal", 4, args};
-		static const iocshFuncDef func2 = {"ek9kConfigureTerm", 4, args};
+		static const iocshFuncDef func = {"ek9000ConfigureTerminal", 4, args, usage};
+		static const iocshFuncDef func2 = {"ek9kConfigureTerm", 4, args, usage};
 		iocshRegister(&func, ek9000ConfigureTerminal);
 		iocshRegister(&func2, ek9000ConfigureTerminal);
 	}
 
 	/* ek9000Stat */
 	{
+		static const char* usage = "ek9000Stat name";
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg*const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000Stat", 1, args};
-		static const iocshFuncDef func2 = {"ek9kStat", 1, args};
+		static const iocshFuncDef func = {"ek9000Stat", 1, args, usage};
+		static const iocshFuncDef func2 = {"ek9kStat", 1, args, usage};
 		iocshRegister(&func, ek9000Stat);
 		iocshRegister(&func2, ek9000Stat);
 	}
 
 	/* ek9000EnableDebug */
 	{
+		static const char* usage = "ek9000EnableDebug ek9k_name";
 		static const iocshArg arg1 = {"EK9k", iocshArgString};
 		static const iocshArg *const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000EnableDebug", 1, args};
-		static const iocshFuncDef func2 = {"ek9kEnableDbg", 1, args};
+		static const iocshFuncDef func = {"ek9000EnableDebug", 1, args, usage};
+		static const iocshFuncDef func2 = {"ek9kEnableDbg", 1, args, usage};
 		iocshRegister(&func, ek9000EnableDebug);
 		iocshRegister(&func2, ek9000EnableDebug);
 	}
 
 	/* ek9000DisableDebug */
 	{
+		static const char* usage = "ek9000DisableDebug ek9k_name";
 		static const iocshArg arg1 = {"EK9K", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9kDisableDebug", 1, args};
-		static const iocshFuncDef func2 = {"ek9kDisableDbg", 1, args};
+		static const iocshFuncDef func = {"ek9kDisableDebug", 1, args, usage};
+		static const iocshFuncDef func2 = {"ek9kDisableDbg", 1, args, usage};
 		iocshRegister(&func, ek9000DisableDebug);
 		iocshRegister(&func2, ek9000DisableDebug);
 	}
 
 	/* ek9000List */
 	{
-		static iocshFuncDef func = {"ek9000List", 0, NULL};
-		static iocshFuncDef func2 = {"ek9kList", 0, NULL};
+		static iocshFuncDef func = {"ek9000List", 0, NULL, "ek9000List"};
+		static iocshFuncDef func2 = {"ek9kList", 0, NULL, "ek9kList"};
 		iocshRegister(&func, ek9000List);
 		iocshRegister(&func2, ek9000List);
 	}
@@ -1371,7 +1318,7 @@ static long ek9000_init(int after)
 	return 0;
 }
 
-static long ek9000_init_record(void *prec)
+static long ek9000_init_record(void *)
 {
 	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
 	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
@@ -1447,7 +1394,7 @@ devEK9KCoERO =
 
 epicsExportAddress(dset, devEK9KCoERO);
 
-static long ek9k_confli_init(int pass)
+static long ek9k_confli_init(int)
 {
 	return 0;
 }
@@ -1556,7 +1503,7 @@ devEK9KCoERW =
 
 epicsExportAddress(dset, devEK9KCoERW);
 
-static long ek9k_conflo_init(int pass)
+static long ek9k_conflo_init(int)
 {
 	return 0;
 }
@@ -1732,7 +1679,7 @@ devEK9000ConfigRO =
 
 epicsExportAddress(dset, devEK9000ConfigRO);
 
-static long ek9k_ro_init(int pass)
+static long ek9k_ro_init(int)
 {
 	return 0;
 }
@@ -1801,7 +1748,7 @@ devEK9000ConfigRW =
 
 epicsExportAddress(dset, devEK9000ConfigRW);
 
-static long ek9k_rw_init(int pass)
+static long ek9k_rw_init(int)
 {
 	return 0;
 }

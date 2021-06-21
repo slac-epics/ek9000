@@ -124,12 +124,12 @@ static void EL10XX_ReadCallback(CALLBACK* callback)
 	pRecord->pact = FALSE;
 }
 
-static long EL10XX_dev_report(int interest)
+static long EL10XX_dev_report(int)
 {
 	return 0;
 }
 
-static long EL10XX_init(int after)
+static long EL10XX_init(int)
 {
 	return 0;
 }

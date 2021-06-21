@@ -16,7 +16,7 @@ USR_CXXFLAGS += --std=c++11
 endif
 
 ifeq ($(PEDANTIC),1)
-USE_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic
+USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -Wno-variadic-macros
 endif
 
 # Records/Device support sources

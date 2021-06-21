@@ -83,7 +83,7 @@
 
 /* Forward decls */
 class devEK9000;
-struct devEK9000Terminal;
+class devEK9000Terminal;
 
 extern std::list<devEK9000*> g_Devices;
 extern bool g_bDebug;
@@ -247,10 +247,6 @@ public:
 	static devEK9000* FindDevice(const char* name);
 
 public:
-	void QueueCallback(void(*callback)(void*), void* rec);
-
-	void ExecuteCallbacks();
-
 	/* Allows for better error handling (instead of using print statements to indicate error) */
 	static devEK9000 *Create(const char *name, const char *ip, int terminal_count);
 
@@ -298,9 +294,6 @@ public:
 
 	/* Do CoE I/O */
 	int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t *data, uint16_t subindex, uint16_t reallen = 0);
-
-	/* same as doEK9000IO except this only operates on the ek9000 itself, term is not used */
-	int doCouplerIO(int rw, uint16_t term, uint16_t len, uint16_t addr, uint16_t *data, uint16_t subindex = 0);
 
 	/* Reads the value of the CoE register */
 	int ReadCOECode();
@@ -477,13 +470,13 @@ bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt)
 			epicsPrintf("%s (when parsing %s): ignored unknown param %s\n", function, prec->name, param.key);
 		}
 	}
+
+	if(!dpvt.mapping)
+		dpvt.mapping = epicsStrDup("");
+	if(!dpvt.terminalType)
+		dpvt.terminalType = epicsStrDup("");
+	if(!dpvt.representation)
+		dpvt.representation = epicsStrDup("");
+	return true;
 }
-
-
-template<class RecordT>
-void devEK9000::destroyDpvt(RecordT* prec, TerminalDpvt_t& dpvt)
-{
-
-}
-
 

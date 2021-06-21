@@ -127,12 +127,12 @@ static void EL20XX_WriteCallback(CALLBACK* callback)
 	}
 }
 
-static long EL20XX_dev_report(int interest)
+static long EL20XX_dev_report(int)
 {
 	return 0;
 }
 
-static long EL20XX_init(int after)
+static long EL20XX_init(int)
 {
 	return 0;
 }

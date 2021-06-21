@@ -40,7 +40,7 @@ void util::iocshRegister(const char *name, void (*pfn)(const iocshArgBuf *), std
 		handle->args[i] = *it;
 	for (size_t i = 0; i < args.size(); i++)
 		handle->pargs[i] = &handle->args[i];
-	handle->func = {name, (int)args.size(), handle->pargs};
+	handle->func = {name, (int)args.size(), handle->pargs, ""};
 	::iocshRegister(&handle->func, pfn);
 	functions.push_back(handle);
 }

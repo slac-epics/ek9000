@@ -8,6 +8,17 @@
 #include <stdint.h>
 
 #pragma pack(1)
+struct data_t
+{
+	uint8_t data_error : 1;
+	uint8_t frame_error : 1;
+	uint8_t power_fail : 1;
+	uint8_t data_mismatch : 1;
+	uint8_t _r1 : 1;
+	uint8_t sync_err : 1;
+	uint8_t txpdo_state : 1;
+	uint8_t txpdo_toggle : 1;
+};
 
 /* Input data from an el5001 terminal */
 struct EL5001Output_t
@@ -15,17 +26,7 @@ struct EL5001Output_t
 	union
 	{
 		uint8_t status_byte;
-		struct
-		{
-			uint8_t data_error : 1;
-			uint8_t frame_error : 1;
-			uint8_t power_fail : 1;
-			uint8_t data_mismatch : 1;
-			uint8_t _r1 : 1;
-			uint8_t sync_err : 1;
-			uint8_t txpdo_state : 1;
-			uint8_t txpdo_toggle : 1;
-		};
+		data_t data;
 	};
 	uint32_t encoder_value;
 };

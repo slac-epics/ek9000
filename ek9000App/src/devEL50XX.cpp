@@ -84,9 +84,9 @@ static void el50xx_read_callback(CALLBACK* callback)
 		case 5001:
 		{
 			EL5001Output_t* output = reinterpret_cast<EL5001Output_t*>(data);
-			if(output->data_error || output->sync_err)
+			if(output->data.data_error || output->data.sync_err)
 				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-			if(output->frame_error)
+			if(output->data.frame_error)
 				recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
 			precord->val = output->encoder_value;
 			break;
@@ -112,12 +112,12 @@ static void el50xx_read_callback(CALLBACK* callback)
 
 }
 
-static long el50xx_dev_report(int lvl)
+static long el50xx_dev_report(int)
 {
 	return 0;
 }
 
-static long el50xx_init(int after)
+static long el50xx_init(int)
 {
 	return 0;
 }
@@ -167,17 +167,7 @@ static long el50xx_init_record(void* precord)
 
 static long el50xx_read_record(void* precord)
 {
-	longinRecord* prec = (longinRecord*)precord;
-	EL50XXDpvt_t* dpvt = (EL50XXDpvt_t*)prec->dpvt;
-	dpvt->precord = static_cast<longinRecord*>(precord);
-
-	/* Indicate processing */
-	prec->pact = 1;
-
-	CALLBACK* callback = (CALLBACK*)calloc(1, sizeof(CALLBACK));
-	callbackSetUser(precord, callback);
-	callbackSetPriority(priorityMedium, callback);
-	callbackRequest(callback);
+	util::setupCallback(precord, el50xx_read_callback);
 	return 0;
 }
 
@@ -236,7 +226,7 @@ struct EL5042InputPDO_t
 Report on all EL5042 devices
 -------------------------------------
 */
-static long el5042_dev_report(int lvl)
+static long el5042_dev_report(int)
 {
 	return 0;
 }
@@ -295,7 +285,7 @@ static long el5042_init_record(void* prec)
 Initialize the device support module
 -------------------------------------
 */
-static long el5042_init(int after)
+static long el5042_init(int)
 {
 	return 0;
 }

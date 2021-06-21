@@ -74,12 +74,6 @@ struct
 epicsExportAddress(dset, devEL30XX);
 
 #pragma pack(1)
-/*
-Okay beckhoff, what the h*ck! The status bits COME AFTER THE VALUE 
-but the docs say they come before! What! 
-Never had this issue with ANY other terminal type. I feel dirty and wrong
-for swapping the bytes around here.
-*/
 struct EL30XXStandardInputPDO_t
 {
 	uint8_t underrange : 1;
@@ -178,12 +172,12 @@ static void EL30XX_ReadCallback(CALLBACK *callback)
 	return;
 }
 
-static long EL30XX_dev_report(int interest)
+static long EL30XX_dev_report(int)
 {
 	return 0;
 }
 
-static long EL30XX_init(int after)
+static long EL30XX_init(int)
 {
 	return 0;
 }
@@ -240,7 +234,7 @@ static long EL30XX_read_record(void *precord)
 	return 0;
 }
 
-static long EL30XX_linconv(void *precord, int after)
+static long EL30XX_linconv(void *, int)
 {
 	return 0;
 }
@@ -351,12 +345,12 @@ static void EL36XX_ReadCallback(CALLBACK *callback)
 	return;
 }
 
-static long EL36XX_dev_report(int interest)
+static long EL36XX_dev_report(int)
 {
 	return 0;
 }
 
-static long EL36XX_init(int after)
+static long EL36XX_init(int)
 {
 	return 0;
 }
@@ -409,7 +403,7 @@ static long EL36XX_read_record(void *precord)
 	return 0;
 }
 
-static long EL36XX_linconv(void *precord, int after)
+static long EL36XX_linconv(void *, int)
 {
 	return 0;
 }
@@ -522,12 +516,12 @@ static void EL331X_ReadCallback(CALLBACK *callback)
 	return;
 }
 
-static long EL331X_dev_report(int interest)
+static long EL331X_dev_report(int)
 {
 	return 0;
 }
 
-static long EL331X_init(int after)
+static long EL331X_init(int)
 {
 	return 0;
 }
@@ -576,11 +570,11 @@ static long EL331X_init_record(void *precord)
 
 static long EL331X_read_record(void *precord)
 {
-	util::setupCallback(precord, EL36XX_ReadCallback);
+	util::setupCallback(precord, EL331X_ReadCallback);
 	return 0;
 }
 
-static long EL331X_linconv(void *precord, int after)
+static long EL331X_linconv(void *, int)
 {
 	return 0;
 }
