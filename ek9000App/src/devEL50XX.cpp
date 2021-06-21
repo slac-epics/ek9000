@@ -165,8 +165,16 @@ static long el50xx_init_record(void* precord)
 	return 0;
 }
 
-static long el50xx_read_record(void* precord)
+static long el50xx_read_record(void* prec)
 {
+	longinRecord* precord = static_cast<longinRecord*>(prec);
+	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(precord->dpvt);
+
+	precord->pact = 1;
+
+	/* Just for utility */
+	dpvt->precord = static_cast<longinRecord*>(prec);
+	
 	util::setupCallback(precord, el50xx_read_callback);
 	return 0;
 }
