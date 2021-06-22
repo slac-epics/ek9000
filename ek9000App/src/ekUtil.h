@@ -22,6 +22,8 @@
 #include <string>
 #include <list>
 
+#include "ekLocal.h"
+
 #include "terminals.h"
 #include "devEK9000.h"
 
