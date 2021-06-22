@@ -452,24 +452,39 @@ struct EL331XDpvt_t
 #pragma pack(1)
 struct EL331XInputPDO_t
 {
-	uint32_t inp;
-	uint16_t status;
+	uint8_t underrange : 1;
+	uint8_t overrange : 1;
+	uint8_t limit1 : 2;
+	uint8_t limit2 : 2;
+	uint8_t error : 1;
+	uint8_t txpdo_state : 1;
+	uint8_t txpdo_toggle : 1;
+	uint16_t value;
+};
+
+struct EL3314_0010_InputPDO_t 
+{
+	uint8_t underrange : 1;
+	uint8_t overrange : 1;
+	uint8_t limit1 : 2;
+	uint8_t limit2 : 2;
+	uint8_t error : 1;
+	uint8_t txpdo_state : 1;
+	uint8_t txpdo_toggle : 1;
+	uint16_t value;
 };
 #pragma pack()
-
-#define EL36XX_OVERRANGE_MASK 0x2
-#define EL36XX_UNDERRANGE_MASK 0x1
 
 static void EL331X_ReadCallback(CALLBACK *callback)
 {
 	void *record;
 	uint16_t buf[3];
-	EL36XXInputPDO_t* pdo = NULL;
-	static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf), "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
+	EL331XInputPDO_t* pdo = NULL;
+	static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf), "SEL331XInput is greater than 3 bytes in size! Contact the author regarding this error.");
 
 	callbackGetUser(record, callback);
 	aiRecord *pRecord = static_cast<aiRecord *>(record);
-	EL36XXDpvt_t *dpvt = static_cast<EL36XXDpvt_t *>(pRecord->dpvt);
+	EL331XDpvt_t *dpvt = static_cast<EL331XDpvt_t *>(pRecord->dpvt);
 	free(callback);
 
 	/* Check for invalid */
@@ -482,16 +497,16 @@ static void EL331X_ReadCallback(CALLBACK *callback)
 	if (status != epicsMutexLockOK)
 	{
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		DevError("EL36XX_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
+		DevError("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
 
 	status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
-	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
-	pRecord->rval = pdo->inp;
+	pdo = reinterpret_cast<EL331XInputPDO_t*>(buf);
+	pRecord->rval = pdo->value;
 
 	/* Check the overrange and underrange flags */
-	if ((pdo->status & EL36XX_OVERRANGE_MASK) || (pdo->status & EL36XX_UNDERRANGE_MASK))
+	if (pdo->overrange || pdo->underrange)
 	{
 		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
 	}
@@ -507,10 +522,10 @@ static void EL331X_ReadCallback(CALLBACK *callback)
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		if (status > 0x100)
 		{
-			DevError("EL36XX_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			DevError("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
-		DevError("EL36XX_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
+		DevError("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
 		return;
 	}
 	return;
@@ -529,15 +544,15 @@ static long EL331X_init(int)
 static long EL331X_init_record(void *precord)
 {
 	aiRecord *pRecord = static_cast<aiRecord *>(precord);
-	pRecord->dpvt = calloc(1, sizeof(EL36XXDpvt_t));
-	EL36XXDpvt_t *dpvt = static_cast<EL36XXDpvt_t *>(pRecord->dpvt);
+	pRecord->dpvt = calloc(1, sizeof(EL331XDpvt_t));
+	EL331XDpvt_t *dpvt = static_cast<EL331XDpvt_t *>(pRecord->dpvt);
 
 	/* Get the terminal */
 	char *recname = NULL;
 	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
 	if (!dpvt->terminal)
 	{
-		Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		Error("EL331X_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
@@ -548,7 +563,7 @@ static long EL331X_init_record(void *precord)
 	/* Check connection to terminal */
 	if (!dpvt->terminal->m_device->VerifyConnection())
 	{
-		Error("EL36XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		Error("EL331X_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->device->Unlock();
 		return 1;
 	}
@@ -561,7 +576,7 @@ static long EL331X_init_record(void *precord)
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0)
 	{
-		Error("EL36XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		Error("EL331X_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 
