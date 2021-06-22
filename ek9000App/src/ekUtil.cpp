@@ -21,20 +21,18 @@ using namespace util;
 
 /* Maintain a list of handles to iocsh args */
 /* This really wont be needed, but it helps us pretend that we aren't leaking memory */
-struct iocshHandles_t
-{
-	iocshArg *args;
-	iocshArg **pargs;
+struct iocshHandles_t {
+	iocshArg* args;
+	iocshArg** pargs;
 	iocshFuncDef func;
 };
-std::vector<iocshHandles_t *> functions;
+std::vector<iocshHandles_t*> functions;
 
 /* Register iocsh functions */
-void util::iocshRegister(const char *name, void (*pfn)(const iocshArgBuf *), std::initializer_list<iocshArg> args)
-{
-	iocshHandles_t *handle = static_cast<iocshHandles_t *>(malloc(sizeof(iocshHandles_t)));
-	handle->args = static_cast<iocshArg *>(malloc(args.size() * sizeof(iocshArg)));
-	handle->pargs = static_cast<iocshArg **>(malloc(args.size() * sizeof(iocshArg *)));
+void util::iocshRegister(const char* name, void (*pfn)(const iocshArgBuf*), std::initializer_list<iocshArg> args) {
+	iocshHandles_t* handle = static_cast<iocshHandles_t*>(malloc(sizeof(iocshHandles_t)));
+	handle->args = static_cast<iocshArg*>(malloc(args.size() * sizeof(iocshArg)));
+	handle->pargs = static_cast<iocshArg**>(malloc(args.size() * sizeof(iocshArg*)));
 	auto it = args.begin();
 	for (size_t i = 0; i < args.size() && it; i++, it++)
 		handle->args[i] = *it;
@@ -45,16 +43,14 @@ void util::iocshRegister(const char *name, void (*pfn)(const iocshArgBuf *), std
 	functions.push_back(handle);
 }
 
-const STerminalInfoConst_t *util::FindTerminal(unsigned int id)
-{
+const STerminalInfoConst_t* util::FindTerminal(unsigned int id) {
 	for (unsigned int i = 0; i < NUM_TERMINALS; i++)
 		if (g_pTerminalInfos[i]->m_nID == id)
 			return g_pTerminalInfos[i];
 	return nullptr;
 }
 
-void util::Log(const char *fmt, ...)
-{
+void util::Log(const char* fmt, ...) {
 	time_t clk = time(0);
 	tm _tm;
 
@@ -67,8 +63,7 @@ void util::Log(const char *fmt, ...)
 	va_end(list);
 }
 
-void util::Warn(const char *fmt, ...)
-{
+void util::Warn(const char* fmt, ...) {
 	epicsTimeStamp stmp;
 	epicsTimeGetCurrent(&stmp);
 
@@ -82,8 +77,7 @@ void util::Warn(const char *fmt, ...)
 	va_end(list);
 }
 
-void util::Error(const char *fmt, ...)
-{
+void util::Error(const char* fmt, ...) {
 	epicsTimeStamp stmp;
 	epicsTimeGetCurrent(&stmp);
 
@@ -97,14 +91,12 @@ void util::Error(const char *fmt, ...)
 	va_end(list);
 }
 
-long util::setupCallback(void *rec, void (*pCallback)(CALLBACK *))
-{
-	CALLBACK *callback = (CALLBACK *)calloc(1, sizeof(CALLBACK));
-	*callback = *(CALLBACK *)pCallback;
+long util::setupCallback(void* rec, void (*pCallback)(CALLBACK*)) {
+	CALLBACK* callback = (CALLBACK*)calloc(1, sizeof(CALLBACK));
+	*callback = *(CALLBACK*)pCallback;
 	callbackSetCallback(pCallback, callback);
 	callbackSetUser(rec, callback);
 	callbackSetPriority(priorityHigh, callback);
 	callbackRequest(callback);
 	return 0;
 }
-

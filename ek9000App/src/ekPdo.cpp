@@ -1,10 +1,10 @@
 /**
- * 
+ *
  * pdo.cpp
- * 
+ *
  * PDO Mapping
- * 
- */ 
+ *
+ */
 
 #include <epicsStdio.h>
 #include <epicsStdlib.h>

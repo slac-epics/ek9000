@@ -2,7 +2,7 @@
  *
  * CoE diagnostics support
  *
- */ 
+ */
 #include "ekDiag.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -11,8 +11,7 @@
 #include <time.h>
 
 #pragma pack(1)
-struct coe_diag_msg_t
-{
+struct coe_diag_msg_t {
 	uint32_t diag_code;
 	uint16_t flags;
 	uint16_t textid;
@@ -22,8 +21,7 @@ struct coe_diag_msg_t
 };
 #pragma pack(0)
 
-int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
-{
+int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen) {
 	coe_diag_msg_t msg = *(coe_diag_msg_t*)string;
 	char buf[8192];
 	char tmpbuf[512];
@@ -32,8 +30,7 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 	snprintf(tmpbuf, sizeof(tmpbuf), "%s", asctime(localtime((time_t*)&msg.timestamp)));
 
 	/* Print in the type of message */
-	switch((msg.textid & 0xF000) >> 11)
-	{
+	switch ((msg.textid & 0xF000) >> 11) {
 		case 2:
 			snprintf(buf, sizeof(buf), "%s [RESERVED]", tmpbuf);
 			break;
@@ -51,8 +48,7 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 	}
 
 	/* Print in the subsystem */
-	switch((msg.textid & 0x0F00) >> 7)
-	{
+	switch ((msg.textid & 0x0F00) >> 7) {
 		case 0:
 			snprintf(buf, sizeof(buf), "%s [SYSTEM]", tmpbuf);
 			break;
@@ -80,8 +76,7 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 	}
 
 	/* Finally, a giant switch statement to handle simple message types */
-	switch(msg.textid)
-	{
+	switch (msg.textid) {
 		case 0x1:
 			snprintf(buf, sizeof(buf), "%s No error", tmpbuf);
 			break;
@@ -89,12 +84,12 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s Communication established", tmpbuf);
 			break;
 		case 0x3:
-			snprintf(buf, sizeof(buf), "%s Initialization: 0x%X, 0x%X, 0x%X", tmpbuf,
-					msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Initialization: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1],
+					 msg.params[2]);
 			break;
 		case 0x1000:
-			snprintf(buf, sizeof(buf), "%s Information: 0x%X, 0x%X, 0x%X", tmpbuf,
-					msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Information: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1],
+					 msg.params[2]);
 			break;
 		case 0x1012:
 			snprintf(buf, sizeof(buf), "%s EtherCAT state change Init - PreOP", tmpbuf);
@@ -115,29 +110,34 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s EtherCAT state change OP - SafeOP", tmpbuf);
 			break;
 		case 0x1100:
-			snprintf(buf, sizeof(buf), "%s Detection of operation mode completed: 0x%X, %d", tmpbuf,
-					msg.params[0], (uint32_t)msg.params[5]);
+			snprintf(buf, sizeof(buf), "%s Detection of operation mode completed: 0x%X, %d", tmpbuf, msg.params[0],
+					 (uint32_t)msg.params[5]);
 			break;
 		case 0x1135:
 			snprintf(buf, sizeof(buf), "%s Cycle time OK: %d", tmpbuf, (uint32_t)msg.params[0]);
 			break;
 		case 0x1157:
-			snprintf(buf, sizeof(buf), "%s Data manually saved (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Data manually saved (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0],
+					 msg.params[1]);
 			break;
 		case 0x1158:
-			snprintf(buf, sizeof(buf), "%s Data automatically saved (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Data automatically saved (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0],
+					 msg.params[1]);
 			break;
 		case 0x1159:
-			snprintf(buf, sizeof(buf), "%s Data deleted (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Data deleted (Idx: 0x%X, Subidx: 0x%X)", tmpbuf, msg.params[0],
+					 msg.params[1]);
 			break;
 		case 0x117F:
-			snprintf(buf, sizeof(buf), "%s Information: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Information: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1],
+					 msg.params[2]);
 			break;
 		case 0x1201:
 			snprintf(buf, sizeof(buf), "%s Communication re-established", tmpbuf);
 			break;
 		case 0x1300:
-			snprintf(buf, sizeof(buf), "%s Position set: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Position set: %d, %d", tmpbuf, (uint32_t)msg.params[0],
+					 (uint32_t)msg.params[4]);
 			break;
 		case 0x1303:
 			snprintf(buf, sizeof(buf), "%s Encoder supply OK", tmpbuf);
@@ -149,10 +149,12 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s Sent command encoder reset, channel: %X", tmpbuf, msg.params[0]);
 			break;
 		case 0x1400:
-			snprintf(buf, sizeof(buf), "%s Drive is calibrated: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Drive is calibrated: %d, %d", tmpbuf, (uint32_t)msg.params[0],
+					 (uint32_t)msg.params[4]);
 			break;
 		case 0x1401:
-			snprintf(buf, sizeof(buf), "%s Actual drive state: 0x%X, %d", tmpbuf, msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Actual drive state: 0x%X, %d", tmpbuf, msg.params[0],
+					 (uint32_t)msg.params[1]);
 			break;
 		case 0x1705:
 			snprintf(buf, sizeof(buf), "%s CPU usage returns in the normal range (<85%%)", tmpbuf);
@@ -170,7 +172,8 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s Calibration data saved", tmpbuf);
 			break;
 		case 0x170D:
-			snprintf(buf, sizeof(buf), "%s Calibration data will be applied and saved after sending the command 0x5AFE", tmpbuf);
+			snprintf(buf, sizeof(buf), "%s Calibration data will be applied and saved after sending the command 0x5AFE",
+					 tmpbuf);
 			break;
 		case 0x2000:
 			snprintf(buf, sizeof(buf), "%s Converting this command to a string is not supported", tmpbuf);
@@ -184,7 +187,7 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 		case 0x2003:
 			snprintf(buf, sizeof(buf), "%s No valid IP configuration found: DHCP client started.", tmpbuf);
 			break;
-		case 0x2004: 
+		case 0x2004:
 			snprintf(buf, sizeof(buf), "%s valid IP configuration found", tmpbuf);
 			break;
 		case 0x2005:
@@ -205,7 +208,8 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 		case 0x4001:
 		case 0x4000:
 		case 0x417F:
-			snprintf(buf, sizeof(buf), "%s Warning: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Warning: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1],
+					 msg.params[2]);
 			break;
 		case 0x4002:
 			snprintf(buf, sizeof(buf), "%s Connection open", tmpbuf);
@@ -232,25 +236,31 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s Challenge is not random", tmpbuf);
 			break;
 		case 0x4300:
-			snprintf(buf, sizeof(buf), "%s Subincrements deactivated: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Subincrements deactivated: %d, %d", tmpbuf, (uint32_t)msg.params[0],
+					 (uint32_t)msg.params[4]);
 			break;
 		case 0x4301:
 			snprintf(buf, sizeof(buf), "%s Encoder warning", tmpbuf);
 			break;
 		case 0x4400:
-			snprintf(buf, sizeof(buf), "%s Drive is no calibrated: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Drive is no calibrated: %d, %d", tmpbuf, (uint32_t)msg.params[0],
+					 (uint32_t)msg.params[4]);
 			break;
 		case 0x4401:
-			snprintf(buf, sizeof(buf), "%s Starttype not supported: 0x%X, %d", tmpbuf, msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Starttype not supported: 0x%X, %d", tmpbuf, msg.params[0],
+					 (uint32_t)msg.params[1]);
 			break;
 		case 0x4402:
-			snprintf(buf, sizeof(buf), "%s Command rejected: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Command rejected: %d, %d", tmpbuf, (uint32_t)msg.params[0],
+					 (uint32_t)msg.params[1]);
 			break;
 		case 0x4405:
-			snprintf(buf, sizeof(buf), "%s Invalid modulo subtype: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Invalid modulo subtype: %d, %d", tmpbuf, (uint32_t)msg.params[0],
+					 (uint32_t)msg.params[4]);
 			break;
 		case 0x4410:
-			snprintf(buf, sizeof(buf), "%s Target overrun: %d, %d", tmpbuf, (uint32_t)msg.params[0], (uint32_t)msg.params[4]);
+			snprintf(buf, sizeof(buf), "%s Target overrun: %d, %d", tmpbuf, (uint32_t)msg.params[0],
+					 (uint32_t)msg.params[4]);
 			break;
 		case 0x4411:
 			snprintf(buf, sizeof(buf), "%s DC-Link undervoltage", tmpbuf);
@@ -268,7 +278,8 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s Speed limitation active", tmpbuf);
 			break;
 		case 0x4416:
-			snprintf(buf, sizeof(buf), "%s Step loss detected at position: 0x%X%X", tmpbuf, msg.params[0], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Step loss detected at position: 0x%X%X", tmpbuf, msg.params[0],
+					 msg.params[1]);
 			break;
 		case 0x4417:
 			snprintf(buf, sizeof(buf), "%s Motor overtemperature", tmpbuf);
@@ -304,13 +315,15 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s %s", tmpbuf, msg.params);
 			break;
 		case 0x8001:
-			snprintf(buf, sizeof(buf), "%s Error: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Error: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1],
+					 msg.params[2]);
 			break;
 		case 0x8002:
 			snprintf(buf, sizeof(buf), "%s Communication aborted", tmpbuf);
 			break;
 		case 0x8003:
-			snprintf(buf, sizeof(buf), "%s Configuration error: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[2]);
+			snprintf(buf, sizeof(buf), "%s Configuration error: 0x%X, 0x%X, 0x%X", tmpbuf, msg.params[0], msg.params[1],
+					 msg.params[2]);
 			break;
 		case 0x8004:
 			snprintf(buf, sizeof(buf), "%s %s: Unsuccessful FwdOpen-Response received", tmpbuf, msg.params);
@@ -328,7 +341,8 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s Status word set: 0x%X,%d", tmpbuf, msg.params[0], (uint32_t)msg.params[1]);
 			break;
 		case 0x8101:
-			snprintf(buf, sizeof(buf), "%s Operation mode incompatible to PDO interface: 0x%X, %d", tmpbuf, msg.params[0], (uint32_t)msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Operation mode incompatible to PDO interface: 0x%X, %d", tmpbuf,
+					 msg.params[0], (uint32_t)msg.params[1]);
 			break;
 		case 0x8102:
 			snprintf(buf, sizeof(buf), "%s Invalid combination of input and output PDOs", tmpbuf);
@@ -364,9 +378,11 @@ int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen)
 			snprintf(buf, sizeof(buf), "%s Jitter too big", tmpbuf);
 			break;
 		case 0x817F:
-			snprintf(buf, sizeof(buf), "%s Error: 0x%X, 0x%X,0 0x%X", tmpbuf, msg.params[0], msg.params[1], msg.params[1]);
+			snprintf(buf, sizeof(buf), "%s Error: 0x%X, 0x%X,0 0x%X", tmpbuf, msg.params[0], msg.params[1],
+					 msg.params[1]);
 			break;
-		default: break;
+		default:
+			break;
 	}
 	strncpy(outbuf, tmpbuf, outbuflen);
 	return outbuflen;

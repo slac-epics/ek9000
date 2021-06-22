@@ -2,14 +2,13 @@
  *
  * device support for EL50XX encoders.
  *
- */ 
+ */
 #pragma once
 
 #include <stdint.h>
 
 #pragma pack(1)
-struct data_t
-{
+struct data_t {
 	uint8_t data_error : 1;
 	uint8_t frame_error : 1;
 	uint8_t power_fail : 1;
@@ -21,10 +20,8 @@ struct data_t
 };
 
 /* Input data from an el5001 terminal */
-struct EL5001Output_t
-{
-	union
-	{
+struct EL5001Output_t {
+	union {
 		uint8_t status_byte;
 		data_t data;
 	};
@@ -32,8 +29,7 @@ struct EL5001Output_t
 };
 
 /* Input data from an el5002 slave, given it has the extended status byte enabled */
-struct EL5002Output_t
-{
+struct EL5002Output_t {
 	uint8_t data_error : 1;
 	uint8_t frame_error : 1;
 	uint8_t power_fail : 1;
@@ -43,4 +39,3 @@ struct EL5002Output_t
 };
 
 #pragma pack()
-
