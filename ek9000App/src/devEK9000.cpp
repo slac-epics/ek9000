@@ -84,7 +84,6 @@ bool g_bDebug = false;
 epicsThreadId g_PollThread = 0;
 epicsMutexId g_ThreadMutex = 0;
 int g_nPollDelay = 250;
-int g_verbosity = VERBOSITY_NORMAL;
 std::list<devEK9000*> g_Devices;
 
 /* Global list accessor */
@@ -979,27 +978,7 @@ void ek9000SetPollTime(const iocshArgBuf* args) {
 	g_nPollDelay = time;
 }
 
-void ek9000SetVerbosity(const iocshArgBuf* args) {
-	int lvl = args[0].ival;
-	if (lvl < 0 || lvl > 10) {
-		epicsPrintf("Verbosity level must be between 0 and 10\n");
-		return;
-	}
-	g_verbosity = lvl;
-}
-
 int ek9000RegisterFunctions() {
-	/* ek90000SetVerbosity */
-	{
-		static const char* usage = "ek9000SetVerbosity device level";
-		static const iocshArg arg1 = {"level", iocshArgInt};
-		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000SetVerbosity", 1, args, usage};
-		static const iocshFuncDef func2 = {"ek9kSetVerbosity", 1, args, usage};
-		iocshRegister(&func, ek9000SetVerbosity);
-		iocshRegister(&func2, ek9000SetVerbosity);
-	}
-
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
 		static const char* usage = "ek9000SetWatchdogTime device time";
@@ -1319,7 +1298,7 @@ static long ek9k_conflo_init_record(void* prec) {
 static long ek9k_conflo_write_record(void* prec) {
 	int64outRecord* precord = static_cast<int64outRecord*>(prec);
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
-	int ret;
+	int ret = EK_EOK;
 
 	if (!dpvt || !dpvt->param.ek9k)
 		return -1;
@@ -1359,6 +1338,10 @@ static long ek9k_conflo_write_record(void* prec) {
 		}
 		default:
 			break;
+	}
+
+	if(ret != EK_EOK) {
+		util::Error("ek9k_conflo_write_record(): Error writing data to record.\n");
 	}
 
 	dpvt->param.ek9k->Unlock();
@@ -1560,7 +1543,7 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 	const char *pek9k = 0, *preg = 0;
 
 	memset(buf, 0, 512);
-	strncpy(buf, str, 512);
+	strncpy(buf, str, sizeof(buf)-1);
 
 	if (!buf[0])
 		return 1;

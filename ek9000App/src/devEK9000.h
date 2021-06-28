@@ -85,12 +85,6 @@ class devEK9000Terminal;
 
 extern std::list<devEK9000*> g_Devices;
 extern bool g_bDebug;
-extern int g_verbosity;
-
-#define VERBOSITY_NORMAL 0
-#define VERBOSITY_DEVINFO 1
-#define VERBOSITY_EXTRAINFO 2
-#define VERBOSITY_EVERYTHING 3
 
 std::list<devEK9000*>& GlobalDeviceList();
 
