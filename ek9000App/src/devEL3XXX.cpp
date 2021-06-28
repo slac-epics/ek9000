@@ -178,7 +178,7 @@ static long EL30XX_init_record(void* precord) {
 	char* recname = NULL;
 	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
 	if (!dpvt->terminal) {
-		Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		util::Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
@@ -188,7 +188,7 @@ static long EL30XX_init_record(void* precord) {
 
 	/* Check connection to terminal */
 	if (!dpvt->terminal->m_device->VerifyConnection()) {
-		Error("EL30XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		util::Error("EL30XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->device->Unlock();
 		return 1;
 	}
@@ -200,7 +200,7 @@ static long EL30XX_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		Error("EL30XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL30XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 
@@ -208,7 +208,7 @@ static long EL30XX_init_record(void* precord) {
 }
 
 static long EL30XX_read_record(void* precord) {
-	util::setupCallback(precord, EL30XX_ReadCallback);
+	util::setupReadCallback<aiRecord>(precord, EL30XX_ReadCallback);
 	return 0;
 }
 
@@ -328,7 +328,7 @@ static long EL36XX_init_record(void* precord) {
 	char* recname = NULL;
 	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
 	if (!dpvt->terminal) {
-		Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		util::Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
@@ -338,7 +338,7 @@ static long EL36XX_init_record(void* precord) {
 
 	/* Check connection to terminal */
 	if (!dpvt->terminal->m_device->VerifyConnection()) {
-		Error("EL36XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		util::Error("EL36XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->device->Unlock();
 		return 1;
 	}
@@ -350,7 +350,7 @@ static long EL36XX_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		Error("EL36XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL36XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 
@@ -358,7 +358,7 @@ static long EL36XX_init_record(void* precord) {
 }
 
 static long EL36XX_read_record(void* precord) {
-	util::setupCallback(precord, EL36XX_ReadCallback);
+	util::setupReadCallback<aiRecord>(precord, EL36XX_ReadCallback);
 	return 0;
 }
 
@@ -492,7 +492,7 @@ static long EL331X_init_record(void* precord) {
 	char* recname = NULL;
 	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
 	if (!dpvt->terminal) {
-		Error("EL331X_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		util::Error("EL331X_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
@@ -502,7 +502,7 @@ static long EL331X_init_record(void* precord) {
 
 	/* Check connection to terminal */
 	if (!dpvt->terminal->m_device->VerifyConnection()) {
-		Error("EL331X_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		util::Error("EL331X_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->device->Unlock();
 		return 1;
 	}
@@ -514,7 +514,7 @@ static long EL331X_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		Error("EL331X_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL331X_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 
@@ -522,7 +522,7 @@ static long EL331X_init_record(void* precord) {
 }
 
 static long EL331X_read_record(void* precord) {
-	util::setupCallback(precord, EL331X_ReadCallback);
+	util::setupReadCallback<aiRecord>(precord, EL331X_ReadCallback);
 	return 0;
 }
 

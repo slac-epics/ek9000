@@ -116,7 +116,7 @@ static long el50xx_init_record(void* precord) {
 	int channel = 0;
 	dpvt->pterm = devEK9000Terminal::ProcessRecordName(record->name, channel, recname);
 	if (!dpvt->pterm) {
-		Error("EL50XX_init_record(): Unable to find terminal for record %s\n", record->name);
+		util::Error("EL50XX_init_record(): Unable to find terminal for record %s\n", record->name);
 		return 1;
 	}
 	free(recname);
@@ -126,7 +126,7 @@ static long el50xx_init_record(void* precord) {
 
 	/* Check connection to terminal */
 	if (!dpvt->pcoupler->VerifyConnection()) {
-		Error("EL50XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		util::Error("EL50XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->pcoupler->Unlock();
 		return 1;
 	}
@@ -138,7 +138,7 @@ static long el50xx_init_record(void* precord) {
 	dpvt->tid = termid;
 
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		Error("EL50XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
+		util::Error("EL50XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
 		return 1;
 	}
 
@@ -149,13 +149,10 @@ static long el50xx_read_record(void* prec) {
 	longinRecord* precord = static_cast<longinRecord*>(prec);
 	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(precord->dpvt);
 
-	precord->pact = 1;
-
 	/* Just for utility */
 	dpvt->precord = static_cast<longinRecord*>(prec);
 
-	util::setupCallback(precord, el50xx_read_callback);
-	return 0;
+	return util::setupReadCallback<longinRecord>(precord, el50xx_read_callback);
 }
 
 static long el5042_dev_report(int lvl);
@@ -224,7 +221,7 @@ static long el5042_init_record(void* prec) {
 	int channel = 0;
 	dpvt->pterm = devEK9000Terminal::ProcessRecordName(record->name, channel, recname);
 	if (!dpvt->pterm) {
-		Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
+		util::Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
 		return 1;
 	}
 	free(recname);
@@ -234,7 +231,7 @@ static long el5042_init_record(void* prec) {
 
 	/* Check connection to terminal */
 	if (!dpvt->pcoupler->VerifyConnection()) {
-		Error("EL5042_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		util::Error("EL5042_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		dpvt->pcoupler->Unlock();
 		return 1;
 	}
@@ -245,7 +242,7 @@ static long el5042_init_record(void* prec) {
 	dpvt->pcoupler->Unlock();
 	dpvt->prec = static_cast<int64inRecord*>(prec);
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
+		util::Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
 		return 1;
 	}
 
@@ -270,13 +267,10 @@ static long el5042_read_record(void* prec) {
 	int64inRecord* precord = static_cast<int64inRecord*>(prec);
 	EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(precord->dpvt);
 
-	precord->pact = 1;
-
 	/* Just for utility */
 	dpvt->prec = static_cast<int64inRecord*>(prec);
 
-	util::setupCallback(prec, el5042_read_callback);
-	return 0;
+	return util::setupReadCallback<int64inRecord>(prec, el5042_read_callback);
 }
 
 /*
@@ -318,7 +312,7 @@ static void el5042_read_callback(CALLBACK* callback) {
 		recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
 	}
 
-	/* TODO: Should warnings have alarms associated? */
+	/* Check for any read alarms */
 	if (pdo->warning) {
 		recGblSetSevr(precord, READ_ALARM, MINOR_ALARM);
 	}

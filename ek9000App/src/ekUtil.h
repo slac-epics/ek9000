@@ -51,6 +51,8 @@ public:
 
 #define AUTO_LOCK(x) CAutoLockWrapper<epicsMutex> __auto_lock(x)
 
+#define DEV_TRACE(msg, ...) 
+
 namespace util
 {
 	void iocshRegister(const char* name, void (*pfn)(const iocshArgBuf*), std::initializer_list<iocshArg> args);
@@ -71,4 +73,14 @@ namespace util
 	 * Call this to setup a callback. Can be used in-place of the read or write functions in the dpvt struct
 	 */
 	long setupCallback(void* rec, void (*pCallback)(CALLBACK*));
+	
+	/**
+	 * Sets up an async read callback. Ensures PACT is properly set 
+	 */
+	template<class T>
+	long setupReadCallback(void* rec, void(*pCallback)(CALLBACK*)) {
+		T* pRecord = static_cast<T*>(rec);
+		pRecord->pact = 1;
+		return util::setupCallback(rec, pCallback);
+	}
 } // namespace util

@@ -134,7 +134,7 @@ static long EL40XX_init_record(void* record) {
 
 	/* Verify terminal */
 	if (!dpvt->terminal) {
-		Error("EL40XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		util::Error("EL40XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(out);
@@ -144,7 +144,7 @@ static long EL40XX_init_record(void* record) {
 	int status = dpvt->terminal->m_device->Lock();
 	/* Verify it's error free */
 	if (status) {
-		Error("EL40XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
+		util::Error("EL40XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
 		return 1;
 	}
 
@@ -156,7 +156,7 @@ static long EL40XX_init_record(void* record) {
 
 	/* Verify terminal ID */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		Error("EL40XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL40XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 

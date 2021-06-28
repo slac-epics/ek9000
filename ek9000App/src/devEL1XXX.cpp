@@ -132,7 +132,7 @@ static long EL10XX_init_record(void* precord) {
 
 	/* Verify terminal */
 	if (!dpvt->terminal) {
-		Error("EL10XX_init_record(): Unable to terminal for record %s\n", pRecord->name);
+		util::Error("EL10XX_init_record(): Unable to terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 	free(name);
@@ -142,7 +142,7 @@ static long EL10XX_init_record(void* precord) {
 
 	/* Verify lock OK */
 	if (status != epicsMutexLockOK) {
-		Error("EL10XX_init_record(): %s\n", devEK9000::ErrorToString(status));
+		util::Error("EL10XX_init_record(): %s\n", devEK9000::ErrorToString(status));
 		return 1;
 	}
 
@@ -156,13 +156,13 @@ static long EL10XX_init_record(void* precord) {
 
 	/* Invalid term id */
 	if (termid == 0 || termid != dpvt->terminal->m_terminalId) {
-		Error("EL10XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL10XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 	return 0;
 }
 
 static long EL10XX_read_record(void* precord) {
-	util::setupCallback(precord, EL10XX_ReadCallback);
+	util::setupReadCallback<biRecord>(precord, EL10XX_ReadCallback);
 	return 0;
 }

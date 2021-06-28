@@ -97,11 +97,7 @@ std::list<devEK9000*>& GlobalDeviceList();
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
 
-void Info(int v, const char* fmt, ...);
-void Warning(int v, const char* fmt, ...);
-void Error(const char* fmt, ...);
-
-#define TraceInfo(fmt, ...) Info(VERBOSITY_EVERYTHING, fmt, __VA_ARGS__)
+#define TraceInfo(fmt, ...) util::Log(fmt, __VA_ARGS__)
 
 #define DevInfo(fmt, ...)                                                                                              \
 	if (g_bDebug) {                                                                                                    \
@@ -113,7 +109,7 @@ void Error(const char* fmt, ...);
 	}
 #define DevError(fmt, ...)                                                                                             \
 	if (g_bDebug) {                                                                                                    \
-		Error(fmt, __VA_ARGS__);                                                                                       \
+		util::Error(fmt, __VA_ARGS__);                                                                                       \
 	}
 
 struct LinkParameter_t {
@@ -234,9 +230,6 @@ public:
 
 	/* last device err */
 	int m_error = EK_EOK;
-
-	/* Message queue */
-	epicsMessageQueue* queue;
 
 	int LastADSErr = 0;
 

@@ -136,7 +136,7 @@ static long EL20XX_init_record(void* precord) {
 
 	/* Verify terminal */
 	if (dpvt->terminal == NULL) {
-		Error("EL20XX_init_record(): Unable to find terminal for %s\n", pRecord->name);
+		util::Error("EL20XX_init_record(): Unable to find terminal for %s\n", pRecord->name);
 		return 1;
 	}
 	free(recname);
@@ -145,7 +145,7 @@ static long EL20XX_init_record(void* precord) {
 
 	/* Verify the connection */
 	if (!dpvt->device->VerifyConnection()) {
-		Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		util::Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
@@ -154,7 +154,7 @@ static long EL20XX_init_record(void* precord) {
 
 	/* Check mutex status */
 	if (status != epicsMutexLockOK) {
-		Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
+		util::Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
 		return 1;
 	}
 
@@ -164,7 +164,7 @@ static long EL20XX_init_record(void* precord) {
 
 	/* Verify terminal ID */
 	if (termid == 0 || termid != dpvt->terminal->m_terminalId) {
-		Error("EL20XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL20XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		dpvt->device->Unlock();
 		return 1;
 	}

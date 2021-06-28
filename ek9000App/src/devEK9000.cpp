@@ -110,11 +110,11 @@ void PollThreadFunc(void*) {
 			/* check connection */
 			bool connected = device->VerifyConnection();
 			if (!connected && device->m_connected) {
-				Warning(0, "%s: Link status changed to DISCONNECTED\n", device->m_name);
+				util::Warn("%s: Link status changed to DISCONNECTED\n", device->m_name);
 				device->m_connected = false;
 			}
 			if (connected && !device->m_connected) {
-				Warning(0, "%s: Link status changed to CONNECTED\n", device->m_name);
+				util::Warn("%s: Link status changed to CONNECTED\n", device->m_name);
 				device->m_connected = true;
 			}
 			if (status)
@@ -125,45 +125,6 @@ void PollThreadFunc(void*) {
 		}
 		epicsThreadSleep((float)g_nPollDelay / 1000.0f);
 	}
-}
-
-void Info(int v, const char* fmt, ...) {
-	if (v > g_verbosity)
-		return;
-	time_t clk = time(0);
-	tm _tm;
-	epicsTime_localtime(&clk, &_tm);
-	epicsPrintf("%i:%i ", _tm.tm_hour, _tm.tm_min);
-	va_list list;
-	va_start(list, fmt);
-	epicsVprintf(fmt, list);
-	va_end(list);
-}
-
-void Warning(int v, const char* fmt, ...) {
-	if (v > g_verbosity)
-		return;
-	epicsTimeStamp stmp;
-	epicsTimeGetCurrent(&stmp);
-	char txt[40];
-	epicsTimeToStrftime(txt, 40, "%Y/%m/%d %H:%M:%S.%03f ", &stmp);
-	epicsPrintf("%s", txt);
-	va_list list;
-	va_start(list, fmt);
-	epicsVprintf(fmt, list);
-	va_end(list);
-}
-
-void Error(const char* fmt, ...) {
-	epicsTimeStamp stmp;
-	epicsTimeGetCurrent(&stmp);
-	char txt[40];
-	epicsTimeToStrftime(txt, 40, "%Y/%m/%d %H:%M:%S.%03f ", &stmp);
-	epicsPrintf("%s", txt);
-	va_list list;
-	va_start(list, fmt);
-	epicsVprintf(fmt, list);
-	va_end(list);
 }
 
 //==========================================================//
@@ -279,7 +240,6 @@ devEK9000::devEK9000() {
 	m_portName = (char*)malloc(1);
 	m_portName[0] = '\0';
 	this->m_Mutex = epicsMutexCreate();
-	this->queue = new epicsMessageQueue(500, sizeof(void*));
 }
 
 devEK9000::~devEK9000() {
@@ -334,14 +294,14 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	int status = drvAsynIPPortConfigure(pek->m_portName, ip, 0, 0, 0);
 
 	if (status) {
-		Error("devEK9000::Create(): Unable to configure drvAsynIPPort.");
+		util::Error("devEK9000::Create(): Unable to configure drvAsynIPPort.");
 		return NULL;
 	}
 
 	status = modbusInterposeConfig(pek->m_portName, modbusLinkTCP, 5000, 0);
 
 	if (status) {
-		Error("devEK9000::Create(): Unable to configure modbus driver.");
+		util::Error("devEK9000::Create(): Unable to configure modbus driver.");
 		return NULL;
 	}
 
@@ -354,7 +314,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	pasynManager->freeAsynUser(usr);
 
 	if (!conn) {
-		Error("devEK9000::Create(): Error while connecting to device %s.", name);
+		util::Error("devEK9000::Create(): Error while connecting to device %s.", name);
 		return NULL;
 	}
 
@@ -887,7 +847,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf* args) {
 	int status = dev->AddTerminal(name, tid, id);
 
 	if (status) {
-		Error("ek9000ConfigureTerminal(): Failed to create terminal.");
+		util::Error("ek9000ConfigureTerminal(): Failed to create terminal.");
 		return;
 	}
 }
@@ -906,7 +866,7 @@ void ek9000Stat(const iocshArgBuf* args) {
 	}
 
 	if (dev->Lock()) {
-		Error("ek9000Stat(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
+		util::Error("ek9000Stat(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
 		return;
 	}
 
@@ -1257,7 +1217,7 @@ static long ek9k_confli_init_record(void* prec) {
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 
 	if (CoE_ParseString(precord->inp.value.instio.string, &param)) {
-		Error("ek9k_confli_init_record: Malformed input link string for record %s\n", precord->name);
+		util::Error("ek9k_confli_init_record: Malformed input link string for record %s\n", precord->name);
 		return 1;
 	}
 	dpvt->param = param;
@@ -1349,7 +1309,7 @@ static long ek9k_conflo_init_record(void* prec) {
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 
 	if (CoE_ParseString(precord->out.value.instio.string, &param)) {
-		Error("ek9k_conflo_init_record: Malformed input link string for record %s\n", precord->name);
+		util::Error("ek9k_conflo_init_record: Malformed input link string for record %s\n", precord->name);
 		return 1;
 	}
 	dpvt->param = param;
@@ -1440,7 +1400,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	}
 
 	if (!pcoupler) {
-		Error("Coupler not found.\n");
+		util::Error("Coupler not found.\n");
 		return 1;
 	}
 
@@ -1510,7 +1470,7 @@ static long ek9k_ro_init_record(void* prec) {
 
 	/* parse the string to obtain various info */
 	if (EK9K_ParseString(precord->inp.value.instio.string, &param)) {
-		Error("Maloformed modbus string in record %s\n", precord->name);
+		util::Error("Malformed modbus string in record %s\n", precord->name);
 		return 1;
 	}
 	*dpvt = param;
@@ -1568,7 +1528,7 @@ static long ek9k_rw_init_record(void* prec) {
 
 	/* parse the string to obtain various info */
 	if (EK9K_ParseString(precord->out.value.instio.string, &param)) {
-		Error("Maloformed modbus string in record %s\n", precord->name);
+		util::Error("Malformed modbus string in record %s\n", precord->name);
 		return 1;
 	}
 	*dpvt = param;
