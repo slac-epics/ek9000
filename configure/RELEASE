@@ -13,5 +13,8 @@ EPICS_BASE=/home/jeremy/epics-7/base
 MODBUS=$(SUPPORT)/modbus
 ASYN=$(SUPPORT)/asyn-4-36
 
+# Motor module only required for EL7XXX support
+MOTOR=$(SUPPORT)/motor-r7-2
+
 -include $(TOP)/configure/RELEASE.local 
 -include $(TOP)/../configure/EPICS_BASE.$(EPICS_HOST_ARCH)
