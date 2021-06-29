@@ -36,6 +36,7 @@
 #include "devEL7XXX.h"
 #include "errlog.h"
 #include "ekDiag.h"
+#include "ekLocal.h"
 
 #define EL7047_START_TYPE_ABSOLUTE 0x1
 #define EL7047_START_TYPE_RELATIVE 0x2
@@ -358,6 +359,10 @@ error:
 Move the motor to it's home position
 */
 asynStatus el70x7Axis::home(double min_vel, double max_vel, double accel, int forwards) {
+	// !!! FIXME
+	UNUSED(min_vel);
+	UNUSED(forwards);
+
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::home\n", __FUNCTION__, __LINE__);
 	this->ResetIfRequired();
@@ -510,10 +515,12 @@ error:
 }
 
 asynStatus el70x7Axis::setClosedLoop(bool closed) {
+	UNUSED(closed);
 	return asynSuccess;
 }
 
 asynStatus el70x7Axis::UpdatePDO(bool locked) {
+	UNUSED(locked);
 	const char* pStep = "UPDATE_PDO";
 	SPositionInterface_Input old_input = this->input;
 	/* Update input pdos */
@@ -555,6 +562,8 @@ void el70x7Axis::ResetExec() {
 Executes a move by setting the execute bit and propagating changes
 */
 asynStatus el70x7Axis::Execute(bool locked) {
+	UNUSED(locked);
+
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::Execute\n", __FUNCTION__, __LINE__);
 	this->ResetExec();
 	this->output.pos_execute = 1;
@@ -757,37 +766,37 @@ void el7047_Register() {
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg arg2 = {"Port Name", iocshArgString};
 		static const iocshArg arg3 = {"Record", iocshArgString};
-		static const iocshArg arg4 = {"Slave position", iocshArgInt};
+		static const iocshArg arg4 = {"Terminal position", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"el70x7Configure", 4, args};
+		static const iocshFuncDef func = {"el70x7Configure", 4, args, "el70x7Configure ek9k_name port_name record_name term_number"};
 		iocshRegister(&func, el7047_Configure);
 	}
 	/* el70x7Stat */
 	{
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"el70x7Stat", 1, args};
+		static const iocshFuncDef func = {"el70x7Stat", 1, args, "el70x7Stat ek9k_name"};
 		iocshRegister(&func, el7047_Stat);
 	}
 	/* el70x7PrintMessages */
 	{
 		static const iocshArg arg1 = {"Port", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"el70x7PrintMessages", 1, args};
+		static const iocshFuncDef func = {"el70x7PrintMessages", 1, args, "el70x7PrintMessages port_name"};
 		iocshRegister(&func, el70x7PrintMessages);
 	}
 	/* el70x7Reset */
 	{
 		static const iocshArg arg0 = {"EL70x7 Port Name", iocshArgString};
 		static const iocshArg* const args[] = {&arg0};
-		static const iocshFuncDef func = {"el70x7Reset", 1, args};
+		static const iocshFuncDef func = {"el70x7Reset", 1, args, "el70x7Reset port_name"};
 		iocshRegister(&func, el70x7ResetMotor);
 	}
 	/* el70x7PrintDiag */
 	{
 		static const iocshArg arg0 = {"EL70x7 Port Name", iocshArgString};
 		static const iocshArg* const args[] = {&arg0};
-		static const iocshFuncDef func = {"el70x7PrintDiag", 1, args};
+		static const iocshFuncDef func = {"el70x7PrintDiag", 1, args, "el70x7PrintDiag port_name"};
 		iocshRegister(&func, el70x7PrintDiag);
 	}
 }

@@ -15,7 +15,7 @@ ifneq ($(NO_FORCE_CXX11),1)
 USR_CXXFLAGS += --std=c++11
 endif
 
-ifeq ($(PEDANTIC),1)
+ifeq ($(BUILD_STRICT),1)
 USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -Wno-variadic-macros
 endif
 
