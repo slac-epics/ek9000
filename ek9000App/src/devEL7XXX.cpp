@@ -38,6 +38,7 @@
 #include <epicsString.h>
 #include <dbScan.h>
 #include <boRecord.h>
+#include <epicsMath.h>
 #include <iocsh.h>
 #include <callback.h>
 #include <epicsEndian.h>
@@ -54,7 +55,6 @@
 #include <motordrvCom.h>
 #include <motordevCom.h>
 #include <motor_interface.h>
-#include <motordrvComCode.h>
 #include <asynMotorAxis.h>
 #include <asynMotorController.h>
 
@@ -73,9 +73,40 @@
 #define EL7047_START_TYPE_ABSOLUTE 0x1
 #define EL7047_START_TYPE_RELATIVE 0x2
 
+#define STRUCT_REGISTER_SIZE(x) (sizeof(x) % 2 == 0 ? sizeof(x) / 2 : sizeof(x) / 2 + 1)
+
 #define BREAK() /* asm("int3\n\t") */
 
 std::vector<el70x7Controller*> controllers;
+
+#if __cplusplus >= 201103L
+	#define CONSTEXPR constexpr
+#else
+	#define CONSTEXPR static const
+#endif
+
+#define COE_PARAMETER(_name, _index, _subindex)                                                                        \
+	CONSTEXPR uint16_t _name##_INDEX = _index;                                                                         \
+	CONSTEXPR uint16_t _name##_SUBINDEX = _subindex
+
+namespace coe
+{
+	COE_PARAMETER(SPEED_RANGE, 0x8012, 0x5);
+	COE_PARAMETER(VELOCITY_MIN, 0x8020, 0x1);
+	COE_PARAMETER(ACCELERATION_POS, 0x8020, 0x3);
+	COE_PARAMETER(DECELERATION_POS, 0x8020, 0x5);
+	COE_PARAMETER(MAXIMAL_CURRENT, 0x8010, 0x1);
+	COE_PARAMETER(REDUCED_CURRENT, 0x8010, 0x2);
+	COE_PARAMETER(NOMINAL_VOLTAGE, 0x8010, 0x3);
+	COE_PARAMETER(MOTOR_COIL_RESISTANCE, 0x8010, 0x4);
+	COE_PARAMETER(MOTOR_EMF, 0x8010, 0x5);
+	COE_PARAMETER(MOTOR_FULLSTEPS, 0x8010, 0x6);
+	COE_PARAMETER(ENCODER_INCREMENTS, 0x8010, 0x7);
+	COE_PARAMETER(START_VELOCITY, 0x8010, 0x9);
+	COE_PARAMETER(MOTOR_COIL_INDUCTANCE, 0x8010, 0xA);
+	COE_PARAMETER(DRIVE_ON_DELAY, 0x8010, 0x10);
+	COE_PARAMETER(DRIVE_OFF_DELAY, 0x8010, 0x11);
+} // namespace coe
 
 /*
 ========================================================
@@ -140,7 +171,6 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) : asynMotorAxis(pC, ax
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u\n", __FUNCTION__, __LINE__);
 	uint16_t spd;
 	uint16_t tmp;
-	coe_param_t param;
 	pC_ = pC;
 	this->pcoupler = pC->pcoupler;
 	this->pcontroller = pC->pcontroller;
@@ -158,17 +188,19 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) : asynMotorAxis(pC, ax
 		pcontroller->m_inputSize % 2 == 0 ? pcontroller->m_inputSize / 2 : pcontroller->m_inputSize / 2 + 1);
 	/* Read the configured speed */
 	spd = 0;
-	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, 0x8012, 1, &spd, 0x05);
-	/* THIS IS IMPORTANT: Set everything to zero initially */
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::SPEED_RANGE_INDEX, 1, &spd,
+							coe::SPEED_RANGE_SUBINDEX);
+	/* Clear everything initially */
 	this->curr_param.back_accel = 0.0;
 	this->curr_param.forward_accel = 0.0;
 	this->curr_param.max_vel = 0.0;
 	this->curr_param.min_vel = 0.0;
-	/* ALSO set these to zero or else it will be full of junk values that'll get possibly written to the device if there
-	 * is an input error */
+
+	/* also set these to zero or else it will be full of junk values that'll get possibly written to the device if
+	 * there's an input error */
 	memset(&this->input, 0, sizeof(SPositionInterface_Input));
 	memset(&this->output, 0, sizeof(SPositionInterface_Output));
-	this->output.stm_enable = 1; /* Enable the motor */
+
 	switch (spd) {
 		case 0:
 			speed = 1000;
@@ -193,19 +225,28 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) : asynMotorAxis(pC, ax
 			break;
 	}
 
+	this->output.stm_enable = 1; /* Enable the motor */
+
 	/* Default of absolute start type */
 	this->output.pos_start_type = 0x1;
 
-	/* For acceleration and decel and velocity we want to grab the initial values from the CoE parameters */
-	param = el7047_coe_params[EL7047_VELO_MIN_INDEX];
+	/* For acceleration, decel and velocity we want to grab the initial values from the CoE parameters */
 	tmp = 0;
-	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, param.index, 1, &tmp, param.subindex);
+	/* Read default min velocity */
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::VELOCITY_MIN_INDEX, 1, &tmp,
+							coe::VELOCITY_MIN_SUBINDEX);
 	this->output.pos_velocity = tmp;
 
-	param = el7047_coe_params[EL7047_ACCEL_POS_INDEX];
-	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, param.index, 1, &tmp, param.subindex);
+	/* Read default acceleration in the positive direction */
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::ACCELERATION_POS_INDEX, 1, &tmp,
+							coe::ACCELERATION_POS_SUBINDEX);
 	this->output.pos_accel = tmp;
+
+	/* Read default deceleration in the positive direction */
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::DECELERATION_POS_INDEX, 1, &tmp,
+							coe::DECELERATION_POS_SUBINDEX);
 	this->output.pos_decel = tmp;
+
 	this->UpdatePDO();
 	this->unlock();
 	return;
@@ -235,25 +276,28 @@ asynStatus el70x7Axis::setMotorParameters(uint16_t min_start_vel, uint16_t max_c
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u\n", __FUNCTION__, __LINE__);
 	uint16_t tid = pcontroller->m_terminalIndex;
-	int stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &max_coil_current, 0x1);
+	int stat =
+		pcoupler->doCoEIO(1, tid, coe::MAXIMAL_CURRENT_INDEX, 1, &max_coil_current, coe::MAXIMAL_CURRENT_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &reduced_coil_currrent, 0x2);
+	stat =
+		pcoupler->doCoEIO(1, tid, coe::REDUCED_CURRENT_INDEX, 1, &reduced_coil_currrent, coe::REDUCED_CURRENT_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &nominal_voltage, 0x3);
+	stat = pcoupler->doCoEIO(1, tid, coe::NOMINAL_VOLTAGE_INDEX, 1, &nominal_voltage, coe::NOMINAL_VOLTAGE_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &internal_resistance, 0x4);
+	stat = pcoupler->doCoEIO(1, tid, coe::MOTOR_COIL_RESISTANCE_INDEX, 1, &internal_resistance,
+							 coe::MOTOR_COIL_RESISTANCE_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &full_steps, 0x6);
+	stat = pcoupler->doCoEIO(1, tid, coe::MOTOR_FULLSTEPS_INDEX, 1, &full_steps, coe::MOTOR_FULLSTEPS_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &enc_inc, 0x7);
+	stat = pcoupler->doCoEIO(1, tid, coe::ENCODER_INCREMENTS_INDEX, 1, &enc_inc, coe::ENCODER_INCREMENTS_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, 0x8010, 1, &min_start_vel, 0x9);
+	stat = pcoupler->doCoEIO(1, tid, coe::START_VELOCITY_INDEX, 1, &min_start_vel, coe::START_VELOCITY_SUBINDEX);
 	if (stat)
 		goto error;
 	this->unlock();
@@ -284,8 +328,8 @@ asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel,
 	SPositionInterface_Output prev = output;
 
 	/* Set the params */
-	printf("Max vel: %f\n", max_vel);
-	printf("Min vel: %f\n", min_vel);
+	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "Max vel: %f\n", max_vel);
+	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "Min vel: %f\n", min_vel);
 
 	/* Update the velocity params */
 	this->output.pos_accel = (uint32_t)round(accel);
@@ -349,7 +393,7 @@ asynStatus el70x7Axis::home(double min_vel, double max_vel, double accel, int fo
 	this->lock();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::home\n", __FUNCTION__, __LINE__);
 	this->ResetIfRequired();
-	printf("FUCKIN HOME");
+	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "Motor home\n");
 	this->output.pos_accel = (uint32_t)round(accel);
 	this->output.pos_velocity = (uint32_t)round(max_vel);
 
@@ -398,9 +442,7 @@ using setDoubleParam or something similar.
 --------------------------------------------------
 */
 asynStatus el70x7Axis::poll(bool* moving) {
-	// HACKHACK: These are just used to prevent spam!
 	static bool is_polling_thread_ready = false;
-	static bool has_shown_error = false;
 
 	if (!is_polling_thread_ready) {
 		is_polling_thread_ready = true;
@@ -438,11 +480,9 @@ asynStatus el70x7Axis::poll(bool* moving) {
 		asynPrint(this->pasynUser_, ASYN_TRACE_WARNING, "%s: Stepper motor warning.\n", __FUNCTION__);
 	*moving = input.pos_busy != 0;
 	this->unlock();
-	has_shown_error = false;
 	return asynSuccess;
 error:
 	asynPrint(this->pasynUser_, ASYN_TRACE_ERROR, "%s:%u Unable to poll device.\n", __FUNCTION__, __LINE__);
-	has_shown_error = true;
 	/* When we reconnect we want to stop the moder ASAP */
 	output.pos_emergency_stp = 1;
 	output.pos_execute = 0;
@@ -510,19 +550,15 @@ asynStatus el70x7Axis::UpdatePDO(bool locked) {
 	SPositionInterface_Input old_input = this->input;
 	/* Update input pdos */
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n", __FUNCTION__, __LINE__, pStep);
-	int stat = pcoupler->m_driver->doModbusIO(
-		0, MODBUS_READ_INPUT_REGISTERS, pcontroller->m_inputStart, (uint16_t*)&this->input,
-		sizeof(SPositionInterface_Input) % 2 == 0 ? sizeof(SPositionInterface_Input) / 2
-												  : sizeof(SPositionInterface_Input) / 2 + 1);
+	int stat = pcoupler->m_driver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, pcontroller->m_inputStart,
+											  (uint16_t*)&this->input, STRUCT_REGISTER_SIZE(SPositionInterface_Input));
 	if (stat)
 		goto error;
 	pStep = "PROPAGATE_PDO";
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u Step: %s\n", __FUNCTION__, __LINE__, pStep);
 	/* Propagate changes from our internal pdo */
-	stat = pcoupler->m_driver->doModbusIO(
-		0, MODBUS_WRITE_MULTIPLE_REGISTERS, pcontroller->m_outputStart, (uint16_t*)&this->output,
-		sizeof(SPositionInterface_Output) % 2 == 0 ? sizeof(SPositionInterface_Output) / 2
-												   : sizeof(SPositionInterface_Output) / 2 + 1);
+	stat = pcoupler->m_driver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, pcontroller->m_outputStart,
+										  (uint16_t*)&this->output, STRUCT_REGISTER_SIZE(SPositionInterface_Output));
 	if (stat)
 		goto error;
 	return asynSuccess;
@@ -600,7 +636,7 @@ void el7047_Configure(const iocshArgBuf* args) {
 	term->m_inputSize = 14;
 	term->m_outputSize = 14;
 	el70x7Controller* pctl = new el70x7Controller(dev, term, port, 1);
-	printf("Created motor port %s\n", port);
+	epicsPrintf("Created motor port %s\n", port);
 	controllers.push_back(pctl);
 }
 

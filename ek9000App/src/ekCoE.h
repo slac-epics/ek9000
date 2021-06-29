@@ -44,7 +44,4 @@ namespace coe
 		unsigned int length; // only for string params
 	};
 
-	// TODO
-	// param_t FindParamByName(const char* name);
-	// param_t FindParamByIndex(unsigned short index, unsigned short subindex);
 } // namespace coe
