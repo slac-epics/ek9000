@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <epicsStdlib.h>
+
 /**
  * @brief Decodes a EtherCAT diagnostics string
  * @param string Pointer to the diagnostics "string"
@@ -12,4 +14,4 @@
  * @param outbuflen Size of the output buffer
  * @return
  */
-int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen);
+size_t COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen);

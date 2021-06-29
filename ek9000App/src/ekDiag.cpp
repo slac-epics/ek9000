@@ -5,10 +5,9 @@
  */
 #include "ekDiag.h"
 #include <stdint.h>
-#include <stddef.h>
 #include <string.h>
-#include <stdio.h>
-#include <time.h>
+#include <epicsString.h>
+#include <epicsTime.h>
 
 #pragma pack(1)
 struct coe_diag_msg_t {
@@ -21,7 +20,7 @@ struct coe_diag_msg_t {
 };
 #pragma pack(0)
 
-int COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen) {
+size_t COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen) {
 	coe_diag_msg_t msg = *(coe_diag_msg_t*)string;
 	char buf[8192];
 	char tmpbuf[512];

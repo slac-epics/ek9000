@@ -37,24 +37,17 @@
 
 /* EPICS includes */
 #include <epicsExport.h>
-#include <epicsStdio.h>
 #include <epicsStdlib.h>
 #include <epicsAssert.h>
 #include <epicsPrint.h>
 #include <devSup.h>
-#include <alarm.h>
 #include <epicsString.h>
-#include <dbScan.h>
 #include <boRecord.h>
 #include <iocsh.h>
 #include <callback.h>
-#include <epicsTime.h>
-#include <epicsGeneralTime.h>
 #include <errno.h>
 
 /* Record includes */
-#include <biRecord.h>
-#include <boRecord.h>
 #include <longinRecord.h>
 #include <longoutRecord.h>
 #include <int64inRecord.h>

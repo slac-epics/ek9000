@@ -17,26 +17,16 @@
 /* EPICS includes */
 #include <epicsExport.h>
 #include <epicsMath.h>
-#include <epicsStdio.h>
-#include <epicsStdlib.h>
-#include <epicsAssert.h>
-#include <dbAccess.h>
 #include <devSup.h>
 #include <alarm.h>
-#include <epicsString.h>
-#include <dbScan.h>
 #include <aiRecord.h>
-#include <iocsh.h>
 #include <callback.h>
-#include <alarm.h>
 #include <recGbl.h>
 
 #include <drvModbusAsyn.h>
-#include <asynPortDriver.h>
 
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "devEK9000.h"
 

@@ -14,47 +14,14 @@
 // Authors: Jeremy L.
 // Date Created: July 17, 2019
 //======================================================//
-// Planned features/notes:
-//	-	Motor reset from epics
-//======================================================//
-// REVISIONS:
-//
-// 1/29/2020 - Jeremy L.
-// 	revision list start; initial release
-//
-// 1/30/2020 - Jeremy L.
-//	setPosition no longer sets the execute bit, and does
-//	what it should actually do.
-//
-//======================================================//
 /* EPICS includes */
 #include <epicsExport.h>
-#include <epicsStdio.h>
-#include <epicsStdlib.h>
-#include <epicsAssert.h>
-#include <dbAccess.h>
-#include <devSup.h>
-#include <alarm.h>
-#include <epicsString.h>
-#include <dbScan.h>
-#include <boRecord.h>
-#include <epicsMath.h>
 #include <iocsh.h>
 #include <callback.h>
-#include <epicsEndian.h>
-#include <epicsGuard.h>
-
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
-#include <asynOctetSyncIO.h>
-#include <drvAsynIPPort.h>
 
 /* Motor record */
-#include <motor.h>
-#include <motorRecord.h>
-#include <motordrvCom.h>
-#include <motordevCom.h>
-#include <motor_interface.h>
 #include <asynMotorAxis.h>
 #include <asynMotorController.h>
 
@@ -74,6 +41,7 @@
 #define EL7047_START_TYPE_RELATIVE 0x2
 
 #define STRUCT_REGISTER_SIZE(x) (sizeof(x) % 2 == 0 ? sizeof(x) / 2 : sizeof(x) / 2 + 1)
+#define BYTES_TO_REG_SIZE(x) ((x) % 2 == 0 ? (x)/2 : (x)/2 +1)
 
 #define BREAK() /* asm("int3\n\t") */
 
@@ -180,12 +148,12 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) : asynMotorAxis(pC, ax
 	/* Grab initial values */
 	int status = this->pcoupler->m_driver->doModbusIO(
 		0, MODBUS_READ_HOLDING_REGISTERS, pcontroller->m_outputStart, (uint16_t*)&this->output,
-		pcontroller->m_outputSize % 2 == 0 ? pcontroller->m_outputSize / 2 : pcontroller->m_outputSize / 2 + 1);
+		BYTES_TO_REG_SIZE(pcontroller->m_outputSize));
 	if (status)
 		goto error;
 	status = this->pcoupler->m_driver->doModbusIO(
 		0, MODBUS_READ_HOLDING_REGISTERS, pcontroller->m_inputStart, (uint16_t*)&this->input,
-		pcontroller->m_inputSize % 2 == 0 ? pcontroller->m_inputSize / 2 : pcontroller->m_inputSize / 2 + 1);
+		BYTES_TO_REG_SIZE(pcontroller->m_inputSize));
 	/* Read the configured speed */
 	spd = 0;
 	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::SPEED_RANGE_INDEX, 1, &spd,

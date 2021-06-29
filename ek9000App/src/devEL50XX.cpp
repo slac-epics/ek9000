@@ -4,8 +4,6 @@
  *
  */
 #include <epicsPrint.h>
-#include <epicsStdio.h>
-#include <dbAccess.h>
 #include <dbScan.h>
 #include <alarm.h>
 #include <recGbl.h>
