@@ -1,48 +1,36 @@
-
 record(bi,"$(TERMINAL):1")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL10XX")
-        field(ZNAM,  "low")
-        field(ONAM,  "high")
-        field(SCAN,  ".1 second")
-        field(PINI,  "YES")
+	field(DTYP, "EL10XX")
+	field(ZNAM, "low")
+	field(ONAM, "high")
+	field(SCAN, ".1 second")
+	field(PINI, "YES")
 }
-
-
 
 record(bi,"$(TERMINAL):2")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL10XX")
-        field(ZNAM,  "low")
-        field(ONAM,  "high")
-        field(SCAN,  ".1 second")
-        field(PINI,  "YES")
+	field(DTYP, "EL10XX")
+	field(ZNAM, "low")
+	field(ONAM, "high")
+	field(SCAN, ".1 second")
+	field(PINI, "YES")
 }
-
-
 
 record(bi,"$(TERMINAL):3")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL10XX")
-        field(ZNAM,  "low")
-        field(ONAM,  "high")
-        field(SCAN,  ".1 second")
-        field(PINI,  "YES")
+	field(DTYP, "EL10XX")
+	field(ZNAM, "low")
+	field(ONAM, "high")
+	field(SCAN, ".1 second")
+	field(PINI, "YES")
 }
-
-
 
 record(bi,"$(TERMINAL):4")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL10XX")
-        field(ZNAM,  "low")
-        field(ONAM,  "high")
-        field(SCAN,  ".1 second")
-        field(PINI,  "YES")
+	field(DTYP, "EL10XX")
+	field(ZNAM, "low")
+	field(ONAM, "high")
+	field(SCAN, ".1 second")
+	field(PINI, "YES")
 }
-
 

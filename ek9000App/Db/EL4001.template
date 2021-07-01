@@ -1,11 +1,8 @@
-
 record(ao,"$(TERMINAL):1")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL40XX")
-        field(SCAN,  ".1 second")
-        field(LINR,  "LINEAR")
-        field(PINI,  "YES")
+	field(DTYP, "EL40XX")
+	field(LINR, "LINEAR")
+	field(PINI, "YES")
+	field(EGU, "Volts")
 }
-
 

@@ -1,44 +1,32 @@
-
 record(ao,"$(TERMINAL):1")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL40XX")
-        field(SCAN,  ".1 second")
-        field(LINR,  "LINEAR")
-        field(PINI,  "YES")
+	field(DTYP, "EL40XX")
+	field(LINR, "LINEAR")
+	field(PINI, "YES")
+	field(EGU, "Volts")
 }
-
-
 
 record(ao,"$(TERMINAL):2")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL40XX")
-        field(SCAN,  ".1 second")
-        field(LINR,  "LINEAR")
-        field(PINI,  "YES")
+	field(DTYP, "EL40XX")
+	field(LINR, "LINEAR")
+	field(PINI, "YES")
+	field(EGU, "Volts")
 }
-
-
 
 record(ao,"$(TERMINAL):3")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL40XX")
-        field(SCAN,  ".1 second")
-        field(LINR,  "LINEAR")
-        field(PINI,  "YES")
+	field(DTYP, "EL40XX")
+	field(LINR, "LINEAR")
+	field(PINI, "YES")
+	field(EGU, "Volts")
 }
-
-
 
 record(ao,"$(TERMINAL):4")
 {
-        field(DESC,  "")
-        field(DTYP,  "EL40XX")
-        field(SCAN,  ".1 second")
-        field(LINR,  "LINEAR")
-        field(PINI,  "YES")
+	field(DTYP, "EL40XX")
+	field(LINR, "LINEAR")
+	field(PINI, "YES")
+	field(EGU, "Volts")
 }
-
 
