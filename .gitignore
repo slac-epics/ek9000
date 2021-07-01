@@ -46,3 +46,6 @@ ek9000App/src/BhcConfigFiles.zip
 .vscode
 
 db/
+
+# Ignore ioc generated files
+envPaths
