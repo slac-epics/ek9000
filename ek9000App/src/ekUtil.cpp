@@ -30,6 +30,7 @@ std::vector<iocshHandles_t*> functions;
 
 /* Register iocsh functions */
 void util::iocshRegister(const char* name, void (*pfn)(const iocshArgBuf*), std::initializer_list<iocshArg> args) {
+#if MY_COMPILER_DOESNT_SUCK
 	iocshHandles_t* handle = static_cast<iocshHandles_t*>(malloc(sizeof(iocshHandles_t)));
 	handle->args = static_cast<iocshArg*>(malloc(args.size() * sizeof(iocshArg)));
 	handle->pargs = static_cast<iocshArg**>(malloc(args.size() * sizeof(iocshArg*)));
@@ -41,6 +42,7 @@ void util::iocshRegister(const char* name, void (*pfn)(const iocshArgBuf*), std:
 	handle->func = {name, (int)args.size(), handle->pargs, ""};
 	::iocshRegister(&handle->func, pfn);
 	functions.push_back(handle);
+#endif 
 }
 
 const STerminalInfoConst_t* util::FindTerminal(unsigned int id) {
