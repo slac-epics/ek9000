@@ -247,6 +247,12 @@ DB += EL3202.template EL3202.substitutions
 # EL3314 
 DB += EL3314.template EL3314.substitutions
 
+# EL3312 
+DB += EL3312.template EL3312.substitutions
+
+# EL3311 
+DB += EL3311.template EL3311.substitutions
+
 # EL3681 
 DB += EL3681.template EL3681.substitutions
 

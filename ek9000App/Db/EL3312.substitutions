@@ -1,0 +1,10 @@
+
+file EL3312.template
+{       pattern
+        {
+                TERMINAL,
+
+        }
+        {
+        }
+}

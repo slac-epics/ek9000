@@ -7,6 +7,7 @@ registrar(ek9000RegisterFunctions)
 #
 device(ai,INST_IO,devEL30XX,"EL30XX")
 device(ai,INST_IO,devEL36XX,"EL36XX")
+device(ai,INST_IO,devEL331X,"EL331X")
 
 #
 # ANALOG OUTPUT TERMINALS

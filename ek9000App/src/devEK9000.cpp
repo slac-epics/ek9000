@@ -826,7 +826,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf* args) {
 		}
 	}
 	if (tid == 0) {
-		epicsPrintf("Unabel to create terminal %s: No terminal with the ID %s found.\n", name, type);
+		epicsPrintf("Unable to create terminal %s: No terminal with the ID %s found.\n", name, type);
 		return;
 	}
 

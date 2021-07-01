@@ -408,16 +408,17 @@ struct EL3314_0010_InputPDO_t {
 	uint8_t error : 1;
 	uint8_t txpdo_state : 1;
 	uint8_t txpdo_toggle : 1;
+	uint8_t padding1 : 7; // Pad it out to byte boundary
 	uint16_t value;
 };
 #pragma pack()
 
 static void EL331X_ReadCallback(CALLBACK* callback) {
 	void* record;
-	uint16_t buf[3];
+	uint16_t buf[2];
 	EL331XInputPDO_t* pdo = NULL;
 	static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf),
-				  "SEL331XInput is greater than 3 bytes in size! Contact the author regarding this error.");
+				  "SEL331XInput is greater than 2 registers in size! Contact the author regarding this error.");
 
 	callbackGetUser(record, callback);
 	aiRecord* pRecord = static_cast<aiRecord*>(record);
@@ -437,8 +438,9 @@ static void EL331X_ReadCallback(CALLBACK* callback) {
 		return;
 	}
 
-	status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-										dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	int loc = dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2);
+	status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf, 2);
+
 	pdo = reinterpret_cast<EL331XInputPDO_t*>(buf);
 	pRecord->rval = pdo->value;
 
@@ -456,10 +458,11 @@ static void EL331X_ReadCallback(CALLBACK* callback) {
 	if (status) {
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		if (status > 0x100) {
-			DevError("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+
+			util::Warn("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return;
 		}
-		DevError("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
+		util::Warn("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
 		return;
 	}
 	return;

@@ -1161,13 +1161,41 @@ static const STerminalInfoConst_t EL3202_Info = {
 //=========================================================//
 #define	EL3314_STRING	"EL3314"
 #define	EL3314_ID	3314
-#define	EL3314_OUTPUT_SIZE	1
+#define	EL3314_OUTPUT_SIZE	0
 #define	EL3314_INPUT_SIZE	2
 static const STerminalInfoConst_t EL3314_Info = {
 	EL3314_STRING,
 	EL3314_ID,
 	EL3314_OUTPUT_SIZE,
 	EL3314_INPUT_SIZE,
+};
+
+//=========================================================//
+// EL3312
+//=========================================================//
+#define	EL3312_STRING	"EL3312"
+#define	EL3312_ID	3312
+#define	EL3312_OUTPUT_SIZE	0
+#define	EL3312_INPUT_SIZE	2
+static const STerminalInfoConst_t EL3312_Info = {
+	EL3312_STRING,
+	EL3312_ID,
+	EL3312_OUTPUT_SIZE,
+	EL3312_INPUT_SIZE,
+};
+
+//=========================================================//
+// EL3311
+//=========================================================//
+#define	EL3311_STRING	"EL3311"
+#define	EL3311_ID	3311
+#define	EL3311_OUTPUT_SIZE	0
+#define	EL3311_INPUT_SIZE	2
+static const STerminalInfoConst_t EL3311_Info = {
+	EL3311_STRING,
+	EL3311_ID,
+	EL3311_OUTPUT_SIZE,
+	EL3311_INPUT_SIZE,
 };
 
 //=========================================================//
@@ -1520,9 +1548,9 @@ static const STerminalInfoConst_t EL7047_Info = {
 	EL7047_INPUT_SIZE,
 };
 
-#define	NUM_TERMINALS	107
+#define	NUM_TERMINALS	109
 
-static const STerminalInfoConst_t* g_pTerminalInfos[107] = {
+static const STerminalInfoConst_t* g_pTerminalInfos[109] = {
 	&EL1001_Info,
 	&EL1002_Info,
 	&EL1004_Info,
@@ -1605,6 +1633,8 @@ static const STerminalInfoConst_t* g_pTerminalInfos[107] = {
 	&EL3174_Info,
 	&EL3202_Info,
 	&EL3314_Info,
+	&EL3312_Info,
+	&EL3311_Info,
 	&EL3681_Info,
 	&EL4001_Info,
 	&EL4002_Info,
