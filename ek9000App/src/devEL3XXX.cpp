@@ -465,7 +465,7 @@ static void EL331X_ReadCallback(CALLBACK* callback) {
 		util::Warn("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
 		return;
 	}
-	return;
+	recGblSetSevr(pRecord, READ_ALARM, NO_ALARM);
 }
 
 static long EL331X_dev_report(int) {
