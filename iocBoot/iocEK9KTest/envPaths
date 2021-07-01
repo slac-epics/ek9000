@@ -1,7 +1,0 @@
-epicsEnvSet("IOC","iocEK9KTest")
-epicsEnvSet("TOP","/nfs2/epics/modules/ek9000-dev")
-epicsEnvSet("SUPPORT","/nfs2/epics/modules")
-epicsEnvSet("EPICS_BASE","/nfs2/epics/base")
-epicsEnvSet("ASYN","/nfs2/epics/modules/asyn-r4-39")
-epicsEnvSet("MODBUS","/nfs2/epics/modules/modbus-r3-0")
-epicsEnvSet("MOTOR","/nfs2/epics/modules/motor-r7-2")
