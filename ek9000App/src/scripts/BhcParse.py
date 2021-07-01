@@ -5,6 +5,22 @@ import sys, os, io
 import CppTk, EpicsTk
 import json, argparse, datetime
 
+"""
+
+JSON SYNTAX:
+
+
+{
+	"name": "EL3202",		// Name of the terminal
+	"type": "AnalogIn",		// Type AnalogIn, AnalogOut, DigIn, DigOut
+	"inputs": 2,			// Number of input channels
+	"outputs": 0,			// Number of output channels
+	"pdo_in_size": 4,		// PDO input size. For Digital terminals, this is COILS. For Analog terms, this is REGISTERS (16-bits per reg)  
+	"pdo_out_size": 0		// PDO output size. Same rules as in_size.
+},
+
+"""
+
 parser = argparse.ArgumentParser(description="Generates a header containing information about each individual terminal")
 parser.add_argument("file", metavar="file", type=str, nargs=1, help="The file to parse for terminal info")
 parser.add_argument("--output", "-o", dest="output", action='store', type=str, help="The name of the output header")
