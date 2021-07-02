@@ -55,8 +55,6 @@ public:
 
 namespace util
 {
-	void iocshRegister(const char* name, void (*pfn)(const iocshArgBuf*), std::initializer_list<iocshArg> args);
-
 	/**
 	 * Look up a terminal by ID and return a structure containing info about it
 	 */
