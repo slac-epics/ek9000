@@ -1,0 +1,44 @@
+# RELEASE.local
+#
+# Read definitions of:
+#	EPICS_SITE_TOP
+#	BASE_MODULE_VERSION
+#	EPICS_MODULES 
+# from one of the following options
+-include $(TOP)/../../RELEASE_SITE
+-include $(TOP)/RELEASE_SITE
+
+# Check that EPICS_MODULES was defined in a RELEASE_SITE file
+-include $(TOP)/../../RELEASE_SITE.check
+
+SUPPORT=
+
+# ==========================================================
+# Define the version strings for all needed modules
+# Use naming pattern:
+#   FOO_MODULE_VERSION = R1.2
+# so scripts can extract version strings
+# Don't set your version to anything such as "test" that
+# could match a directory name.
+# ==========================================================
+ASYN_MODULE_VERSION=R4.35-0.0.1
+MODBUS_MODULE_VERSION=R3.0.0-0.2.0
+# ==========================================================
+# Define module paths using pattern
+# FOO = $(EPICS_MODULES)/foo/$(FOO_MODULE_VERSION)
+#  or
+# FOO = /Full/Path/To/Development/Version 
+# ==========================================================
+ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
+MODBUS=$(EPICS_MODULES)/modbus/$(MODBUS_MODULE_VERSION)
+# ============================================================
+#  Module Location
+# ============================================================
+MOTOR=
+
+# Set EPICS_BASE last so it appears last in the DB, DBD, INCLUDE, and LIB search paths
+EPICS_BASE              = $(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
+
+# Check for undefined EPICS_BASE
+-include $(TOP)/../../EPICS_BASE.check
+

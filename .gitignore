@@ -21,6 +21,7 @@ bin/
 
 # Ignore all local configs
 *.local
+!configure/RELEASE.local
 O.*
 
 .kdev4/
