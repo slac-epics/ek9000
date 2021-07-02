@@ -974,7 +974,6 @@ void ek9000SetPollTime(const iocshArgBuf* args) {
 int ek9000RegisterFunctions() {
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
-		static const char* usage = "ek9000SetWatchdogTime device time";
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Time", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
@@ -986,7 +985,6 @@ int ek9000RegisterFunctions() {
 
 	/* ek9000SetWatchdogType(ek9k, type[int]) */
 	{
-		static const char* usage = "ek9000SetWatchdogType device type";
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Type", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
@@ -998,7 +996,6 @@ int ek9000RegisterFunctions() {
 
 	/* ek9000SetPollTime(ek9k, type[int]) */
 	{
-		static const char* usage = "ek9000SetPollTime device time";
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Type", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
@@ -1010,7 +1007,6 @@ int ek9000RegisterFunctions() {
 
 	/* ek9000Configure(name, ip, termcount) */
 	{
-		static const char* usage = "ek9000Configure name ip port num_terminals";
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"IP", iocshArgString};
 		static const iocshArg arg3 = {"Port", iocshArgInt};
@@ -1024,7 +1020,6 @@ int ek9000RegisterFunctions() {
 
 	/* ek9000ConfigureTerminal(ek9000, name, type, position) */
 	{
-		static const char* usage = "ek9000ConfigureTerminal ek9k_name record_name type position";
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg arg2 = {"Record Name", iocshArgString};
 		static const iocshArg arg3 = {"Type", iocshArgString};
@@ -1038,7 +1033,6 @@ int ek9000RegisterFunctions() {
 
 	/* ek9000Stat */
 	{
-		static const char* usage = "ek9000Stat name";
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
 		static const iocshFuncDef func = {"ek9000Stat", 1, args};
@@ -1049,7 +1043,6 @@ int ek9000RegisterFunctions() {
 
 	/* ek9000EnableDebug */
 	{
-		static const char* usage = "ek9000EnableDebug ek9k_name";
 		static const iocshArg arg1 = {"EK9k", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
 		static const iocshFuncDef func = {"ek9000EnableDebug", 1, args};
@@ -1060,7 +1053,6 @@ int ek9000RegisterFunctions() {
 
 	/* ek9000DisableDebug */
 	{
-		static const char* usage = "ek9000DisableDebug ek9k_name";
 		static const iocshArg arg1 = {"EK9K", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
 		static const iocshFuncDef func = {"ek9kDisableDebug", 1, args};
