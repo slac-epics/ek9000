@@ -66,29 +66,10 @@ jobs:
           - os: ubuntu-20.04
             cmp: gcc
             configuration: default
-            rtems: "4.9"
-            name: "Ub-20 gcc-9 + RT-4.9"
-
-          - os: ubuntu-20.04
-            cmp: gcc
-            configuration: default
-            rtems: "5"
-            rtems_target: RTEMS-pc686-qemu
-            name: "Ub-20 gcc-9 + RT-5.1 pc686"
-
-          - os: ubuntu-20.04
-            cmp: gcc
-            configuration: default
             rtems: "5"
             rtems_target: RTEMS-beatnik
             test: NO
             name: "Ub-20 gcc-9 + RT-5.1 beatnik"
-
-          - os: ubuntu-16.04
-            cmp: gcc-4.8
-            utoolchain: true
-            configuration: default
-            name: "Ub-16 gcc-4.8"
 
           - os: ubuntu-20.04
             cmp: clang
