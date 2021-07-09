@@ -51,8 +51,6 @@ public:
 
 #define AUTO_LOCK(x) CAutoLockWrapper<epicsMutex> __auto_lock(x)
 
-#define DEV_TRACE(msg, ...) 
-
 namespace util
 {
 	/**
