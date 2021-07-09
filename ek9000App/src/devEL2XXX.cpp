@@ -86,7 +86,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback) {
 
 	/* Write to buffer */
 	status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS,
-										dpvt->terminal->m_outputStart + (dpvt->channel - 1), &buf, 1);
+										dpvt->terminal->m_outputStart + (dpvt->channel - 2), &buf, 1);
 
 	dpvt->device->Unlock();
 
