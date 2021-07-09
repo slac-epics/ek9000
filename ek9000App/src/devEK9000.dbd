@@ -1,6 +1,7 @@
 # SNL programs or functions to be invoked from iocsh
 registrar(ek9000RegisterFunctions)
 
+device(bi,INST_IO,devEK9000,"devEK9000")
 
 #
 # ANALOG INPUT TERMINALS
