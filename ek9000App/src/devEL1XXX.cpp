@@ -82,7 +82,6 @@ static void EL10XX_ReadCallback(CALLBACK* callback) {
 	/* Do the actual IO */
 	uint16_t buf = 0;
 	uint16_t loc = dpvt->terminal->m_inputStart + (dpvt->channel - 1);
-	TraceInfo("Reading from %i, length of 1", loc);
 	status = dpvt->terminal->doEK9000IO(MODBUS_READ_DISCRETE_INPUTS, loc, &buf, 1);
 
 	dpvt->device->Unlock();

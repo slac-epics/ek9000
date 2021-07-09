@@ -91,8 +91,6 @@ std::list<devEK9000*>& GlobalDeviceList();
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
 
-#define TraceInfo(fmt, ...) util::Log(fmt, __VA_ARGS__)
-
 #define DevInfo(fmt, ...)                                                                                              \
 	if (g_bDebug) {                                                                                                    \
 		Info(fmt, __VA_ARGS__);                                                                                        \
