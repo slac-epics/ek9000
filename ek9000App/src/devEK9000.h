@@ -93,11 +93,11 @@ std::list<devEK9000*>& GlobalDeviceList();
 
 #define DevInfo(fmt, ...)                                                                                              \
 	if (g_bDebug) {                                                                                                    \
-		Info(fmt, __VA_ARGS__);                                                                                        \
+		util::Log(fmt, __VA_ARGS__);                                                                                        \
 	}
 #define DevWarn(fmt, ...)                                                                                              \
 	if (g_bDebug) {                                                                                                    \
-		Warning(fmt, __VA_ARGS__);                                                                                     \
+		util::Warn(fmt, __VA_ARGS__);                                                                                     \
 	}
 #define DevError(fmt, ...)                                                                                             \
 	if (g_bDebug) {                                                                                                    \

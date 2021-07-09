@@ -381,6 +381,7 @@ int devEK9000::InitTerminals() {
 	for (int i = 0; i < this->m_numTerms; i++) {
 		devEK9000Terminal* term = &m_terms[i];
 		if (term->m_terminalFamily == TERMINAL_FAMILY_ANALOG) {
+			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X)\n", term->m_terminalId, reg_in, reg_out);
 			term->m_inputStart = reg_in;
 			term->m_outputStart = reg_out;
 			reg_in += term->m_inputSize;
@@ -392,6 +393,7 @@ int devEK9000::InitTerminals() {
 	for (int i = 0; i < this->m_numTerms; i++) {
 		devEK9000Terminal* term = &m_terms[i];
 		if (term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) {
+			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X)\n", term->m_terminalId, reg_in, reg_out);
 			term->m_inputStart = coil_in;
 			term->m_outputStart = coil_out;
 			coil_in += term->m_inputSize;
