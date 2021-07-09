@@ -653,7 +653,7 @@
 			"type": "AnalogIn",
 			"inputs": 4,
 			"outputs": 0,
-			"pdo_in_size": 2,
+			"pdo_in_size": 8,
 			"pdo_out_size": 0,
 			"dtyp": "EL331X",
 			"defaults": {
@@ -665,7 +665,7 @@
 			"type": "AnalogIn",
 			"inputs": 2,
 			"outputs": 0,
-			"pdo_in_size": 2,
+			"pdo_in_size": 4,
 			"pdo_out_size": 0,
 			"dtyp": "EL331X",
 			"defaults": {
