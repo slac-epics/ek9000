@@ -23,7 +23,7 @@
 //		list (would use less memory too)
 //	-	All device support things are defined and implemented
 //		here
-//	-	For device specific indicies and such, refer to the docs:
+//	-	For device specific PDOs and such, refer to the docs:
 //		EL1XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el10xx_el11xxen.pdf
 //		EL2XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/EL20xx_EL2124en.pdf
 //		EL3XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el30xxen.pdf
