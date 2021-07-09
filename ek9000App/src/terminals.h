@@ -1203,8 +1203,8 @@ static const STerminalInfoConst_t EL3311_Info = {
 //=========================================================//
 #define	EL3681_STRING	"EL3681"
 #define	EL3681_ID	3681
-#define	EL3681_OUTPUT_SIZE	0
-#define	EL3681_INPUT_SIZE	3
+#define	EL3681_OUTPUT_SIZE	2
+#define	EL3681_INPUT_SIZE	4
 static const STerminalInfoConst_t EL3681_Info = {
 	EL3681_STRING,
 	EL3681_ID,
