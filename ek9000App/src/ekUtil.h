@@ -78,7 +78,7 @@ namespace util
 	template<class T>
 	long setupReadCallback(void* rec, void(*pCallback)(CALLBACK*)) {
 		T* pRecord = static_cast<T*>(rec);
-		pRecord->pact = 1;
+		pRecord->pact = 0;
 		return util::setupCallback(rec, pCallback);
 	}
 } // namespace util
