@@ -1,5 +1,6 @@
 ---
 Language:        Cpp
+# BasedOnStyle:  Microsoft
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: false
@@ -22,12 +23,12 @@ AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: Yes
+AlwaysBreakTemplateDeclarations: MultiLine
 BinPackArguments: true
 BinPackParameters: true
 BraceWrapping:
   AfterCaseLabel:  false
-  AfterClass:      true
+  AfterClass:      false
   AfterControlStatement: Never
   AfterEnum:       false
   AfterFunction:   false
@@ -37,7 +38,7 @@ BraceWrapping:
   AfterUnion:      false
   AfterExternBlock: true
   BeforeCatch:     true
-  BeforeElse:      false
+  BeforeElse:      true
   BeforeLambdaBody: false
   BeforeWhile:     false
   IndentBraces:    false
@@ -82,10 +83,10 @@ IncludeCategories:
     SortPriority:    0
 IncludeIsMainRegex: '(Test)?$'
 IncludeIsMainSourceRegex: ''
-IndentCaseLabels: true
+IndentCaseLabels: false
 IndentCaseBlocks: false
 IndentGotoLabels: true
-IndentPPDirectives: BeforeHash
+IndentPPDirectives: None
 IndentExternBlock: AfterExternBlock
 IndentWidth:     4
 IndentWrappedFunctionNames: false
@@ -96,7 +97,7 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 1
-NamespaceIndentation: All
+NamespaceIndentation: None
 ObjCBinPackProtocolList: Auto
 ObjCBlockIndentWidth: 2
 ObjCBreakBeforeNestedBlockParam: true
@@ -110,7 +111,7 @@ PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 1000
-PointerAlignment: Left
+PointerAlignment: Right
 ReflowComments:  true
 SortIncludes:    false
 SortUsingDeclarations: true
@@ -140,9 +141,5 @@ StatementMacros:
 TabWidth:        4
 UseCRLF:         false
 UseTab:          Always
-WhitespaceSensitiveMacros:
-  - STRINGIZE
-  - PP_STRINGIZE
-  - BOOST_PP_STRINGIZE
 ...
 

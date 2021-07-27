@@ -1,8 +1,8 @@
 #RELEASE Location of external products
 
-# Default support and base settings
-SUPPORT=/home/jeremy/epics-7/extensions
-EPICS_BASE=/home/jeremy/epics-7/base 
+# Default support and base settings. These are intentionally non-functional
+SUPPORT=/path/to/support/
+EPICS_BASE=/path/to/epics/base/
 
 # Include local release file
 -include $(TOP)/configure/RELEASE.local 
