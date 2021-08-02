@@ -54,7 +54,7 @@
 #include <int64outRecord.h>
 
 /* Modbus or asyn includes */
-#include <drvModbusAsyn.h>
+//#include <drvModbusAsyn.h>
 #include <drvAsynIPPort.h>
 #include <modbusInterpose.h>
 
@@ -97,7 +97,9 @@ void Utl_InitThread() {
 
 void PollThreadFunc(void*) {
 	while (true) {
-		for (auto device : g_Devices) {
+		//for (auto device : g_Devices) {
+	        for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+			devEK9000* device = *it;
 			int status = device->Lock();
 			/* check connection */
 			bool connected = device->VerifyConnection();
@@ -135,6 +137,28 @@ devEK9000Terminal::devEK9000Terminal(const devEK9000Terminal& other) {
 }
 
 devEK9000Terminal::devEK9000Terminal() {
+	/* Name of record */
+	m_recordName = NULL;
+	/* Terminal family */
+	m_terminalFamily = 0;
+	/* Zero-based index of the terminal */
+	m_terminalIndex = 0;
+	/* the device */
+	m_device = NULL;
+	/* Terminal id, aka the 1124 in EL1124 */
+	m_terminalId = 0;
+	/* Number of inputs */
+	m_inputs = 0;
+	/* Number of outputs */
+	m_outputs = 0;
+	/* Size of inputs */
+	m_inputSize = 0;
+	/* Size of outputs */
+	m_outputSize = 0;
+	/* input image start */
+	m_inputStart = 0;
+	/* Output image start */
+	m_outputStart = 0;
 }
 
 devEK9000Terminal::~devEK9000Terminal() {
@@ -184,7 +208,9 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 		free(ret);
 		return NULL;
 	} else {
-		for (auto dev : g_Devices) {
+		//for (auto dev : g_Devices) {
+	        for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+			devEK9000* dev = *it;
 			for (int i = 0; i < dev->m_numTerms; i++) {
 				if (!dev->m_terms[i].m_recordName)
 					continue;
@@ -226,6 +252,19 @@ int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, size_t
 //		hardware
 //==========================================================//
 devEK9000::devEK9000() {
+	/* Initialize members*/
+	m_terms = NULL;
+	m_numTerms = 0;
+	m_driver = NULL;
+	m_name = NULL;
+	m_portName = NULL;
+	m_ip = NULL;
+	m_connected = false;
+	m_init = false;
+	m_debug = false;
+	m_error = EK_EOK;
+	LastADSErr = 0;
+
 	/* Lets make sure there are no nullptr issues */
 	m_name = (char*)malloc(1);
 	m_name[0] = '\0';
@@ -248,11 +287,14 @@ devEK9000::~devEK9000() {
 }
 
 devEK9000* devEK9000::FindDevice(const char* name) {
-	for (auto dev : g_Devices) {
+	//for (auto dev : g_Devices) {
+	for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+		devEK9000* dev = *it;
 		if (!strcmp(name, dev->m_name))
 			return dev;
 	}
-	return nullptr;
+	//return nullptr;
+	return NULL;
 }
 
 devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_count) {
@@ -925,7 +967,9 @@ void ek9000DisableDebug(const iocshArgBuf*) {
 }
 
 void ek9000List(const iocshArgBuf*) {
-	for (auto dev : g_Devices) {
+	//for (auto dev : g_Devices) {
+	for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+		devEK9000* dev = *it;
 		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_name, dev->m_numTerms);
 		epicsPrintf("\tIP: %s\n", dev->m_ip);
 		epicsPrintf("\tConnected: %s\n", dev->VerifyConnection() ? "TRUE" : "FALSE");
@@ -1099,22 +1143,25 @@ struct {
 
 epicsExportAddress(dset, devEK9000);
 
+
+static long ek9000_init_record(void*) {
+	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
+	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
+	return 0;
+}
+
 static long ek9000_init(int after) {
 	if (after == 0) {
 		epicsPrintf("Initializing EK9000 Couplers.\n");
-		for (auto dev : g_Devices) {
+		//for (auto dev : g_Devices) {
+	        for (std::list<class devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+			class devEK9000* dev = (*it);
 			if (!dev->m_init)
 				dev->InitTerminals();
 		}
 		epicsPrintf("Initialization Complete.\n");
 		Utl_InitThread();
 	}
-	return 0;
-}
-
-static long ek9000_init_record(void*) {
-	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
-	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
 	return 0;
 }
 
@@ -1364,7 +1411,9 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 			buf[i] = 0;
 
 	/* Finally actually parse the integers, find the ek9k, etc. */
-	for (auto dev : g_Devices) {
+	//for (auto dev : g_Devices) {
+	for (std::list<class devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+		class devEK9000* dev = *it;
 		if (strncmp(dev->m_name, buffers[0], strlen(dev->m_name)) == 0) {
 			pcoupler = dev;
 			break;
@@ -1588,7 +1637,8 @@ bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, Lin
 			for (int i = 0; i < linkLen; i++)
 				if (link[i] == ',')
 					paramCount++;
-			LinkParameter_t* linkParams = nullptr;
+			//LinkParameter_t* linkParams = nullptr;
+			LinkParameter_t* linkParams = NULL;
 
 			/* Nothing to parse? */
 			if (paramCount == 0)
@@ -1600,7 +1650,8 @@ bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, Lin
 			snprintf(buf, sizeof(buf), "%s", link);
 			char *param, *value;
 			int paramIndex = 0;
-			param = value = nullptr;
+			//param = value = nullptr;
+			param = value = NULL;
 			for (char* tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
 				param = tok;
 				/* Search for the = to break the thing up */
@@ -1645,6 +1696,7 @@ void devEK9000::DestroyLinkSpecification(LinkSpecification_t& spec) {
 	}
 	if (spec.params)
 		free(spec.params);
-	spec.params = nullptr;
+	//spec.params = nullptr;
+	spec.params = NULL;
 	spec.numParams = 0;
 }

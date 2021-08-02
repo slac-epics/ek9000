@@ -157,27 +157,27 @@ public:
 
 public:
 	/* Name of record */
-	char* m_recordName = NULL;
+	char* m_recordName;
 	/* Terminal family */
-	int m_terminalFamily = 0;
+	int m_terminalFamily;
 	/* Zero-based index of the terminal */
-	int m_terminalIndex = 0;
+	int m_terminalIndex;
 	/* the device */
-	devEK9000* m_device = NULL;
+	devEK9000* m_device;
 	/* Terminal id, aka the 1124 in EL1124 */
-	int m_terminalId = 0;
+	int m_terminalId;
 	/* Number of inputs */
-	int m_inputs = 0;
+	int m_inputs;
 	/* Number of outputs */
-	int m_outputs = 0;
+	int m_outputs;
 	/* Size of inputs */
-	int m_inputSize = 0;
+	int m_inputSize;
 	/* Size of outputs */
-	int m_outputSize = 0;
+	int m_outputSize;
 	/* input image start */
-	int m_inputStart = 0;
+	int m_inputStart;
 	/* Output image start */
-	int m_outputStart = 0;
+	int m_outputStart;
 };
 
 //==========================================================//
@@ -202,28 +202,28 @@ public:
 
 	/* List of attached terminals */
 	/* TODO: Redefine terminal struct */
-	devEK9000Terminal* m_terms = NULL;
+	devEK9000Terminal* m_terms;
 
 	/* Number of attached terminals */
-	int m_numTerms = 0;
+	int m_numTerms;
 
 	/* The driver */
-	drvModbusAsyn* m_driver = NULL;
+	drvModbusAsyn* m_driver;
 
-	char* m_name = NULL;
-	char* m_portName = NULL;
-	char* m_ip = NULL;
+	char* m_name;
+	char* m_portName;
+	char* m_ip;
 
-	bool m_connected = false;
-	bool m_init = false;
+	bool m_connected;
+	bool m_init;
 
 	/* Enable/disable debugging messages */
-	bool m_debug = false;
+	bool m_debug;
 
 	/* last device err */
-	int m_error = EK_EOK;
+	int m_error;
 
-	int LastADSErr = 0;
+	int LastADSErr;
 
 public:
 	devEK9000();
@@ -383,6 +383,8 @@ public:
 template <class RecordT>
 bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
 	const char* function = "util::setupCommonDpvt<RecordT>()";
+        std::list<devEK9000*>& devList = GlobalDeviceList();
+
 	if (!devEK9000::ParseLinkSpecification(prec->inp.text, LINK_INST_IO, dpvt.linkSpec)) {
 		/* Try to work with legacy stuff */
 		// TODO: STUB
@@ -396,9 +398,11 @@ bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
 		/* Device name */
 		if (strcmp(param.key, "device") == 0) {
 			bool found = false;
-			for (const auto& x : GlobalDeviceList()) {
-				if (strcmp(x->m_name, param.value) == 0) {
-					dpvt.pdrv = x;
+                        std::list<devEK9000*>& devList = GlobalDeviceList();
+			for (std::list<devEK9000*>::iterator x = devList.begin(); x != devList.end(); ++x) {
+			//for (const auto& x : GlobalDeviceList()) {
+				if (strcmp((*x)->m_name, param.value) == 0) {
+					dpvt.pdrv = *x;
 					found = true;
 					break;
 				}

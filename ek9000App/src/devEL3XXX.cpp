@@ -90,9 +90,9 @@ static void EL30XX_ReadCallback(CALLBACK* callback) {
 	EL30XXStandardInputPDO_t* spdo;
 	EL30XXCompactInputPDO_t* cpdo;
 	uint16_t buf[2];
-	static_assert(sizeof(buf) <= sizeof(EL30XXStandardInputPDO_t),
+	/*static_assert(sizeof(buf) <= sizeof(EL30XXStandardInputPDO_t),
 				  "SEL30XXStandardInputPDO is greater than 4 bytes in size, contact the author about this error!");
-
+        */
 	callbackGetUser(record, callback);
 	aiRecord* pRecord = static_cast<aiRecord*>(record);
 	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
@@ -252,9 +252,9 @@ static void EL36XX_ReadCallback(CALLBACK* callback) {
 	void* record;
 	uint16_t buf[3];
 	EL36XXInputPDO_t* pdo = NULL;
-	static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
+	/*static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
 				  "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
-
+        */
 	callbackGetUser(record, callback);
 	aiRecord* pRecord = static_cast<aiRecord*>(record);
 	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
@@ -417,9 +417,9 @@ static void EL331X_ReadCallback(CALLBACK* callback) {
 	void* record;
 	uint16_t buf[2];
 	EL331XInputPDO_t* pdo = NULL;
-	static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf),
+	/*static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf),
 				  "SEL331XInput is greater than 2 registers in size! Contact the author regarding this error.");
-
+        */
 	callbackGetUser(record, callback);
 	aiRecord* pRecord = static_cast<aiRecord*>(record);
 	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);

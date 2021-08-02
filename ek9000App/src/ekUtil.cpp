@@ -32,7 +32,7 @@ const STerminalInfoConst_t* util::FindTerminal(unsigned int id) {
 	for (unsigned int i = 0; i < NUM_TERMINALS; i++)
 		if (g_pTerminalInfos[i]->m_nID == id)
 			return g_pTerminalInfos[i];
-	return nullptr;
+	return NULL;
 }
 
 void util::Log(const char* fmt, ...) {
