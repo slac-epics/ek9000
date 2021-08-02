@@ -39,7 +39,7 @@ struct {
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN read_record;
 } devEL50XX = {
-	5, (DEVSUPFUN)el50xx_dev_report, (DEVSUPFUN)el50xx_init, el50xx_init_record, nullptr, el50xx_read_record,
+	5, (DEVSUPFUN)el50xx_dev_report, (DEVSUPFUN)el50xx_init, el50xx_init_record, NULL, el50xx_read_record,
 };
 
 extern "C"
@@ -167,7 +167,7 @@ struct {
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN read_record;
 } devEL5042 = {
-	5, (DEVSUPFUN)el5042_dev_report, (DEVSUPFUN)el5042_init, el5042_init_record, nullptr, el5042_read_record,
+	5, (DEVSUPFUN)el5042_dev_report, (DEVSUPFUN)el5042_init, el5042_init_record, NULL, el5042_read_record,
 };
 
 extern "C"
