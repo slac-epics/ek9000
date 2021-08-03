@@ -881,6 +881,14 @@
 			"pdo_out_size": 2
 		},
 		{
+			"name": "EL5042",
+			"type": "longin",
+			"inputs": 2,
+			"outputs": 0,
+			"pdo_in_size": 2,
+			"pdo_out_size": 0
+		},
+		{
 			"name": "EL7047",
 			"type": "AnalogOut",
 			"inputs": 0,
