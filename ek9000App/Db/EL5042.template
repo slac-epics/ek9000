@@ -1,0 +1,16 @@
+record(longin,"$(TERMINAL):1")
+{
+	field(DTYP, "EL50XX")
+	field(PINI, "YES")
+	field(EGU, "counts")
+	field(SCAN, ".1 second")
+}
+
+record(longin,"$(TERMINAL):2")
+{
+	field(DTYP, "EL50XX")
+	field(PINI, "YES")
+	field(EGU, "counts")
+	field(SCAN, ".1 second")
+}
+
