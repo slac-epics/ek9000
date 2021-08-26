@@ -1,16 +1,33 @@
 record(longin,"$(TERMINAL):1")
 {
-	field(DTYP, "EL50XX")
+	field(DTYP, "EL5042")
 	field(PINI, "YES")
 	field(EGU, "counts")
-	field(SCAN, ".1 second")
+	field(SCAN, "1 second")
 }
 
 record(longin,"$(TERMINAL):2")
 {
-	field(DTYP, "EL50XX")
+	field(DTYP, "EL5042")
 	field(PINI, "YES")
 	field(EGU, "counts")
-	field(SCAN, ".1 second")
+	field(SCAN, "1 second")
 }
 
+## AM testing - delete when done testing
+record(calcout, "$(TERMINAL):1:CalcRbck") 
+{
+     field(DESC, "Calculate reaback in mm")
+     field(SCAN, "Passive")  
+     field(INPA, "$(TERMINAL):1 CP")
+     field(INPB, "0.00005")
+     field(CALC, "A*B")
+     field(OUT, "$(TERMINAL):1:EncRbck PP")
+}
+
+record(ai, "$(TERMINAL):1:EncRbck")
+{
+    field(DESC, "Encoder Readback")
+    field(SCAN, "Passive")
+
+}

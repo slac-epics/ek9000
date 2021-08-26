@@ -1535,6 +1535,21 @@ static const STerminalInfoConst_t EL4122_Info = {
 };
 
 //=========================================================//
+// EL5042
+//=========================================================//
+#define	EL5042_STRING	"EL5042"
+#define	EL5042_ID	5042
+#define	EL5042_OUTPUT_SIZE	0
+#define	EL5042_INPUT_SIZE	2
+static const STerminalInfoConst_t EL5042_Info = {
+	EL5042_STRING,
+	EL5042_ID,
+	EL5042_OUTPUT_SIZE,
+	EL5042_INPUT_SIZE,
+};
+
+
+//=========================================================//
 // EL7047
 //=========================================================//
 #define	EL7047_STRING	"EL7047"
@@ -1548,9 +1563,9 @@ static const STerminalInfoConst_t EL7047_Info = {
 	EL7047_INPUT_SIZE,
 };
 
-#define	NUM_TERMINALS	109
+#define	NUM_TERMINALS	110
 
-static const STerminalInfoConst_t* g_pTerminalInfos[109] = {
+static const STerminalInfoConst_t* g_pTerminalInfos[110] = {
 	&EL1001_Info,
 	&EL1002_Info,
 	&EL1004_Info,
@@ -1659,5 +1674,6 @@ static const STerminalInfoConst_t* g_pTerminalInfos[109] = {
 	&EL4134_Info,
 	&EL4132_Info,
 	&EL4122_Info,
+	&EL5042_Info,
 	&EL7047_Info,
 };

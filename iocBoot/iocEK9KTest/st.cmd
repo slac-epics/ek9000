@@ -11,7 +11,7 @@ ek9000Test_registerRecordDeviceDriver pdbbase
 
 # Configure the device (EK9K_NAME, IP, PORT, TERMINAL_COUNT)
 #ek9000Configure("EK9K1", "10.0.0.3", 502, 5)
-ek9000Configure("EK9K1", "10.0.0.3", 502, 2)
+ek9000Configure("EK9K1", "134.79.218.6", 502, 2)
 ek9000EnableDebug("EK9K1")
 
 # Configure each terminal (EK9K_ANME, RECORD_NAME, TERMINAL_TYPE, POSITION)
