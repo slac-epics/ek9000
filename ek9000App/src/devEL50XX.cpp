@@ -176,6 +176,7 @@ extern "C"
 }
 
 struct EL5042Dpvt_t {
+        int channel;
 	int64inRecord* prec;
 	devEK9000Terminal* pterm;
 	devEK9000* pcoupler;
@@ -218,6 +219,7 @@ static long el5042_init_record(void* prec) {
 	char* recname = NULL;
 	int channel = 0;
 	dpvt->pterm = devEK9000Terminal::ProcessRecordName(record->name, channel, recname);
+        dpvt-> channel = channel;
 	if (!dpvt->pterm) {
 		util::Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
 		return 1;
@@ -243,7 +245,6 @@ static long el5042_init_record(void* prec) {
 		util::Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
 		return 1;
 	}
-
 	return 0;
 }
 
@@ -296,7 +297,8 @@ static void el5042_read_callback(CALLBACK* callback) {
 
 	/* Read the stuff */
 	uint16_t buf[32];
-	dpvt->pcoupler->doEK9000IO(0, dpvt->pterm->m_inputStart, STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)), buf);
+	uint16_t loc = dpvt->pterm->m_inputStart + ((dpvt->channel-1) * 5);
+	dpvt->pcoupler->doEK9000IO(0, loc, STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)), buf);
 
 	/* Cast it to our pdo type */
 	pdo = reinterpret_cast<EL5042InputPDO_t*>(buf);
