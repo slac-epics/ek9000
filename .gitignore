@@ -9,9 +9,6 @@ __pycache__
 *.so
 *.d
 
-# We should ignore changes in the user settings file
-configure/CONFIG_SITE
-
 # Ignore this shtuff
 dbd/
 db/
