@@ -116,8 +116,7 @@ class EL70X7Axis
 
 ========================================================
 */
-class epicsShareClass el70x7Axis : public asynMotorAxis
-{
+class epicsShareClass el70x7Axis : public asynMotorAxis {
 public:
 	devEK9000* pcoupler;
 	devEK9000Terminal* pcontroller;
@@ -201,8 +200,7 @@ class EL70X7Axis
 ========================================================
 */
 
-class epicsShareClass el70x7Controller : public asynMotorController
-{
+class epicsShareClass el70x7Controller : public asynMotorController {
 public:
 	devEK9000* pcoupler;
 	devEK9000Terminal* pcontroller;

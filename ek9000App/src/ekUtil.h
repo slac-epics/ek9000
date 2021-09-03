@@ -34,9 +34,7 @@ typedef struct {
 	uint16_t m_inputSize;
 } terminal_info_t;
 
-template <class MutexT>
-class CAutoLockWrapper
-{
+template <class MutexT> class CAutoLockWrapper {
 	MutexT* m_mutex;
 
 public:
@@ -53,30 +51,29 @@ public:
 
 namespace util
 {
-	/**
-	 * Look up a terminal by ID and return a structure containing info about it
-	 */
-	const STerminalInfoConst_t* FindTerminal(unsigned int id);
+/**
+ * Look up a terminal by ID and return a structure containing info about it
+ */
+const STerminalInfoConst_t* FindTerminal(unsigned int id);
 
-	/**
-	 * Logging routines
-	 */
-	void Log(const char* fmt, ...);
-	void Warn(const char* fmt, ...);
-	void Error(const char* fmt, ...);
+/**
+ * Logging routines
+ */
+void Log(const char* fmt, ...);
+void Warn(const char* fmt, ...);
+void Error(const char* fmt, ...);
 
-	/**
-	 * Call this to setup a callback. Can be used in-place of the read or write functions in the dpvt struct
-	 */
-	long setupCallback(void* rec, void (*pCallback)(CALLBACK*));
-	
-	/**
-	 * Sets up an async read callback. Ensures PACT is properly set 
-	 */
-	template<class T>
-	long setupReadCallback(void* rec, void(*pCallback)(CALLBACK*)) {
-		T* pRecord = static_cast<T*>(rec);
-		pRecord->pact = 0;
-		return util::setupCallback(rec, pCallback);
-	}
+/**
+ * Call this to setup a callback. Can be used in-place of the read or write functions in the dpvt struct
+ */
+long setupCallback(void* rec, void (*pCallback)(CALLBACK*));
+
+/**
+ * Sets up an async read callback. Ensures PACT is properly set
+ */
+template <class T> long setupReadCallback(void* rec, void (*pCallback)(CALLBACK*)) {
+	T* pRecord = static_cast<T*>(rec);
+	pRecord->pact = 0;
+	return util::setupCallback(rec, pCallback);
+}
 } // namespace util

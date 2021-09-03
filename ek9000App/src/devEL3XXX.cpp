@@ -92,7 +92,7 @@ static void EL30XX_ReadCallback(CALLBACK* callback) {
 	uint16_t buf[2];
 	/*static_assert(sizeof(buf) <= sizeof(EL30XXStandardInputPDO_t),
 				  "SEL30XXStandardInputPDO is greater than 4 bytes in size, contact the author about this error!");
-        */
+		*/
 	callbackGetUser(record, callback);
 	aiRecord* pRecord = static_cast<aiRecord*>(record);
 	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
@@ -117,7 +117,8 @@ static void EL30XX_ReadCallback(CALLBACK* callback) {
 											dpvt->terminal->m_inputStart + ((dpvt->channel - 1)), buf, 1);
 		cpdo = reinterpret_cast<EL30XXCompactInputPDO_t*>(buf);
 		pRecord->rval = cpdo->value;
-	} else {
+	}
+	else {
 		status = dpvt->terminal->doEK9000IO(MODBUS_READ_INPUT_REGISTERS,
 											dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 		spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
@@ -190,7 +191,8 @@ static long EL30XX_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		util::Error("EL30XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL30XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+					termid);
 		return 1;
 	}
 
@@ -254,7 +256,7 @@ static void EL36XX_ReadCallback(CALLBACK* callback) {
 	EL36XXInputPDO_t* pdo = NULL;
 	/*static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
 				  "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
-        */
+		*/
 	callbackGetUser(record, callback);
 	aiRecord* pRecord = static_cast<aiRecord*>(record);
 	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
@@ -340,7 +342,8 @@ static long EL36XX_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		util::Error("EL36XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL36XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+					termid);
 		return 1;
 	}
 
@@ -419,7 +422,7 @@ static void EL331X_ReadCallback(CALLBACK* callback) {
 	EL331XInputPDO_t* pdo = NULL;
 	/*static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf),
 				  "SEL331XInput is greater than 2 registers in size! Contact the author regarding this error.");
-        */
+		*/
 	callbackGetUser(record, callback);
 	aiRecord* pRecord = static_cast<aiRecord*>(record);
 	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
@@ -507,7 +510,8 @@ static long EL331X_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		util::Error("EL331X_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL331X_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+					termid);
 		return 1;
 	}
 

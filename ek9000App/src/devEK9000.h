@@ -93,15 +93,15 @@ std::list<devEK9000*>& GlobalDeviceList();
 
 #define DevInfo(fmt, ...)                                                                                              \
 	if (g_bDebug) {                                                                                                    \
-		util::Log(fmt, __VA_ARGS__);                                                                                        \
+		util::Log(fmt, __VA_ARGS__);                                                                                   \
 	}
 #define DevWarn(fmt, ...)                                                                                              \
 	if (g_bDebug) {                                                                                                    \
-		util::Warn(fmt, __VA_ARGS__);                                                                                     \
+		util::Warn(fmt, __VA_ARGS__);                                                                                  \
 	}
 #define DevError(fmt, ...)                                                                                             \
 	if (g_bDebug) {                                                                                                    \
-		util::Error(fmt, __VA_ARGS__);                                                                                       \
+		util::Error(fmt, __VA_ARGS__);                                                                                 \
 	}
 
 struct LinkParameter_t {
@@ -124,14 +124,12 @@ typedef struct {
 	char* representation;
 } TerminalDpvt_t;
 
-enum ELinkType
-{
+enum ELinkType {
 	BAD = 0,
 	LINK_INST_IO,
 };
 
-class devEK9000Terminal
-{
+class devEK9000Terminal {
 public:
 	/* Copy constructor */
 	devEK9000Terminal(const devEK9000Terminal& other);
@@ -149,11 +147,9 @@ public:
 	/* Do EK9000 IO */
 	int doEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
 
-	template <class T>
-	bool CoEWriteParameter(coe::param_t param, T value);
+	template <class T> bool CoEWriteParameter(coe::param_t param, T value);
 
-	template <class T>
-	bool CoEReadParameter(coe::param_t param, T& outval);
+	template <class T> bool CoEReadParameter(coe::param_t param, T& outval);
 
 public:
 	/* Name of record */
@@ -187,8 +183,7 @@ public:
 //==========================================================//
 
 /* This holds various useful info about each ek9000 coupler */
-class devEK9000
-{
+class devEK9000 {
 private:
 	friend class CDeviceMgr;
 	friend class CTerminal;
@@ -361,11 +356,9 @@ public:
 	}
 
 	/* Couple utility functions */
-	template <class RecordT>
-	static bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
+	template <class RecordT> static bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
 
-	template <class RecordT>
-	static void destroyDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
+	template <class RecordT> static void destroyDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
 
 	static TerminalDpvt_t emptyDpvt() {
 		TerminalDpvt_t dpvt;
@@ -380,10 +373,9 @@ public:
 /**
  * We also handle some backwards compatibility here.
  */
-template <class RecordT>
-bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
+template <class RecordT> bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
 	const char* function = "util::setupCommonDpvt<RecordT>()";
-        std::list<devEK9000*>& devList = GlobalDeviceList();
+	std::list<devEK9000*>& devList = GlobalDeviceList();
 
 	if (!devEK9000::ParseLinkSpecification(prec->inp.text, LINK_INST_IO, dpvt.linkSpec)) {
 		/* Try to work with legacy stuff */
@@ -398,9 +390,9 @@ bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
 		/* Device name */
 		if (strcmp(param.key, "device") == 0) {
 			bool found = false;
-                        std::list<devEK9000*>& devList = GlobalDeviceList();
+			std::list<devEK9000*>& devList = GlobalDeviceList();
 			for (std::list<devEK9000*>::iterator x = devList.begin(); x != devList.end(); ++x) {
-			//for (const auto& x : GlobalDeviceList()) {
+				// for (const auto& x : GlobalDeviceList()) {
 				if (strcmp((*x)->m_name, param.value) == 0) {
 					dpvt.pdrv = *x;
 					found = true;
@@ -445,7 +437,8 @@ bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
 		/* Can be changed by iocsh */
 		else if (strcmp(param.key, "mapping") == 0) {
 			dpvt.mapping = epicsStrDup(param.value);
-		} else {
+		}
+		else {
 			epicsPrintf("%s (when parsing %s): ignored unknown param %s\n", function, prec->name, param.key);
 		}
 	}

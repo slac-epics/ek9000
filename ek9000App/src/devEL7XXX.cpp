@@ -42,16 +42,16 @@
 #define EL7047_START_TYPE_RELATIVE 0x2
 
 #define STRUCT_REGISTER_SIZE(x) (sizeof(x) % 2 == 0 ? sizeof(x) / 2 : sizeof(x) / 2 + 1)
-#define BYTES_TO_REG_SIZE(x) ((x) % 2 == 0 ? (x)/2 : (x)/2 +1)
+#define BYTES_TO_REG_SIZE(x) ((x) % 2 == 0 ? (x) / 2 : (x) / 2 + 1)
 
 #define BREAK() /* asm("int3\n\t") */
 
 std::vector<el70x7Controller*> controllers;
 
 #if __cplusplus >= 201103L
-	#define CONSTEXPR constexpr
+#define CONSTEXPR constexpr
 #else
-	#define CONSTEXPR static const
+#define CONSTEXPR static const
 #endif
 
 #define COE_PARAMETER(_name, _index, _subindex)                                                                        \
@@ -60,21 +60,21 @@ std::vector<el70x7Controller*> controllers;
 
 namespace coe
 {
-	COE_PARAMETER(SPEED_RANGE, 0x8012, 0x5);
-	COE_PARAMETER(VELOCITY_MIN, 0x8020, 0x1);
-	COE_PARAMETER(ACCELERATION_POS, 0x8020, 0x3);
-	COE_PARAMETER(DECELERATION_POS, 0x8020, 0x5);
-	COE_PARAMETER(MAXIMAL_CURRENT, 0x8010, 0x1);
-	COE_PARAMETER(REDUCED_CURRENT, 0x8010, 0x2);
-	COE_PARAMETER(NOMINAL_VOLTAGE, 0x8010, 0x3);
-	COE_PARAMETER(MOTOR_COIL_RESISTANCE, 0x8010, 0x4);
-	COE_PARAMETER(MOTOR_EMF, 0x8010, 0x5);
-	COE_PARAMETER(MOTOR_FULLSTEPS, 0x8010, 0x6);
-	COE_PARAMETER(ENCODER_INCREMENTS, 0x8010, 0x7);
-	COE_PARAMETER(START_VELOCITY, 0x8010, 0x9);
-	COE_PARAMETER(MOTOR_COIL_INDUCTANCE, 0x8010, 0xA);
-	COE_PARAMETER(DRIVE_ON_DELAY, 0x8010, 0x10);
-	COE_PARAMETER(DRIVE_OFF_DELAY, 0x8010, 0x11);
+COE_PARAMETER(SPEED_RANGE, 0x8012, 0x5);
+COE_PARAMETER(VELOCITY_MIN, 0x8020, 0x1);
+COE_PARAMETER(ACCELERATION_POS, 0x8020, 0x3);
+COE_PARAMETER(DECELERATION_POS, 0x8020, 0x5);
+COE_PARAMETER(MAXIMAL_CURRENT, 0x8010, 0x1);
+COE_PARAMETER(REDUCED_CURRENT, 0x8010, 0x2);
+COE_PARAMETER(NOMINAL_VOLTAGE, 0x8010, 0x3);
+COE_PARAMETER(MOTOR_COIL_RESISTANCE, 0x8010, 0x4);
+COE_PARAMETER(MOTOR_EMF, 0x8010, 0x5);
+COE_PARAMETER(MOTOR_FULLSTEPS, 0x8010, 0x6);
+COE_PARAMETER(ENCODER_INCREMENTS, 0x8010, 0x7);
+COE_PARAMETER(START_VELOCITY, 0x8010, 0x9);
+COE_PARAMETER(MOTOR_COIL_INDUCTANCE, 0x8010, 0xA);
+COE_PARAMETER(DRIVE_ON_DELAY, 0x8010, 0x10);
+COE_PARAMETER(DRIVE_OFF_DELAY, 0x8010, 0x11);
 } // namespace coe
 
 /*
@@ -147,14 +147,13 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) : asynMotorAxis(pC, ax
 	this->lock();
 	/* Set previous params to random values */
 	/* Grab initial values */
-	int status = this->pcoupler->m_driver->doModbusIO(
-		0, MODBUS_READ_HOLDING_REGISTERS, pcontroller->m_outputStart, (uint16_t*)&this->output,
-		BYTES_TO_REG_SIZE(pcontroller->m_outputSize));
+	int status =
+		this->pcoupler->m_driver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, pcontroller->m_outputStart,
+											 (uint16_t*)&this->output, BYTES_TO_REG_SIZE(pcontroller->m_outputSize));
 	if (status)
 		goto error;
-	status = this->pcoupler->m_driver->doModbusIO(
-		0, MODBUS_READ_HOLDING_REGISTERS, pcontroller->m_inputStart, (uint16_t*)&this->input,
-		BYTES_TO_REG_SIZE(pcontroller->m_inputSize));
+	status = this->pcoupler->m_driver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, pcontroller->m_inputStart,
+												  (uint16_t*)&this->input, BYTES_TO_REG_SIZE(pcontroller->m_inputSize));
 	/* Read the configured speed */
 	spd = 0;
 	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::SPEED_RANGE_INDEX, 1, &spd,
@@ -768,7 +767,8 @@ void el7047_Register() {
 		static const iocshArg arg3 = {"Record", iocshArgString};
 		static const iocshArg arg4 = {"Terminal position", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"el70x7Configure", 4, args, "el70x7Configure ek9k_name port_name record_name term_number"};
+		static const iocshFuncDef func = {"el70x7Configure", 4, args,
+										  "el70x7Configure ek9k_name port_name record_name term_number"};
 		iocshRegister(&func, el7047_Configure);
 	}
 	/* el70x7Stat */

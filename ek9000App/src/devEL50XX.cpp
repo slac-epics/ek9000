@@ -69,28 +69,31 @@ static void el50xx_read_callback(CALLBACK* callback) {
 
 	/* Handle individual terminal pdo types */
 	switch (dpvt->tid) {
-		case 5001: {
-			EL5001Output_t* output = reinterpret_cast<EL5001Output_t*>(data);
-			if (output->data.data_error || output->data.sync_err)
+		case 5001:
+			{
+				EL5001Output_t* output = reinterpret_cast<EL5001Output_t*>(data);
+				if (output->data.data_error || output->data.sync_err)
+					recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
+				if (output->data.frame_error)
+					recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
+				precord->val = output->encoder_value;
+				break;
+			}
+		case 5002:
+			{
+				EL5002Output_t* output = reinterpret_cast<EL5002Output_t*>(data);
+				if (output->data_error)
+					recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
+				if (output->frame_error)
+					recGblSetSevr(precord, COMM_ALARM, MAJOR_ALARM);
+				precord->val = output->encoder_value;
+				break;
+			}
+		default:
+			{
+				/* Raise invalid alarm if we don't have a tid */
 				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-			if (output->data.frame_error)
-				recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
-			precord->val = output->encoder_value;
-			break;
-		}
-		case 5002: {
-			EL5002Output_t* output = reinterpret_cast<EL5002Output_t*>(data);
-			if (output->data_error)
-				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-			if (output->frame_error)
-				recGblSetSevr(precord, COMM_ALARM, MAJOR_ALARM);
-			precord->val = output->encoder_value;
-			break;
-		}
-		default: {
-			/* Raise invalid alarm if we don't have a tid */
-			recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-		}
+			}
 	}
 	precord->pact = 0;
 	free(callback);
@@ -136,7 +139,8 @@ static long el50xx_init_record(void* precord) {
 	dpvt->tid = termid;
 
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		util::Error("EL50XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
+		util::Error("EL50XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
+					termid);
 		return 1;
 	}
 
@@ -176,7 +180,7 @@ extern "C"
 }
 
 struct EL5042Dpvt_t {
-        int channel;
+	int channel;
 	int64inRecord* prec;
 	devEK9000Terminal* pterm;
 	devEK9000* pcoupler;
@@ -219,7 +223,7 @@ static long el5042_init_record(void* prec) {
 	char* recname = NULL;
 	int channel = 0;
 	dpvt->pterm = devEK9000Terminal::ProcessRecordName(record->name, channel, recname);
-        dpvt-> channel = channel;
+	dpvt->channel = channel;
 	if (!dpvt->pterm) {
 		util::Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
 		return 1;
@@ -242,7 +246,8 @@ static long el5042_init_record(void* prec) {
 	dpvt->pcoupler->Unlock();
 	dpvt->prec = static_cast<int64inRecord*>(prec);
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		util::Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
+		util::Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
+					termid);
 		return 1;
 	}
 	return 0;
@@ -297,7 +302,7 @@ static void el5042_read_callback(CALLBACK* callback) {
 
 	/* Read the stuff */
 	uint16_t buf[32];
-	uint16_t loc = dpvt->pterm->m_inputStart + ((dpvt->channel-1) * 5);
+	uint16_t loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 5);
 	dpvt->pcoupler->doEK9000IO(0, loc, STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)), buf);
 
 	/* Cast it to our pdo type */

@@ -97,8 +97,8 @@ void Utl_InitThread() {
 
 void PollThreadFunc(void*) {
 	while (true) {
-		//for (auto device : g_Devices) {
-	        for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+		// for (auto device : g_Devices) {
+		for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
 			devEK9000* device = *it;
 			int status = device->Lock();
 			/* check connection */
@@ -207,9 +207,10 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 	if (!good) {
 		free(ret);
 		return NULL;
-	} else {
-		//for (auto dev : g_Devices) {
-	        for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+	}
+	else {
+		// for (auto dev : g_Devices) {
+		for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
 			devEK9000* dev = *it;
 			for (int i = 0; i < dev->m_numTerms; i++) {
 				if (!dev->m_terms[i].m_recordName)
@@ -287,13 +288,13 @@ devEK9000::~devEK9000() {
 }
 
 devEK9000* devEK9000::FindDevice(const char* name) {
-	//for (auto dev : g_Devices) {
+	// for (auto dev : g_Devices) {
 	for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
 		devEK9000* dev = *it;
 		if (!strcmp(name, dev->m_name))
 			return dev;
 	}
-	//return nullptr;
+	// return nullptr;
 	return NULL;
 }
 
@@ -423,8 +424,8 @@ int devEK9000::InitTerminals() {
 	for (int i = 0; i < this->m_numTerms; i++) {
 		devEK9000Terminal* term = &m_terms[i];
 		if (term->m_terminalFamily == TERMINAL_FAMILY_ANALOG) {
-			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId, reg_in, reg_out,
-				term->m_inputSize, term->m_outputSize);
+			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
+					reg_in, reg_out, term->m_inputSize, term->m_outputSize);
 			term->m_inputStart = reg_in;
 			term->m_outputStart = reg_out;
 			reg_in += term->m_inputSize;
@@ -436,8 +437,8 @@ int devEK9000::InitTerminals() {
 	for (int i = 0; i < this->m_numTerms; i++) {
 		devEK9000Terminal* term = &m_terms[i];
 		if (term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) {
-			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId, reg_in, reg_out,
-				term->m_inputSize, term->m_outputSize);
+			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
+					reg_in, reg_out, term->m_inputSize, term->m_outputSize);
 			term->m_inputStart = coil_in;
 			term->m_outputStart = coil_out;
 			coil_in += term->m_inputSize;
@@ -503,7 +504,8 @@ int devEK9000::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint
 				LastADSErr = tmp_data[5];
 				return EK_EADSERR;
 			}
-		} else
+		}
+		else
 			return EK_EERR;
 		return EK_EOK;
 	}
@@ -967,7 +969,7 @@ void ek9000DisableDebug(const iocshArgBuf*) {
 }
 
 void ek9000List(const iocshArgBuf*) {
-	//for (auto dev : g_Devices) {
+	// for (auto dev : g_Devices) {
 	for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
 		devEK9000* dev = *it;
 		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_name, dev->m_numTerms);
@@ -1143,7 +1145,6 @@ struct {
 
 epicsExportAddress(dset, devEK9000);
 
-
 static long ek9000_init_record(void*) {
 	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
 	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
@@ -1153,8 +1154,8 @@ static long ek9000_init_record(void*) {
 static long ek9000_init(int after) {
 	if (after == 0) {
 		epicsPrintf("Initializing EK9000 Couplers.\n");
-		//for (auto dev : g_Devices) {
-	        for (std::list<class devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+		// for (auto dev : g_Devices) {
+		for (std::list<class devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
 			class devEK9000* dev = (*it);
 			if (!dev->m_init)
 				dev->InitTerminals();
@@ -1178,8 +1179,7 @@ struct ek9k_coe_param_t {
 	devEK9000Terminal* pterm;
 	int index;
 	int subindex;
-	enum
-	{
+	enum {
 		COE_TYPE_BOOL,
 		COE_TYPE_INT8,
 		COE_TYPE_INT16,
@@ -1249,41 +1249,46 @@ static long ek9k_confli_read_record(void* prec) {
 	dpvt->param.ek9k->Lock();
 
 	switch (dpvt->param.type) {
-		case ek9k_coe_param_t::COE_TYPE_BOOL: {
-			uint16_t buf;
-			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-									  dpvt->param.subindex);
-			precord->val = static_cast<epicsInt64>(buf);
-			break;
-		}
-		case ek9k_coe_param_t::COE_TYPE_INT8: {
-			uint16_t buf;
-			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-									  dpvt->param.subindex);
-			precord->val = static_cast<epicsInt64>(buf);
-			break;
-		}
-		case ek9k_coe_param_t::COE_TYPE_INT16: {
-			uint16_t buf;
-			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-									  dpvt->param.subindex);
-			precord->val = static_cast<epicsInt64>(buf);
-			break;
-		}
-		case ek9k_coe_param_t::COE_TYPE_INT32: {
-			uint32_t buf;
-			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 2,
-									  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
-			precord->val = static_cast<epicsInt64>(buf);
-			break;
-		}
-		case ek9k_coe_param_t::COE_TYPE_INT64: {
-			uint64_t buf;
-			dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 4,
-									  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
-			precord->val = static_cast<epicsInt64>(buf);
-			break;
-		}
+		case ek9k_coe_param_t::COE_TYPE_BOOL:
+			{
+				uint16_t buf;
+				dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
+										  dpvt->param.subindex);
+				precord->val = static_cast<epicsInt64>(buf);
+				break;
+			}
+		case ek9k_coe_param_t::COE_TYPE_INT8:
+			{
+				uint16_t buf;
+				dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
+										  dpvt->param.subindex);
+				precord->val = static_cast<epicsInt64>(buf);
+				break;
+			}
+		case ek9k_coe_param_t::COE_TYPE_INT16:
+			{
+				uint16_t buf;
+				dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
+										  dpvt->param.subindex);
+				precord->val = static_cast<epicsInt64>(buf);
+				break;
+			}
+		case ek9k_coe_param_t::COE_TYPE_INT32:
+			{
+				uint32_t buf;
+				dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 2,
+										  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+				precord->val = static_cast<epicsInt64>(buf);
+				break;
+			}
+		case ek9k_coe_param_t::COE_TYPE_INT64:
+			{
+				uint64_t buf;
+				dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 4,
+										  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+				precord->val = static_cast<epicsInt64>(buf);
+				break;
+			}
 		default:
 			break;
 	}
@@ -1342,41 +1347,46 @@ static long ek9k_conflo_write_record(void* prec) {
 	dpvt->param.ek9k->Lock();
 
 	switch (dpvt->param.type) {
-		case ek9k_coe_param_t::COE_TYPE_BOOL: {
-			uint16_t buf = static_cast<epicsInt16>(precord->val);
-			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-											dpvt->param.subindex, 1);
-			break;
-		}
-		case ek9k_coe_param_t::COE_TYPE_INT8: {
-			uint16_t buf = static_cast<epicsInt16>(precord->val);
-			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-											dpvt->param.subindex, 1);
-			break;
-		}
-		case ek9k_coe_param_t::COE_TYPE_INT16: {
-			uint16_t buf = static_cast<epicsInt16>(precord->val);
-			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-											dpvt->param.subindex, 2);
-			break;
-		}
-		case ek9k_coe_param_t::COE_TYPE_INT32: {
-			uint32_t buf = static_cast<epicsInt32>(precord->val);
-			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 2,
-											reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex, 4);
-			break;
-		}
-		case ek9k_coe_param_t::COE_TYPE_INT64: {
-			uint64_t buf = precord->val;
-			ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 4,
-											reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex, 8);
-			break;
-		}
+		case ek9k_coe_param_t::COE_TYPE_BOOL:
+			{
+				uint16_t buf = static_cast<epicsInt16>(precord->val);
+				ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
+												dpvt->param.subindex, 1);
+				break;
+			}
+		case ek9k_coe_param_t::COE_TYPE_INT8:
+			{
+				uint16_t buf = static_cast<epicsInt16>(precord->val);
+				ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
+												dpvt->param.subindex, 1);
+				break;
+			}
+		case ek9k_coe_param_t::COE_TYPE_INT16:
+			{
+				uint16_t buf = static_cast<epicsInt16>(precord->val);
+				ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
+												dpvt->param.subindex, 2);
+				break;
+			}
+		case ek9k_coe_param_t::COE_TYPE_INT32:
+			{
+				uint32_t buf = static_cast<epicsInt32>(precord->val);
+				ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 2,
+												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex, 4);
+				break;
+			}
+		case ek9k_coe_param_t::COE_TYPE_INT64:
+			{
+				uint64_t buf = precord->val;
+				ret = dpvt->param.ek9k->doCoEIO(1, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 4,
+												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex, 8);
+				break;
+			}
 		default:
 			break;
 	}
 
-	if(ret != EK_EOK) {
+	if (ret != EK_EOK) {
 		util::Error("ek9k_conflo_write_record(): Error writing data to record.\n");
 	}
 
@@ -1411,7 +1421,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 			buf[i] = 0;
 
 	/* Finally actually parse the integers, find the ek9k, etc. */
-	//for (auto dev : g_Devices) {
+	// for (auto dev : g_Devices) {
 	for (std::list<class devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
 		class devEK9000* dev = *it;
 		if (strncmp(dev->m_name, buffers[0], strlen(dev->m_name)) == 0) {
@@ -1581,7 +1591,7 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 	const char *pek9k = 0, *preg = 0;
 
 	memset(buf, 0, 512);
-	strncpy(buf, str, sizeof(buf)-1);
+	strncpy(buf, str, sizeof(buf) - 1);
 
 	if (!buf[0])
 		return 1;
@@ -1625,63 +1635,64 @@ bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, Lin
 		return false;
 
 	switch (linkType) {
-		case LINK_INST_IO: {
-			int linkLen = strlen(link);
-			if (linkLen <= 1)
-				return false;
-			if (link[0] != '@')
-				return false;
-
-			/* Count the number of commas, which correspond to params */
-			int paramCount = 0;
-			for (int i = 0; i < linkLen; i++)
-				if (link[i] == ',')
-					paramCount++;
-			//LinkParameter_t* linkParams = nullptr;
-			LinkParameter_t* linkParams = NULL;
-
-			/* Nothing to parse? */
-			if (paramCount == 0)
-				return true;
-
-			/* Tokenize the string */
-			link++;
-			char buf[1024];
-			snprintf(buf, sizeof(buf), "%s", link);
-			char *param, *value;
-			int paramIndex = 0;
-			//param = value = nullptr;
-			param = value = NULL;
-			for (char* tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
-				param = tok;
-				/* Search for the = to break the thing up */
-				for (int i = 0; tok[i]; i++) {
-					if (tok[i] == '=')
-						value = &tok[i + 1];
-				}
-				/* If NULL, it's the end of the string and the param is malformed */
-				if (*value == 0) {
-					if (linkParams)
-						free(linkParams);
+		case LINK_INST_IO:
+			{
+				int linkLen = strlen(link);
+				if (linkLen <= 1)
 					return false;
+				if (link[0] != '@')
+					return false;
+
+				/* Count the number of commas, which correspond to params */
+				int paramCount = 0;
+				for (int i = 0; i < linkLen; i++)
+					if (link[i] == ',')
+						paramCount++;
+				// LinkParameter_t* linkParams = nullptr;
+				LinkParameter_t* linkParams = NULL;
+
+				/* Nothing to parse? */
+				if (paramCount == 0)
+					return true;
+
+				/* Tokenize the string */
+				link++;
+				char buf[1024];
+				snprintf(buf, sizeof(buf), "%s", link);
+				char *param, *value;
+				int paramIndex = 0;
+				// param = value = nullptr;
+				param = value = NULL;
+				for (char* tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
+					param = tok;
+					/* Search for the = to break the thing up */
+					for (int i = 0; tok[i]; i++) {
+						if (tok[i] == '=')
+							value = &tok[i + 1];
+					}
+					/* If NULL, it's the end of the string and the param is malformed */
+					if (*value == 0) {
+						if (linkParams)
+							free(linkParams);
+						return false;
+					}
+
+					/* Probably should just use stack allocation here (alloca), but that's not really portable
+					 * (technically is, but still) to non-POSIX platforms (e.g. windows) */
+					if (!linkParams)
+						linkParams = (LinkParameter_t*)malloc(sizeof(LinkParameter_t) * paramCount);
+
+					/* Add new param to the list */
+					outSpec.params[paramIndex].key = epicsStrDup(param);
+					outSpec.params[paramIndex].value = epicsStrDup(value);
+					paramIndex++;
 				}
 
-				/* Probably should just use stack allocation here (alloca), but that's not really portable (technically
-				 * is, but still) to non-POSIX platforms (e.g. windows) */
-				if (!linkParams)
-					linkParams = (LinkParameter_t*)malloc(sizeof(LinkParameter_t) * paramCount);
+				outSpec.numParams = paramCount;
+				outSpec.params = linkParams;
 
-				/* Add new param to the list */
-				outSpec.params[paramIndex].key = epicsStrDup(param);
-				outSpec.params[paramIndex].value = epicsStrDup(value);
-				paramIndex++;
+				return true;
 			}
-
-			outSpec.numParams = paramCount;
-			outSpec.params = linkParams;
-
-			return true;
-		}
 		default:
 			break;
 	}
@@ -1696,7 +1707,7 @@ void devEK9000::DestroyLinkSpecification(LinkSpecification_t& spec) {
 	}
 	if (spec.params)
 		free(spec.params);
-	//spec.params = nullptr;
+	// spec.params = nullptr;
 	spec.params = NULL;
 	spec.numParams = 0;
 }
