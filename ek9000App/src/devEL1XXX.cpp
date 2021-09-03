@@ -145,7 +145,8 @@ static long EL10XX_init_record(void* precord) {
 
 	/* Invalid term id */
 	if (termid == 0 || termid != dpvt->terminal->m_terminalId) {
-		util::Error("EL10XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL10XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+					termid);
 		return 1;
 	}
 	return 0;

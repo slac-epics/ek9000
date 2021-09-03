@@ -98,7 +98,8 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 		if (status > 0x100) {
 			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return;
-		} else {
+		}
+		else {
 			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
 		}
 		return;
@@ -146,7 +147,8 @@ static long EL40XX_init_record(void* record) {
 
 	/* Verify terminal ID */
 	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		util::Error("EL40XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		util::Error("EL40XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+					termid);
 		return 1;
 	}
 

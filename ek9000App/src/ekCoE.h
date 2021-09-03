@@ -20,28 +20,27 @@
 
 namespace coe
 {
-	enum EParamType
-	{
-		INT8 = 0,
-		UINT8,
-		INT16,
-		UINT16,
-		INT32,
-		UINT32,
-		INT64,
-		UINT64,
-		FLOAT32,
-		FLOAT64,
-		BOOL,
-		STRING
-	};
+enum EParamType {
+	INT8 = 0,
+	UINT8,
+	INT16,
+	UINT16,
+	INT32,
+	UINT32,
+	INT64,
+	UINT64,
+	FLOAT32,
+	FLOAT64,
+	BOOL,
+	STRING
+};
 
-	struct param_t {
-		const char* name;
-		EParamType type;
-		unsigned short index;
-		unsigned short subindex;
-		unsigned int length; // only for string params
-	};
+struct param_t {
+	const char* name;
+	EParamType type;
+	unsigned short index;
+	unsigned short subindex;
+	unsigned int length; // only for string params
+};
 
 } // namespace coe
