@@ -6,7 +6,6 @@
  */
 #pragma once
 
-#include <initializer_list>
 #include <iocsh.h>
 
 /* Record includes */
