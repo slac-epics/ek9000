@@ -42,7 +42,7 @@ static long EL10XX_init(int after);
 static long EL10XX_init_record(void* precord);
 static long EL10XX_read_record(void* precord);
 
-struct {
+struct devEL10XX_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;

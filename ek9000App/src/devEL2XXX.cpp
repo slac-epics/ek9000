@@ -40,7 +40,7 @@ static long EL20XX_init(int after);
 static long EL20XX_init_record(void* precord);
 static long EL20XX_write_record(void* precord);
 
-struct {
+struct devEL20XX_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;

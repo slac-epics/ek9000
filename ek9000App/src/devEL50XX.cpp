@@ -31,7 +31,7 @@ static long el50xx_init(int after);
 static long el50xx_init_record(void* precord);
 static long el50xx_read_record(void* precord);
 
-struct {
+struct devEL50XX_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
@@ -163,7 +163,7 @@ static long el5042_init(int after);
 static long el5042_read_record(void* prec);
 static void el5042_read_callback(CALLBACK* callback);
 
-struct {
+struct devEL5042_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;

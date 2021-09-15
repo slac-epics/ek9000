@@ -1021,6 +1021,10 @@ void ek9000SetPollTime(const iocshArgBuf* args) {
 	g_nPollDelay = time;
 }
 
+void ek9kDumpMappings(const iocshArgBuf* args) {
+	
+}
+
 int ek9000RegisterFunctions() {
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
@@ -1132,7 +1136,7 @@ epicsExportRegistrar(ek9000RegisterFunctions);
 static long ek9000_init(int);
 static long ek9000_init_record(void* prec);
 
-struct {
+struct devEK9000_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
@@ -1208,7 +1212,7 @@ static long ek9k_confli_init(int pass);
 static long ek9k_confli_init_record(void* prec);
 static long ek9k_confli_read_record(void* prec);
 
-struct {
+struct devEK9KCoERO_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
@@ -1305,7 +1309,7 @@ static long ek9k_conflo_init(int pass);
 static long ek9k_conflo_init_record(void* prec);
 static long ek9k_conflo_write_record(void* prec);
 
-struct {
+struct devEK9KCoERW_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
@@ -1476,7 +1480,7 @@ static long ek9k_ro_init(int pass);
 static long ek9k_ro_init_record(void* prec);
 static long ek9k_ro_read_record(void* pprec);
 
-struct {
+struct devEK9000ConfigRO_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
@@ -1534,7 +1538,7 @@ static long ek9k_rw_init(int pass);
 static long ek9k_rw_init_record(void* prec);
 static long ek9k_rw_write_record(void* pprec);
 
-struct {
+struct devEK9000ConfigRW_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;

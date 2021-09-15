@@ -42,7 +42,7 @@ static long EL30XX_init_record(void* precord);
 static long EL30XX_read_record(void* precord);
 static long EL30XX_linconv(void* precord, int after);
 
-struct {
+struct devEL30XX_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
@@ -220,7 +220,7 @@ static long EL36XX_init_record(void* precord);
 static long EL36XX_read_record(void* precord);
 static long EL36XX_linconv(void* precord, int after);
 
-struct {
+struct devEL36XX_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
@@ -371,7 +371,7 @@ static long EL331X_init_record(void* precord);
 static long EL331X_read_record(void* precord);
 static long EL331X_linconv(void* precord, int after);
 
-struct {
+struct devEL331X_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;

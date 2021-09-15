@@ -44,7 +44,7 @@ static long EL40XX_init_record(void* record);
 static long EL40XX_write_record(void* record);
 static long EL40XX_linconv(void* precord, int after);
 
-struct {
+struct devEL40XX_t {
 	long num;
 	DEVSUPFUN report;
 	DEVSUPFUN init;
