@@ -1,15 +1,18 @@
-record(longin,"$(TERMINAL):1")
+record(ai,"$(TERMINAL):1")
 {
 	field(DTYP, "EL5042")
+	field(LINR, "LINEAR")
 	field(PINI, "YES")
-	field(EGU, "counts")
-	field(SCAN, "1 second")
+	field(EGU, "Volts")
+	field(SCAN, ".1 second")
 }
 
-record(longin,"$(TERMINAL):2")
+record(ai,"$(TERMINAL):2")
 {
 	field(DTYP, "EL5042")
+	field(LINR, "LINEAR")
 	field(PINI, "YES")
-	field(EGU, "counts")
-	field(SCAN, "1 second")
+	field(EGU, "Volts")
+	field(SCAN, ".1 second")
 }
+

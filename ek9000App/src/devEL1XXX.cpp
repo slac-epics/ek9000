@@ -81,6 +81,8 @@ static void EL10XX_ReadCallback(CALLBACK* callback) {
 
 	/* Do the actual IO */
 	uint16_t buf = 0;
+	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus input bits start at 0, and inputStart
+	 * is 1-based **/
 	uint16_t loc = dpvt->terminal->m_inputStart + (dpvt->channel - 2);
 	status = dpvt->terminal->doEK9000IO(MODBUS_READ_DISCRETE_INPUTS, loc, &buf, 1);
 
