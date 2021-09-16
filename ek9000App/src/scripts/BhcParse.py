@@ -226,7 +226,7 @@ def get_dtyp(terminal: dict) -> str:
 		elif terminal["type"] == "AnalogOut":
 			return "EL40XX"
 		else:
-			raise ValueError()
+			raise ValueError(f"Type is {terminal['type']}")
 
 
 with open("../../Db/Templates.mak", "w") as fp:

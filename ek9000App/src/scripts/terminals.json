@@ -313,6 +313,14 @@
 			"pdo_out_size": 4
 		},
 		{
+			"name": "EL2808",
+			"type": "DigOut",
+			"inputs": 0,
+			"outputs": 8,
+			"pdo_in_size": 0,
+			"pdo_out_size": 8
+		},
+		{
 			"name": "EL2816",
 			"type": "DigOut",
 			"inputs": 0,
@@ -882,7 +890,8 @@
 		},
 		{
 			"name": "EL5042",
-			"type": "longin",
+			"type": "AnalogIn",
+			"dtyp": "EL5042",
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 2,
