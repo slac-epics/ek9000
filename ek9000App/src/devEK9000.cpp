@@ -46,6 +46,7 @@
 #include <iocsh.h>
 #include <callback.h>
 #include <errno.h>
+#include <sys/time.h>
 
 /* Record includes */
 #include <longinRecord.h>
@@ -76,7 +77,7 @@ CDeviceMgr* g_pDeviceMgr = 0;
 bool g_bDebug = false;
 epicsThreadId g_PollThread = 0;
 epicsMutexId g_ThreadMutex = 0;
-int g_nPollDelay = 250;
+int g_nPollDelay = 200;
 std::list<devEK9000*> g_Devices;
 
 /* Global list accessor */
@@ -91,33 +92,67 @@ void PollThreadFunc(void* param);
 
 void Utl_InitThread() {
 	g_ThreadMutex = epicsMutexCreate();
-	g_PollThread = epicsThreadCreate("EK9000_PollThread", priorityHigh, epicsThreadGetStackSize(epicsThreadStackMedium),
-									 PollThreadFunc, NULL);
+	g_PollThread = epicsThreadCreate("EK9000_PollThread", priorityHigh, 
+					 epicsThreadGetStackSize(epicsThreadStackMedium),
+					 PollThreadFunc, NULL);
 }
 
+// This thread does two things:
+//      - Check the connection and reset the watchdog every other poll time.
+//      - Poll for new EL1xxx/EL3xxx/EL5xxx data every poll time.
 void PollThreadFunc(void*) {
+        int cnt = 0;
+	struct timeval start, finish;
+	double duration_ms;
 	while (true) {
+	        gettimeofday(&start, NULL);
 		// for (auto device : g_Devices) {
 		for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
 			devEK9000* device = *it;
 			int status = device->Lock();
-			/* check connection */
-			bool connected = device->VerifyConnection();
-			if (!connected && device->m_connected) {
+			if (!cnt) {
+			    /* check connection every other loop */
+			    bool connected = device->VerifyConnection();
+			    if (!connected && device->m_connected) {
 				util::Warn("%s: Link status changed to DISCONNECTED\n", device->m_name);
 				device->m_connected = false;
-			}
-			if (connected && !device->m_connected) {
+			    }
+			    if (connected && !device->m_connected) {
 				util::Warn("%s: Link status changed to CONNECTED\n", device->m_name);
 				device->m_connected = true;
-			}
-			if (status)
+			    }
+			    if (status) {
+				device->Unlock();
 				continue;
-			uint16_t buf = 1;
-			device->m_driver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1);
+			    }
+			    uint16_t buf = 1;
+			    if (device->m_driver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1)) {
+				util::Error("%s: FAILED TO RESET WATCHDOG!\n", device->m_name);
+			    }
+			}
+			/* read EL1xxx/EL3xxx/EL5xxx data */
+			if (device->m_digital_cnt) {
+			    if (!device->m_driver->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0,
+							      device->m_digital_buf, device->m_digital_cnt)) {
+				scanIoRequest(device->m_digital_io);
+			    } else
+				util::Error("%s: FAILED TO READ DIGITAL INPUTS!\n", device->m_name);
+			}
+			if (device->m_analog_cnt) {
+			    if (!device->m_driver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0,
+							      device->m_analog_buf, device->m_analog_cnt)) {
+				scanIoRequest(device->m_analog_io);
+			    } else
+				util::Error("%s: FAILED TO READ ANALOG INPUTS!\n", device->m_name);
+			}
 			device->Unlock();
 		}
-		epicsThreadSleep((float)g_nPollDelay / 1000.0f);
+		cnt = (cnt + 1) % 2;
+	        gettimeofday(&finish, NULL);
+		duration_ms = (finish.tv_sec - start.tv_sec) * 1000. +
+             	 	      (finish.tv_usec - start.tv_usec) / 1000.;
+		if (duration_ms < g_nPollDelay)
+		    epicsThreadSleep(((float)g_nPollDelay - duration_ms) / 1000.0f);
 	}
 }
 
@@ -167,7 +202,7 @@ devEK9000Terminal::~devEK9000Terminal() {
 }
 
 devEK9000Terminal* devEK9000Terminal::Create(devEK9000* device, uint32_t termid, int termindex,
-											 const char* recordname) {
+					     const char* recordname) {
 	devEK9000Terminal* term = new devEK9000Terminal();
 	term->m_device = device;
 	int outp = 0, inp = 0;
@@ -245,6 +280,25 @@ int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, size_t
 		return (status + 0x100);
 	}
 	return EK_EOK;
+}
+
+int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, size_t len) {
+	if (!this->m_device || !this->m_device->m_driver) {
+		return EK_EBADTERM;
+	}
+	if (type == MODBUS_READ_DISCRETE_INPUTS) { /* digital */
+	    if (startaddr < 0 || startaddr + len > this->m_device->m_digital_cnt)
+		return EK_EBADPARAM + 0x100;
+	    memcpy(buf, this->m_device->m_digital_buf + startaddr, len * sizeof(uint16_t));
+	    return EK_EOK;
+	}
+	if (type == MODBUS_READ_INPUT_REGISTERS) { /* analog */
+	    if (startaddr < 0 || startaddr + len > this->m_device->m_analog_cnt)
+		return EK_EBADPARAM + 0x100;
+	    memcpy(buf, this->m_device->m_analog_buf + startaddr, len * sizeof(uint16_t));
+	    return EK_EOK;
+	}
+	return EK_EBADPARAM + 0x100;
 }
 
 //==========================================================//
@@ -418,9 +472,8 @@ int devEK9000::InitTerminals() {
 	int reg_in = 0, reg_out = 0x800;
 	/* in = holding regs, out = inp regs */
 	/* analog terms are mapped FIRST */
-	/* then digital termas are mapped */
-	/* holding regsiters can have bit offsets */
-	/* First loop: analog terms */
+	/* then digital terms are mapped */
+	/* holding registers can have bit offsets */
 	for (int i = 0; i < this->m_numTerms; i++) {
 		devEK9000Terminal* term = &m_terms[i];
 		if (term->m_terminalFamily == TERMINAL_FAMILY_ANALOG) {
@@ -431,20 +484,28 @@ int devEK9000::InitTerminals() {
 			reg_in += term->m_inputSize;
 			reg_out += term->m_outputSize;
 		}
-	}
-
-	/* Second loop: digital terms */
-	for (int i = 0; i < this->m_numTerms; i++) {
-		devEK9000Terminal* term = &m_terms[i];
 		if (term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) {
 			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
-					reg_in, reg_out, term->m_inputSize, term->m_outputSize);
+					coil_in, coil_out, term->m_inputSize, term->m_outputSize);
 			term->m_inputStart = coil_in;
 			term->m_outputStart = coil_out;
 			coil_in += term->m_inputSize;
 			coil_out += term->m_outputSize;
 		}
 	}
+	/* Now that we have counts, allocate buffer space! */
+        scanIoInit(&m_analog_io);
+        scanIoInit(&m_digital_io);
+	m_analog_cnt = reg_in;
+	if (m_analog_cnt)
+	    m_analog_buf = (uint16_t *) calloc(m_analog_cnt, sizeof(uint16_t)); /* We read status bits too! */
+	else
+	    m_analog_buf = NULL;
+	m_digital_cnt = coil_in - 1;
+	if (coil_in != 1)
+	    m_digital_buf = (uint16_t *) calloc(m_digital_cnt, sizeof(uint16_t));
+	else
+	    m_digital_buf = NULL;
 	return EK_EOK;
 }
 
@@ -736,11 +797,12 @@ int devEK9000::ReadTerminalID(uint16_t termid, uint16_t& out) {
 
 int devEK9000::Poll(float duration, int timeout) {
 	uint16_t dat = 0;
-	do {
-		this->m_driver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
+	this->m_driver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
+	while ((dat | 0x200) == 0x200 && timeout > 0) {
 		epicsThreadSleep(duration);
 		timeout--;
-	} while ((dat | 0x200) == 0x200 && timeout > 0);
+		this->m_driver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
+	} 
 
 	if (timeout <= 0)
 		return 1;
@@ -843,8 +905,6 @@ void ek9000Configure(const iocshArgBuf* args) {
 		epicsPrintf("Unable to create device: Unspecified error.\n");
 		return;
 	}
-
-	g_Devices.push_back(dev);
 }
 
 void ek9000ConfigureTerminal(const iocshArgBuf* args) {

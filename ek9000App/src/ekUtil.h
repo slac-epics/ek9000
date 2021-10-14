@@ -67,12 +67,4 @@ void Error(const char* fmt, ...);
  */
 long setupCallback(void* rec, void (*pCallback)(CALLBACK*));
 
-/**
- * Sets up an async read callback. Ensures PACT is properly set
- */
-template <class T> long setupReadCallback(void* rec, void (*pCallback)(CALLBACK*)) {
-	T* pRecord = static_cast<T*>(rec);
-	pRecord->pact = 0;
-	return util::setupCallback(rec, pCallback);
-}
 } // namespace util

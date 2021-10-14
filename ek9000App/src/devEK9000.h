@@ -147,6 +147,9 @@ public:
 	/* Do EK9000 IO */
 	int doEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
 
+	/* Same calling convention as above, but use the buffered data! */
+	int getEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
+
 	template <class T> bool CoEWriteParameter(coe::param_t param, T value);
 
 	template <class T> bool CoEReadParameter(coe::param_t param, T& outval);
@@ -219,6 +222,15 @@ public:
 	int m_error;
 
 	int LastADSErr;
+
+	/* Interrupts for analog/digital inputs */
+	IOSCANPVT m_analog_io;
+	IOSCANPVT m_digital_io;
+	/* The actual analog/digital data */
+	uint16_t  *m_analog_buf;
+	uint16_t  *m_digital_buf;
+	uint16_t  m_analog_cnt;
+	uint16_t  m_digital_cnt;
 
 public:
 	devEK9000();

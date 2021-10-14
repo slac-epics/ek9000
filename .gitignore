@@ -16,8 +16,6 @@ lib/
 include/
 bin/
 
-# Ignore all local configs
-*.local
 O.*
 
 .kdev4/

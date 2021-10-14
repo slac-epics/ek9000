@@ -3,8 +3,7 @@ record(bi,"$(TERMINAL):1")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):2")
@@ -12,8 +11,7 @@ record(bi,"$(TERMINAL):2")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):3")
@@ -21,8 +19,7 @@ record(bi,"$(TERMINAL):3")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):4")
@@ -30,8 +27,7 @@ record(bi,"$(TERMINAL):4")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):5")
@@ -39,8 +35,7 @@ record(bi,"$(TERMINAL):5")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):6")
@@ -48,8 +43,7 @@ record(bi,"$(TERMINAL):6")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):7")
@@ -57,8 +51,7 @@ record(bi,"$(TERMINAL):7")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):8")
@@ -66,8 +59,7 @@ record(bi,"$(TERMINAL):8")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):9")
@@ -75,8 +67,7 @@ record(bi,"$(TERMINAL):9")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):10")
@@ -84,8 +75,7 @@ record(bi,"$(TERMINAL):10")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):11")
@@ -93,8 +83,7 @@ record(bi,"$(TERMINAL):11")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):12")
@@ -102,8 +91,7 @@ record(bi,"$(TERMINAL):12")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):13")
@@ -111,8 +99,7 @@ record(bi,"$(TERMINAL):13")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):14")
@@ -120,8 +107,7 @@ record(bi,"$(TERMINAL):14")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):15")
@@ -129,8 +115,7 @@ record(bi,"$(TERMINAL):15")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 
 record(bi,"$(TERMINAL):16")
@@ -138,7 +123,6 @@ record(bi,"$(TERMINAL):16")
 	field(DTYP, "EL10XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(SCAN, ".1 second")
-	field(PINI, "YES")
+	field(SCAN, "I/O Intr")
 }
 

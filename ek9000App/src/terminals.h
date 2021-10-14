@@ -1554,7 +1554,7 @@ static const STerminalInfoConst_t EL4122_Info = {
 #define	EL5042_STRING	"EL5042"
 #define	EL5042_ID	5042
 #define	EL5042_OUTPUT_SIZE	0
-#define	EL5042_INPUT_SIZE	2
+#define	EL5042_INPUT_SIZE	3
 static const STerminalInfoConst_t EL5042_Info = {
 	EL5042_STRING,
 	EL5042_ID,
