@@ -17,6 +17,7 @@ include/
 bin/
 
 O.*
+*.local
 
 .kdev4/
 
