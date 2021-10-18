@@ -894,7 +894,7 @@
 			"dtyp": "EL5042",
 			"inputs": 2,
 			"outputs": 0,
-			"pdo_in_size": 2,
+			"pdo_in_size": 3,
 			"pdo_out_size": 0
 		},
 		{

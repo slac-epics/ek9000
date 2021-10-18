@@ -35,7 +35,6 @@ struct EL10XXDpvt_t {
 	devEK9000* device;
 };
 
-static void EL10XX_ReadCallback(biRecord *pRecord);
 static long EL10XX_dev_report(int interest);
 static long EL10XX_init(int after);
 static long EL10XX_init_record(void* precord);
@@ -55,39 +54,6 @@ struct devEL10XX_t {
 };
 
 epicsExportAddress(dset, devEL10XX);
-
-static void EL10XX_ReadCallback(biRecord *pRecord) {
-	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
-
-	/* Check for invalid */
-	if (!dpvt->terminal)
-		return;
-
-	/* Lock for modbus io */
-	int status;
-
-	/* Do the actual IO */
-	uint16_t buf = 0;
-	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus input bits start at 0, and inputStart
-	 * is 1-based **/
-	uint16_t loc = dpvt->terminal->m_inputStart + (dpvt->channel - 2);
-	status = dpvt->terminal->getEK9000IO(MODBUS_READ_DISCRETE_INPUTS, loc, &buf, 1);
-
-	/* Error states */
-	if (status) {
-		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		/* Check type of err */
-		if (status > 0x100) {
-		    DevError("EL10XX_ReadCallback() for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));
-		    return;
-		}
-		DevError("EL10XX_ReadCallback() for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));
-		return;
-	}
-	pRecord->val = buf;
-	pRecord->rval = buf;
-	pRecord->udf = FALSE;
-}
 
 static long EL10XX_dev_report(int) {
 	return 0;
@@ -147,8 +113,37 @@ static long EL10XX_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
     return 0;
 }
 
-static long EL10XX_read_record(void* precord) {
-        struct biRecord *prec = (struct biRecord *) precord;
-	EL10XX_ReadCallback(prec);
+static long EL10XX_read_record(void* prec) {
+        struct biRecord *pRecord = (struct biRecord *) prec;
+	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
+
+	/* Check for invalid */
+	if (!dpvt->terminal)
+		return 0;
+
+	/* Lock for modbus io */
+	int status;
+
+	/* Do the actual IO */
+	uint16_t buf = 0;
+	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus input bits start at 0, and inputStart
+	 * is 1-based **/
+	uint16_t loc = dpvt->terminal->m_inputStart + (dpvt->channel - 2);
+	status = dpvt->terminal->getEK9000IO(MODBUS_READ_DISCRETE_INPUTS, loc, &buf, 1);
+
+	/* Error states */
+	if (status) {
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
+		/* Check type of err */
+		if (status > 0x100) {
+		    DevError("EL10XX_read_record() for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));
+		    return 0;
+		}
+		DevError("EL10XX_read_record() for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));
+		return 0;
+	}
+	pRecord->val = buf;
+	pRecord->rval = buf;
+	pRecord->udf = FALSE;
 	return 0;
 }

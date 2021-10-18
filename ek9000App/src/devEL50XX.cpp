@@ -26,7 +26,6 @@ struct EL50XXDpvt_t {
 	};
 };
 
-static void el50xx_read_callback(longinRecord *pRecord);
 static long el50xx_dev_report(int lvl);
 static long el50xx_init(int after);
 static long el50xx_init_record(void* precord);
@@ -46,53 +45,6 @@ struct devEL50XX_t {
 extern "C"
 {
 	epicsExportAddress(dset, devEL50XX);
-}
-
-static void el50xx_read_callback(longinRecord *precord) {
-	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(precord->dpvt);
-
-	if (!dpvt || !dpvt->pterm || !dpvt->pcoupler)
-		return;
-
-	if (!dpvt->pcoupler->VerifyConnection()) {
-		recGblSetSevr((longinRecord*)dpvt->precord, COMM_ALARM, INVALID_ALARM);
-		return;
-	}
-
-	/* Read into a buffer that's plenty big enough for any terminal type */
-	uint16_t data[32];
-	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->pterm->m_inputStart, 
-				 data, STRUCT_SIZE_TO_MODBUS_SIZE(dpvt->pterm->m_inputSize));
-
-	/* Handle individual terminal pdo types */
-	switch (dpvt->tid) {
-		case 5001:
-			{
-				EL5001Output_t* output = reinterpret_cast<EL5001Output_t*>(data);
-				if (output->data.data_error || output->data.sync_err)
-					recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-				if (output->data.frame_error)
-					recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
-				precord->val = output->encoder_value;
-				break;
-			}
-		case 5002:
-			{
-				EL5002Output_t* output = reinterpret_cast<EL5002Output_t*>(data);
-				if (output->data_error)
-					recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-				if (output->frame_error)
-					recGblSetSevr(precord, COMM_ALARM, MAJOR_ALARM);
-				precord->val = output->encoder_value;
-				break;
-			}
-		default:
-			{
-				/* Raise invalid alarm if we don't have a tid */
-				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-			}
-	}
-	precord->udf = FALSE;
 }
 
 static long el50xx_dev_report(int) {
@@ -145,7 +97,50 @@ static long el50xx_init_record(void* precord) {
 
 static long el50xx_read_record(void* prec) {
 	longinRecord* precord = static_cast<longinRecord*>(prec);
-	el50xx_read_callback(precord);
+	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(precord->dpvt);
+
+	if (!dpvt || !dpvt->pterm || !dpvt->pcoupler)
+		return 0;
+
+	if (!dpvt->pcoupler->VerifyConnection()) {
+		recGblSetSevr((longinRecord*)dpvt->precord, COMM_ALARM, INVALID_ALARM);
+		return 0;
+	}
+
+	/* Read into a buffer that's plenty big enough for any terminal type */
+	uint16_t data[32];
+	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->pterm->m_inputStart, 
+				 data, STRUCT_SIZE_TO_MODBUS_SIZE(dpvt->pterm->m_inputSize));
+
+	/* Handle individual terminal pdo types */
+	switch (dpvt->tid) {
+		case 5001:
+			{
+				EL5001Output_t* output = reinterpret_cast<EL5001Output_t*>(data);
+				if (output->data.data_error || output->data.sync_err)
+					recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
+				if (output->data.frame_error)
+					recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
+				precord->val = output->encoder_value;
+				break;
+			}
+		case 5002:
+			{
+				EL5002Output_t* output = reinterpret_cast<EL5002Output_t*>(data);
+				if (output->data_error)
+					recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
+				if (output->frame_error)
+					recGblSetSevr(precord, COMM_ALARM, MAJOR_ALARM);
+				precord->val = output->encoder_value;
+				break;
+			}
+		default:
+			{
+				/* Raise invalid alarm if we don't have a tid */
+				recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
+			}
+	}
+	precord->udf = FALSE;
 	return 0;
 }
 
@@ -153,7 +148,6 @@ static long el5042_dev_report(int lvl);
 static long el5042_init_record(void* prec);
 static long el5042_init(int after);
 static long el5042_read_record(void* prec);
-static void el5042_read_callback(longinRecord* prec);
 
 struct devEL5042_t {
 	long number;
@@ -261,23 +255,12 @@ Called to read the specified record
 */
 static long el5042_read_record(void* prec) {
 	longinRecord* precord = static_cast<longinRecord*>(prec);
-	el5042_read_callback(precord);
-	return 0;
-}
-
-/*
--------------------------------------
-Callback queued by read_record to actually
-read the record
--------------------------------------
-*/
-static void el5042_read_callback(longinRecord *precord) {
 	EL5042Dpvt_t* dpvt;
 	EL5042InputPDO_t* pdo;
 
 	dpvt = static_cast<EL5042Dpvt_t*>(precord->dpvt);
 	if (!dpvt) {
-		return;
+		return 0;
 	}
 
 	/* Read the stuff */
@@ -303,4 +286,5 @@ static void el5042_read_callback(longinRecord *precord) {
 	}
 
 	precord->udf = FALSE;
+	return 0;
 }

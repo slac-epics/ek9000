@@ -286,18 +286,22 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, size_
 	if (!this->m_device || !this->m_device->m_driver) {
 		return EK_EBADTERM;
 	}
+	int status = this->m_device->Lock();
 	if (type == MODBUS_READ_DISCRETE_INPUTS) { /* digital */
 	    if (startaddr < 0 || startaddr + len > this->m_device->m_digital_cnt)
 		return EK_EBADPARAM + 0x100;
 	    memcpy(buf, this->m_device->m_digital_buf + startaddr, len * sizeof(uint16_t));
+	    this->m_device->Unlock();
 	    return EK_EOK;
 	}
 	if (type == MODBUS_READ_INPUT_REGISTERS) { /* analog */
 	    if (startaddr < 0 || startaddr + len > this->m_device->m_analog_cnt)
 		return EK_EBADPARAM + 0x100;
 	    memcpy(buf, this->m_device->m_analog_buf + startaddr, len * sizeof(uint16_t));
+	    this->m_device->Unlock();
 	    return EK_EOK;
 	}
+	this->m_device->Unlock();
 	return EK_EBADPARAM + 0x100;
 }
 

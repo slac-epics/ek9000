@@ -20,7 +20,6 @@
 #include <devSup.h>
 #include <alarm.h>
 #include <aiRecord.h>
-#include <callback.h>
 #include <recGbl.h>
 
 #include <drvModbusAsyn.h>
@@ -34,7 +33,6 @@
 //	EL30XX Device support
 //
 //======================================================//
-static void EL30XX_ReadCallback(aiRecord *pRecord);
 static long EL30XX_dev_report(int interest);
 static long EL30XX_init(int after);
 static long EL30XX_init_record(void* precord);
@@ -78,46 +76,6 @@ struct EL30XXDPVT_t {
 	int channel;
 	TerminalDpvt_t newDpvt;
 };
-
-static void EL30XX_ReadCallback(aiRecord *pRecord) {
-	EL30XXStandardInputPDO_t* spdo;
-	uint16_t buf[2];
-	/*static_assert(sizeof(buf) <= sizeof(EL30XXStandardInputPDO_t),
-				  "SEL30XXStandardInputPDO is greater than 4 bytes in size, contact the author about this error!");
-		*/
-	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
-
-	/* Check for invalid */
-	if (!dpvt->terminal)
-		return;
-
-	int status;
-
-	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-					     dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
-	spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
-	pRecord->rval = spdo->value;
-
-	/* For standard PDO types, we have limits, so we should set alarms based on these,
-	   apparently the error bit is just equal to (overrange || underrange) */
-	if (spdo->overrange || spdo->underrange) {
-	    recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
-	}
-
-	/* Check for error */
-	if (status) {
-		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-			DevError("EL30XX_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			return;
-		}
-		DevError("EL30XX_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
-		return;
-	}
-
-	pRecord->pact = FALSE;
-	pRecord->udf = FALSE;
-}
 
 static long EL30XX_dev_report(int) {
 	return 0;
@@ -178,9 +136,45 @@ static long EL30XX_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
     return 0;
 }
 
-static long EL30XX_read_record(void* precord) {
-        struct aiRecord *prec = (struct aiRecord *) precord;
-	EL30XX_ReadCallback(prec);
+static long EL30XX_read_record(void* prec) {
+        struct aiRecord *pRecord = (struct aiRecord *) prec;
+	EL30XXStandardInputPDO_t* spdo;
+	uint16_t buf[2];
+	/*static_assert(sizeof(buf) <= sizeof(EL30XXStandardInputPDO_t),
+				  "SEL30XXStandardInputPDO is greater than 4 bytes in size, contact the author about this error!");
+		*/
+	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
+
+	/* Check for invalid */
+	if (!dpvt->terminal)
+		return 0;
+
+	int status;
+
+	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
+					     dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
+	pRecord->rval = spdo->value;
+
+	/* For standard PDO types, we have limits, so we should set alarms based on these,
+	   apparently the error bit is just equal to (overrange || underrange) */
+	if (spdo->overrange || spdo->underrange) {
+	    recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
+	}
+
+	/* Check for error */
+	if (status) {
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
+		if (status > 0x100) {
+			DevError("EL30XX_read_record(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			return 0;
+		}
+		DevError("EL30XX_read_record(): %s\n", devEK9000::ErrorToString(status));
+		return 0;
+	}
+
+	pRecord->pact = FALSE;
+	pRecord->udf = FALSE;
 	return 0;
 }
 
@@ -193,7 +187,6 @@ static long EL30XX_linconv(void*, int) {
 //	EL36XX Device support
 //
 //======================================================//
-static void EL36XX_ReadCallback(aiRecord *pRecord);
 static long EL36XX_dev_report(int interest);
 static long EL36XX_init(int after);
 static long EL36XX_init_record(void* precord);
@@ -230,48 +223,6 @@ struct EL36XXInputPDO_t {
 
 #define EL36XX_OVERRANGE_MASK 0x2
 #define EL36XX_UNDERRANGE_MASK 0x1
-
-static void EL36XX_ReadCallback(aiRecord *pRecord) {
-	uint16_t buf[3];
-	EL36XXInputPDO_t* pdo = NULL;
-	/*static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
-				  "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
-		*/
-	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
-
-	/* Check for invalid */
-	if (!dpvt->terminal)
-		return;
-
-	/* Lock mutex */
-	int status;
-
-	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-					    dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
-	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
-	pRecord->rval = pdo->inp;
-
-	/* Check the overrange and underrange flags */
-	if ((pdo->status & EL36XX_OVERRANGE_MASK) || (pdo->status & EL36XX_UNDERRANGE_MASK)) {
-		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
-	}
-
-	/* Set props */
-	pRecord->pact = FALSE;
-	pRecord->udf = FALSE;
-
-	/* Check for error */
-	if (status) {
-		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-			DevError("EL36XX_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			return;
-		}
-		DevError("EL36XX_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
-		return;
-	}
-	return;
-}
 
 static long EL36XX_dev_report(int) {
 	return 0;
@@ -329,9 +280,46 @@ static long EL36XX_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
     return 0;
 }
 
-static long EL36XX_read_record(void* precord) {
-        struct aiRecord *prec = (struct aiRecord *) precord;
-	EL36XX_ReadCallback(prec);
+static long EL36XX_read_record(void* prec) {
+        struct aiRecord *pRecord = (struct aiRecord *) prec;
+	uint16_t buf[3];
+	EL36XXInputPDO_t* pdo = NULL;
+	/*static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
+				  "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
+		*/
+	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
+
+	/* Check for invalid */
+	if (!dpvt->terminal)
+		return 0;
+
+	/* Lock mutex */
+	int status;
+
+	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
+					    dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
+	pRecord->rval = pdo->inp;
+
+	/* Check the overrange and underrange flags */
+	if ((pdo->status & EL36XX_OVERRANGE_MASK) || (pdo->status & EL36XX_UNDERRANGE_MASK)) {
+		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
+	}
+
+	/* Set props */
+	pRecord->pact = FALSE;
+	pRecord->udf = FALSE;
+
+	/* Check for error */
+	if (status) {
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
+		if (status > 0x100) {
+			DevError("EL36XX_read_record(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			return 0;
+		}
+		DevError("EL36XX_read_record(): %s\n", devEK9000::ErrorToString(status));
+		return 0;
+	}
 	return 0;
 }
 
@@ -344,7 +332,6 @@ static long EL36XX_linconv(void*, int) {
 //	EL331X Device support
 //
 //======================================================//
-static void EL331X_ReadCallback(aiRecord *pRecord);
 static long EL331X_dev_report(int interest);
 static long EL331X_init(int after);
 static long EL331X_init_record(void* precord);
@@ -396,49 +383,6 @@ struct EL3314_0010_InputPDO_t {
 	uint16_t value;
 };
 #pragma pack()
-
-static void EL331X_ReadCallback(aiRecord *pRecord) {
-	uint16_t buf[2];
-	EL331XInputPDO_t* pdo = NULL;
-	/*static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf),
-				  "SEL331XInput is greater than 2 registers in size! Contact the author regarding this error.");
-		*/
-	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
-
-	/* Check for invalid */
-	if (!dpvt->terminal)
-		return;
-
-	int status;
-
-	int loc = dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2);
-	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf, 2);
-
-	pdo = reinterpret_cast<EL331XInputPDO_t*>(buf);
-	pRecord->rval = pdo->value;
-
-	/* Check the overrange and underrange flags */
-	if (pdo->overrange || pdo->underrange) {
-		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
-	}
-
-	/* Set props */
-	pRecord->pact = FALSE;
-	pRecord->udf = FALSE;
-
-	/* Check for error */
-	if (status) {
-		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-
-			util::Warn("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			return;
-		}
-		util::Warn("EL331X_ReadCallback(): %s\n", devEK9000::ErrorToString(status));
-		return;
-	}
-	recGblSetSevr(pRecord, READ_ALARM, NO_ALARM);
-}
 
 static long EL331X_dev_report(int) {
 	return 0;
@@ -496,9 +440,49 @@ static long EL331X_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
     return 0;
 }
 
-static long EL331X_read_record(void* precord) {
-        struct aiRecord *prec = (struct aiRecord *) precord;
-	EL331X_ReadCallback(prec);
+static long EL331X_read_record(void* prec) {
+        struct aiRecord *pRecord = (struct aiRecord *) prec;
+
+	uint16_t buf[2];
+	EL331XInputPDO_t* pdo = NULL;
+	/*static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf),
+				  "SEL331XInput is greater than 2 registers in size! Contact the author regarding this error.");
+		*/
+	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
+
+	/* Check for invalid */
+	if (!dpvt->terminal)
+		return 0;
+
+	int status;
+
+	int loc = dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2);
+	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf, 2);
+
+	pdo = reinterpret_cast<EL331XInputPDO_t*>(buf);
+	pRecord->rval = pdo->value;
+
+	/* Check the overrange and underrange flags */
+	if (pdo->overrange || pdo->underrange) {
+		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
+	}
+
+	/* Set props */
+	pRecord->pact = FALSE;
+	pRecord->udf = FALSE;
+
+	/* Check for error */
+	if (status) {
+		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
+		if (status > 0x100) {
+
+			util::Warn("EL331X_read_record(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			return 0;
+		}
+		util::Warn("EL331X_read_record(): %s\n", devEK9000::ErrorToString(status));
+		return 0;
+	}
+	recGblSetSevr(pRecord, READ_ALARM, NO_ALARM);
 	return 0;
 }
 
