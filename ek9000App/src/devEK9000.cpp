@@ -110,6 +110,8 @@ void PollThreadFunc(void*) {
 		for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
 			devEK9000* device = *it;
 			int status = device->Lock();
+			if (status)
+			    continue;
 			if (!cnt) {
 			    /* check connection every other loop */
 			    bool connected = device->VerifyConnection();
@@ -120,10 +122,6 @@ void PollThreadFunc(void*) {
 			    if (connected && !device->m_connected) {
 				util::Warn("%s: Link status changed to CONNECTED\n", device->m_name);
 				device->m_connected = true;
-			    }
-			    if (status) {
-				device->Unlock();
-				continue;
 			    }
 			    uint16_t buf = 1;
 			    if (device->m_driver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1)) {
