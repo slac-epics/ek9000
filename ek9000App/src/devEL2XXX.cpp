@@ -77,7 +77,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback) {
 	/* Lock & verify mutex */
 	int status = dpvt->device->Lock();
 
-	if (status != epicsMutexLockOK) {
+	if (status) {
 		DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 	        pRecord->pact = FALSE;
@@ -90,7 +90,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback) {
 	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and inputStart
 	 * is 1-based **/
 	status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS,
-										dpvt->terminal->m_outputStart + (dpvt->channel - 2), &buf, 1);
+					    dpvt->terminal->m_outputStart + (dpvt->channel - 2), &buf, 1);
 
 	dpvt->device->Unlock();
 
