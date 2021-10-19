@@ -130,18 +130,16 @@ void PollThreadFunc(void*) {
 			}
 			/* read EL1xxx/EL3xxx/EL5xxx data */
 			if (device->m_digital_cnt) {
-			    if (!device->m_driver->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0,
-							      device->m_digital_buf, device->m_digital_cnt)) {
-				scanIoRequest(device->m_digital_io);
-			    } else
-				util::Error("%s: FAILED TO READ DIGITAL INPUTS!\n", device->m_name);
+			    device->m_digital_status = device->m_driver->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0,
+										    device->m_digital_buf,
+										    device->m_digital_cnt);
+			    scanIoRequest(device->m_digital_io);
 			}
 			if (device->m_analog_cnt) {
-			    if (!device->m_driver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0,
-							      device->m_analog_buf, device->m_analog_cnt)) {
-				scanIoRequest(device->m_analog_io);
-			    } else
-				util::Error("%s: FAILED TO READ ANALOG INPUTS!\n", device->m_name);
+			    device->m_analog_status = device->m_driver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0,
+										   device->m_analog_buf,
+										   device->m_analog_cnt);
+			    scanIoRequest(device->m_analog_io);
 			}
 			device->Unlock();
 		}
@@ -288,6 +286,8 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, size_
 	if (type == MODBUS_READ_DISCRETE_INPUTS) { /* digital */
 	    if (startaddr < 0 || startaddr + len > this->m_device->m_digital_cnt)
 		return EK_EBADPARAM + 0x100;
+	    if (this->m_device->m_digital_status)
+		return this->m_device->m_digital_status;
 	    memcpy(buf, this->m_device->m_digital_buf + startaddr, len * sizeof(uint16_t));
 	    this->m_device->Unlock();
 	    return EK_EOK;
@@ -295,6 +295,8 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, size_
 	if (type == MODBUS_READ_INPUT_REGISTERS) { /* analog */
 	    if (startaddr < 0 || startaddr + len > this->m_device->m_analog_cnt)
 		return EK_EBADPARAM + 0x100;
+	    if (this->m_device->m_analog_status)
+		return this->m_device->m_analog_status;
 	    memcpy(buf, this->m_device->m_analog_buf + startaddr, len * sizeof(uint16_t));
 	    this->m_device->Unlock();
 	    return EK_EOK;
@@ -328,6 +330,8 @@ devEK9000::devEK9000() {
 	m_portName = (char*)malloc(1);
 	m_portName[0] = '\0';
 	this->m_Mutex = epicsMutexCreate();
+	m_analog_status = EK_EERR + 0x100;   /* No data yet!! */
+	m_digital_status = EK_EERR + 0x100;
 }
 
 devEK9000::~devEK9000() {
