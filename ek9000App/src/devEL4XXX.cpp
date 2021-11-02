@@ -67,14 +67,16 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	free(callback);
 
 	/* Check for invalid */
-	if (!dpvt->terminal)
+	if (!dpvt->terminal) {
+	        pRecord->pact = FALSE;
 		return;
+	}
 
 	/* Verify connection */
 	if (!dpvt->terminal->m_device->VerifyConnection()) {
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		pRecord->pact = 0;
+		pRecord->pact = FALSE;
 		return;
 	}
 
@@ -89,21 +91,29 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	/* Unlock mutex */
 	dpvt->terminal->m_device->Unlock();
 
-	/* No more processing */
-	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
+
 	/* Check error */
 	if (status) {
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		if (status > 0x100) {
 			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			pRecord->pact = FALSE;
 			return;
 		}
 		else {
 			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
 		}
+		pRecord->pact = FALSE;
 		return;
 	}
+
+	/* OK, we've written a value, everything looks good.  We need to reprocess this! */
+	struct typed_rset *prset=(struct typed_rset *)(pRecord->rset); 
+	dbScanLock((struct dbCommon *)pRecord); 
+	pRecord->udf = FALSE;
+	(*prset->process)((struct dbCommon *)pRecord); /* This will set PACT false! */
+	dbScanUnlock((struct dbCommon *)pRecord); 
 }
 
 static long EL40XX_dev_report(int) {
@@ -156,7 +166,13 @@ static long EL40XX_init_record(void* record) {
 }
 
 static long EL40XX_write_record(void* record) {
-	util::setupCallback(record, EL40XX_WriteCallback);
+        struct aoRecord *prec = (struct aoRecord *) record;
+	if (prec->pact)
+	    prec->pact = FALSE;
+	else {
+	    prec->pact = TRUE;
+	    util::setupCallback(record, EL40XX_WriteCallback);
+	}
 	return 0;
 }
 

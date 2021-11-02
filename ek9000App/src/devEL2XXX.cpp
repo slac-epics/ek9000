@@ -69,16 +69,18 @@ static void EL20XX_WriteCallback(CALLBACK* callback) {
 	free(callback);
 
 	/* Check for invalid */
-	if (!dpvt->terminal)
+	if (!dpvt->terminal) {
+	        pRecord->pact = FALSE;
 		return;
+	}
 
 	/* Lock & verify mutex */
 	int status = dpvt->device->Lock();
 
-	if (status != epicsMutexLockOK) {
+	if (status) {
 		DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		pRecord->pact = 0;
+	        pRecord->pact = FALSE;
 		return;
 	}
 
@@ -88,24 +90,30 @@ static void EL20XX_WriteCallback(CALLBACK* callback) {
 	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and inputStart
 	 * is 1-based **/
 	status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS,
-										dpvt->terminal->m_outputStart + (dpvt->channel - 2), &buf, 1);
+					    dpvt->terminal->m_outputStart + (dpvt->channel - 2), &buf, 1);
 
 	dpvt->device->Unlock();
 
-	/* Processing done */
-	pRecord->pact = FALSE;
-	pRecord->rbv = pRecord->val;
-	pRecord->udf = FALSE;
 	/* check for errors... */
 	if (status) {
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		if (status > 0x100) {
 			DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			pRecord->pact = FALSE;
 			return;
 		}
 		DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
+		pRecord->pact = FALSE;
 		return;
 	}
+
+	/* OK, we've written a value, everything looks good.  We need to reprocess this! */
+	struct typed_rset *prset=(struct typed_rset *)(pRecord->rset); 
+	dbScanLock((struct dbCommon *)pRecord); 
+	pRecord->rbv = pRecord->val;
+	pRecord->udf = FALSE;
+	(*prset->process)((struct dbCommon *)pRecord); /* This will set PACT false! */
+	dbScanUnlock((struct dbCommon *)pRecord); 
 }
 
 static long EL20XX_dev_report(int) {
@@ -166,6 +174,12 @@ static long EL20XX_init_record(void* precord) {
 }
 
 static long EL20XX_write_record(void* precord) {
-	util::setupCallback(precord, EL20XX_WriteCallback);
+        struct boRecord *prec = (struct boRecord *) precord;
+	if (prec->pact)
+	    prec->pact = FALSE;
+	else {
+	    prec->pact = TRUE;
+	    util::setupCallback(precord, EL20XX_WriteCallback);
+	}
 	return 0;
 }
