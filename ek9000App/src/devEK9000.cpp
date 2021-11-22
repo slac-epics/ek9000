@@ -285,24 +285,26 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, size_
 	int status = this->m_device->Lock();
 	if (type == MODBUS_READ_DISCRETE_INPUTS) { /* digital */
 	    if (startaddr < 0 || startaddr + len > this->m_device->m_digital_cnt)
-		return EK_EBADPARAM + 0x100;
-	    if (this->m_device->m_digital_status)
-		return this->m_device->m_digital_status;
-	    memcpy(buf, this->m_device->m_digital_buf + startaddr, len * sizeof(uint16_t));
-	    this->m_device->Unlock();
-	    return EK_EOK;
-	}
-	if (type == MODBUS_READ_INPUT_REGISTERS) { /* analog */
+		status =  EK_EBADPARAM + 0x100;
+	    else if (this->m_device->m_digital_status)
+		status = this->m_device->m_digital_status;
+	    else {
+		memcpy(buf, this->m_device->m_digital_buf + startaddr, len * sizeof(uint16_t));
+		status = EK_EOK;
+	    }
+	} else if (type == MODBUS_READ_INPUT_REGISTERS) { /* analog */
 	    if (startaddr < 0 || startaddr + len > this->m_device->m_analog_cnt)
-		return EK_EBADPARAM + 0x100;
-	    if (this->m_device->m_analog_status)
-		return this->m_device->m_analog_status;
-	    memcpy(buf, this->m_device->m_analog_buf + startaddr, len * sizeof(uint16_t));
-	    this->m_device->Unlock();
-	    return EK_EOK;
-	}
+		status = EK_EBADPARAM + 0x100;
+	    else if (this->m_device->m_analog_status)
+		status = this->m_device->m_analog_status;
+	    else {
+		memcpy(buf, this->m_device->m_analog_buf + startaddr, len * sizeof(uint16_t));
+		status = EK_EOK;
+	    }
+	} else
+	      status = EK_EBADPARAM + 0x100;
 	this->m_device->Unlock();
-	return EK_EBADPARAM + 0x100;
+	return status;
 }
 
 //==========================================================//
