@@ -45,3 +45,7 @@ db/
 
 # Ignore ioc generated files
 envPaths
+
+# Ignore script-downloaded XML files
+BhcConfigFiles.zip
+BhcConfigFiles/
