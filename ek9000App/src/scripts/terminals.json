@@ -890,7 +890,7 @@
 		},
 		{
 			"name": "EL5042",
-			"type": "AnalogIn",
+			"type": "PositionMeasurement",
 			"dtyp": "EL5042",
 			"inputs": 2,
 			"outputs": 0,
