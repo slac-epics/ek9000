@@ -96,7 +96,7 @@ class Header:
     def add_variable(self, name: str, type: str, val: str = ""):
         if self.in_struct:
             self.fs.write("\t")
-        if val.isspace() or val is "":
+        if val.isspace() or val == "":
             self.fs.write(type + " " + name + ";\n")
         else:
             self.fs.write(type + " " + name + " = " + val + ";\n")
