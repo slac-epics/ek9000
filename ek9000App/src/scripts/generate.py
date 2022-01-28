@@ -1,9 +1,20 @@
 #!/usr/bin/python3
-# Parses a file lol
+# 
+# Author: Jeremy Lorelli
 #
-import sys, os, io
+# From terminals.json, this script generates:
+#   * ../../../SupportedDevices.md
+#   * ../terminals.h (as designated by -o)
+#   * ../../Db/Templates.mak (Makefile for including all auto-generated templates)
+#   * ../../Db/*.template
+#   * ../../Db/*.substitutions
+
+import argparse
+import json
+import os
+import sys
+
 import CppTk
-import json, argparse, datetime
 
 """
 

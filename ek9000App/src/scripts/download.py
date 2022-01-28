@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 # Autogeneration of CoE params via config file
-import sys, os, urllib, urllib.request, zipfile
+import os
+import sys
+import urllib
+import urllib.request
+import zipfile
 
 cfgfiles = "https://download.beckhoff.com/download/configuration-files/io/ethercat/xml-device-description/Beckhoff_EtherCAT_XML.zip"
 
