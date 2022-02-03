@@ -29,7 +29,7 @@ struct EL50XXDpvt_t {
 static long el50xx_dev_report(int lvl);
 static long el50xx_init(int after);
 static long el50xx_init_record(void* precord);
-static long el50xx_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt);
+static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long el50xx_read_record(void* precord);
 
 struct devEL50XX_t {
@@ -40,8 +40,12 @@ struct devEL50XX_t {
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN read_record;
 } devEL50XX = {
-	5, (DEVSUPFUN)el50xx_dev_report, (DEVSUPFUN)el50xx_init, el50xx_init_record,
-    (DEVSUPFUN)el50xx_get_ioint_info, el50xx_read_record,
+	5,
+	(DEVSUPFUN)el50xx_dev_report,
+	(DEVSUPFUN)el50xx_init,
+	el50xx_init_record,
+	(DEVSUPFUN)el50xx_get_ioint_info,
+	el50xx_read_record,
 };
 
 extern "C"
@@ -97,17 +101,16 @@ static long el50xx_init_record(void* precord) {
 	return 0;
 }
 
-static long el50xx_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
-{
-    struct dbCommon *pRecord = static_cast<struct dbCommon *>(prec);
-    EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(pRecord->dpvt);
+static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
+	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(pRecord->dpvt);
 
-    if (!dpvt) {
-        return 1;
-    }
+	if (!dpvt) {
+		return 1;
+	}
 
-    *iopvt = dpvt->device->m_analog_io;
-    return 0;
+	*iopvt = dpvt->device->m_analog_io;
+	return 0;
 }
 
 static long el50xx_read_record(void* prec) {
@@ -124,8 +127,8 @@ static long el50xx_read_record(void* prec) {
 
 	/* Read into a buffer that's plenty big enough for any terminal type */
 	uint16_t data[32];
-	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart,
-				 data, STRUCT_SIZE_TO_MODBUS_SIZE(dpvt->terminal->m_inputSize));
+	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart, data,
+								STRUCT_SIZE_TO_MODBUS_SIZE(dpvt->terminal->m_inputSize));
 
 	/* Handle individual terminal pdo types */
 	switch (dpvt->tid) {
@@ -162,7 +165,7 @@ static long el50xx_read_record(void* prec) {
 static long el5042_dev_report(int lvl);
 static long el5042_init_record(void* prec);
 static long el5042_init(int after);
-static long el5042_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt);
+static long el5042_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long el5042_read_record(void* prec);
 
 struct devEL5042_t {
@@ -173,8 +176,12 @@ struct devEL5042_t {
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN read_record;
 } devEL5042 = {
-	5, (DEVSUPFUN)el5042_dev_report, (DEVSUPFUN)el5042_init, el5042_init_record,
-    (DEVSUPFUN)el5042_get_ioint_info, el5042_read_record,
+	5,
+	(DEVSUPFUN)el5042_dev_report,
+	(DEVSUPFUN)el5042_init,
+	el5042_init_record,
+	(DEVSUPFUN)el5042_get_ioint_info,
+	el5042_read_record,
 };
 
 extern "C"
@@ -265,23 +272,21 @@ static long el5042_init(int) {
 	return 0;
 }
 
-
 /*
 ---------------------------------------
 Called to update the I/O interrupt data
 ---------------------------------------
 */
-static long el5042_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
-{
-    struct dbCommon *pRecord = static_cast<struct dbCommon *>(prec);
-    EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(pRecord->dpvt);
+static long el5042_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
+	EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(pRecord->dpvt);
 
-    if (!dpvt) {
-        return 1;
-    }
+	if (!dpvt) {
+		return 1;
+	}
 
-    *iopvt = dpvt->device->m_analog_io;
-    return 0;
+	*iopvt = dpvt->device->m_analog_io;
+	return 0;
 }
 
 /*
@@ -302,8 +307,8 @@ static long el5042_read_record(void* prec) {
 	/* Read the stuff */
 	uint16_t buf[32];
 	uint16_t loc = dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 3);
-	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc,
-				 buf, STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
+	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf,
+								STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
 
 	/* Cast it to our pdo type */
 	pdo = reinterpret_cast<EL5042InputPDO_t*>(buf);

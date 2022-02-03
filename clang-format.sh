@@ -1,3 +1,5 @@
 #!/bin/bash 
 
-clang-format-14 -i $(find . -iname "*.cpp" -o -iname "*.h")
+CLANG_FMT=$(which clang-format-14 || echo "clang-format")
+
+$CLANG_FMT -i $(find . -iname "*.cpp" -o -iname "*.h")
