@@ -36,8 +36,8 @@ To recap:
 
 ## Supported Terminals
 
-See [SupportedDevices.md] for an auto-generated list of the supported
-terminals.
+See [SupportedDevices.md](SupportedDevices.md) for an auto-generated list of
+the supported terminals.
 
 At least some of the following terminal families are supported:
 
