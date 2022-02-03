@@ -118,6 +118,9 @@ DB += EL2088.template EL2088.substitutions
 # EL2124 
 DB += EL2124.template EL2124.substitutions
 
+# EL2794 
+DB += EL2794.template EL2794.substitutions
+
 # EL2808 
 DB += EL2808.template EL2808.substitutions
 
