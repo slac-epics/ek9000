@@ -29,7 +29,7 @@ struct iocshHandles_t {
 std::vector<iocshHandles_t*> functions;
 
 const STerminalInfoConst_t* util::FindTerminal(unsigned int id) {
-	for (unsigned int i = 0; i < NUM_TERMINALS; i++)
+	for (unsigned int i = 0; i < ArraySize(g_pTerminalInfos); i++)
 		if (g_pTerminalInfos[i]->m_nID == id)
 			return g_pTerminalInfos[i];
 	return NULL;

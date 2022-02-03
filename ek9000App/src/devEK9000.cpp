@@ -258,7 +258,7 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 }
 
 void devEK9000Terminal::GetTerminalInfo(int termid, int& inp_size, int& out_size) {
-	for (int i = 0; i < NUM_TERMINALS; i++) {
+	for (int i = 0; i < ArraySize(g_pTerminalInfos); i++) {
 		if (g_pTerminalInfos[i]->m_nID == (uint32_t)termid) {
 			inp_size = g_pTerminalInfos[i]->m_nInputSize;
 			out_size = g_pTerminalInfos[i]->m_nOutputSize;
@@ -935,7 +935,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf* args) {
 	}
 
 	int tid = 0;
-	for (int i = 0; i < NUM_TERMINALS; i++) {
+	for (int i = 0; i < ArraySize(g_pTerminalInfos); i++) {
 		if (strcmp(g_pTerminalInfos[i]->m_pString, type) == 0) {
 			tid = g_pTerminalInfos[i]->m_nID;
 			break;
