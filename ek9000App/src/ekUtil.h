@@ -48,6 +48,14 @@ public:
 
 #define AUTO_LOCK(x) CAutoLockWrapper<epicsMutex> __auto_lock(x)
 
+/**
+ * Determine size of an array
+ */
+template<class T, size_t N>
+size_t ArraySize(T(&arr)[N]) {
+	return N;
+}
+
 namespace util
 {
 /**

@@ -99,9 +99,7 @@ try:
         header.add_define(name + "_INPUT_SIZE", str(insize))
         header.add_init_struct("STerminalInfoConst_t", name + "_Info", name + "_STRING", name + "_ID",
                                name + "_OUTPUT_SIZE", name + "_INPUT_SIZE", static=True, const=True)
-    header.newlines(1)
-    header.add_define("NUM_TERMINALS", str(count))
-    header.newlines(1)
+    header.newlines(2)
     header.add_array_variable("g_pTerminalInfos", "STerminalInfoConst_t*", vars, const=True, static=True)
 except KeyError as e:
     print("Malformed JSON:")
