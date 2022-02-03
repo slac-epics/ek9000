@@ -3,6 +3,8 @@
 This is a device support module for the EK9000, which couples EtherCAT terminals (specifically the ELXXXX terminals from Beckhoff) to a modbus network.
 Because it uses modbus, it's runnable on any IOC without needing a kernel module or other support software.
 
+Documentation: [Manual](https://github.com/slaclab/epics-ek9000/wiki/Manual)
+
 ## Dependencies
 
 * [modbus](https://github.com/epics-modules/modbus) R3-0 or later
@@ -33,6 +35,11 @@ To recap:
 * Analog input Pdo mapping should ALWAYS be standard, or else the module will not work.
 
 ## Supported Terminals
+
+See [SupportedDevices.md] for an auto-generated list of the supported
+terminals.
+
+At least some of the following terminal families are supported:
 
 * EL10XX (EL1004, etc.)
 * EL11XX (EL1124, etc.)
