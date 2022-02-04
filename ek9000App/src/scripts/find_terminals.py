@@ -248,8 +248,11 @@ def main(names_to_match: List[str], *, dump_json: bool = False):
             input_size, output_size = info.size_for_mapping(mapping)
             print(f"   * Mapping {mapping.name!r}")
 
+            total_input_size = sum(input_size or [0])
+            total_output_size = sum(output_size or [0])
             print(
-                f"     pdo_in_size={input_size} pdo_out_size={output_size}",
+                f"     pdo_in_size={total_input_size} entries={input_size} "
+                f"pdo_out_size={total_output_size} entries={output_size}",
                 end=" / "
             )
 
@@ -260,8 +263,8 @@ def main(names_to_match: List[str], *, dump_json: bool = False):
             to_compare = [
                 ("inputs", len(input_size)),
                 ("outputs", len(output_size)),
-                ("pdo_in_size", max(input_size or [0])),
-                ("pdo_out_size", max(output_size or [0])),
+                ("pdo_in_size", total_input_size),
+                ("pdo_out_size", total_output_size),
             ]
 
             differences = " ".join(
