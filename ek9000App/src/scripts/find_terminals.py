@@ -135,13 +135,13 @@ class PdoInfo:
 
 
 @dataclasses.dataclass
-class SyncManagerMapping:
+class SlaveMappings:
     name: str
     output_indices: List[int]  # SM2
     input_indices: List[int]  # SM3
 
     @classmethod
-    def from_xml(cls, obj: lxml.etree.Element) -> SyncManagerMapping:
+    def from_xml(cls, obj: lxml.etree.Element) -> SlaveMappings:
         def get_pdos(number):
             return [_from_hex(pdo.text) for pdo in obj.xpath(f"Sm[@No={number}]/Pdo")]
         return cls(
@@ -158,7 +158,7 @@ class TerminalInfo:
     # element: lxml.etree.Element
     rxpdo: List[PdoInfo]
     txpdo: List[PdoInfo]
-    mappings: List[SyncManagerMapping]
+    mappings: List[SlaveMappings]
 
     def pdo_by_index(self, index: int, rx: bool) -> PdoInfo:
         pdos = self.rxpdo if rx else self.txpdo
@@ -172,14 +172,14 @@ class TerminalInfo:
         txpdos = [PdoInfo.from_xml(pdo) for pdo in obj.xpath("TxPdo")]
         rxpdos = [PdoInfo.from_xml(pdo) for pdo in obj.xpath("RxPdo")]
         mappings = [
-            SyncManagerMapping(
+            SlaveMappings(
                 name="All PDOs",
                 output_indices=[pdo.index for pdo in rxpdos],
                 input_indices=[pdo.index for pdo in txpdos],
             )
         ]
         mappings += [
-            SyncManagerMapping.from_xml(sm)
+            SlaveMappings.from_xml(sm)
             for sm in obj.xpath("Info/VendorSpecific/TwinCAT/AlternativeSmMapping")
         ]
         return TerminalInfo(
@@ -191,7 +191,7 @@ class TerminalInfo:
             # element=obj,
         )
 
-    def size_for_mapping(self, mapping: SyncManagerMapping) -> Tuple[List[int], List[int]]:
+    def size_for_mapping(self, mapping: SlaveMappings) -> Tuple[List[int], List[int]]:
         """(input, output) size in words for the mapping."""
         input_words = [
             self.pdo_by_index(input_index, rx=False).word_length
@@ -248,8 +248,11 @@ def main(names_to_match: List[str], *, dump_json: bool = False):
             input_size, output_size = info.size_for_mapping(mapping)
             print(f"   * Mapping {mapping.name!r}")
 
+            total_input_size = sum(input_size or [0])
+            total_output_size = sum(output_size or [0])
             print(
-                f"     pdo_in_size={input_size} pdo_out_size={output_size}",
+                f"     pdo_in_size={total_input_size} entries={input_size} "
+                f"pdo_out_size={total_output_size} entries={output_size}",
                 end=" / "
             )
 
@@ -260,8 +263,8 @@ def main(names_to_match: List[str], *, dump_json: bool = False):
             to_compare = [
                 ("inputs", len(input_size)),
                 ("outputs", len(output_size)),
-                ("pdo_in_size", max(input_size or [0])),
-                ("pdo_out_size", max(output_size or [0])),
+                ("pdo_in_size", total_input_size),
+                ("pdo_out_size", total_output_size),
             ]
 
             differences = " ".join(

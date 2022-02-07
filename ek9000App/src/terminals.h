@@ -573,7 +573,7 @@ static const STerminalInfoConst_t EL2124_Info = {
 //=========================================================//
 #define	EL2794_STRING	"EL2794"
 #define	EL2794_ID	2794
-#define	EL2794_OUTPUT_SIZE	1
+#define	EL2794_OUTPUT_SIZE	4
 #define	EL2794_INPUT_SIZE	0
 static const STerminalInfoConst_t EL2794_Info = {
 	EL2794_STRING,
@@ -1590,7 +1590,6 @@ static const STerminalInfoConst_t EL7047_Info = {
 	EL7047_INPUT_SIZE,
 };
 
-#define	NUM_TERMINALS	112
 
 static const STerminalInfoConst_t* g_pTerminalInfos[112] = {
 	&EL1001_Info,
