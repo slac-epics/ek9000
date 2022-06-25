@@ -8,31 +8,16 @@
  * contained in the LICENSE.txt file.
  */
 //======================================================//
-// Name: devEK9000.c
-// Purpose: Device support for EK9000 and it's associated
-// devices
+// Name: devEK9000.cpp
+// Purpose: Device support for EK9000 and terminals
 // Authors: Jeremy L.
 // Date Created: June 10, 2019
-// TODO:
-//	-	Run this through valgrind/callgrind/cachegrind to find
-//		any leaks or other performance issues
-//	-
 // Notes:
-//	-	Performance could be improved by adding a hashmap
-//		type of structure instead of a simple doubly linked
-//		list (would use less memory too)
-//	-	All device support things are defined and implemented
-//		here
 //	-	For device specific PDOs and such, refer to the docs:
 //		EL1XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el10xx_el11xxen.pdf
 //		EL2XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/EL20xx_EL2124en.pdf
 //		EL3XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el30xxen.pdf
 //		EL4XXX: https://download.beckhoff.com/download/document/io/ethercat-terminals/el40xxen.pdf
-// Revisions:
-//	-	July 15, 2019: Improved error propagation and added
-//		new init routines.
-//	-	Feb 7, 2020: Implemented record-based CoE configuration
-//	-	Feb 7, 2020: doCoEIO will now set an errno variable
 //======================================================//
 
 /* EPICS includes */
@@ -258,7 +243,7 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 }
 
 void devEK9000Terminal::GetTerminalInfo(int termid, int& inp_size, int& out_size) {
-	for (int i = 0; i < ArraySize(g_pTerminalInfos); i++) {
+	for (size_t i = 0; i < ArraySize(g_pTerminalInfos); i++) {
 		if (g_pTerminalInfos[i]->m_nID == (uint32_t)termid) {
 			inp_size = g_pTerminalInfos[i]->m_nInputSize;
 			out_size = g_pTerminalInfos[i]->m_nOutputSize;
@@ -381,7 +366,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	size_t prefixlen = strlen(PORT_PREFIX);
 	size_t len = strlen(name) + strlen(PORT_PREFIX) + 1;
 	pek->m_portName = (char*)malloc(len);
-	memcpy(pek->m_portName, PORT_PREFIX, prefixlen); /* Should be optimized? */
+	memcpy(pek->m_portName, PORT_PREFIX, prefixlen);
 	memcpy(pek->m_portName + prefixlen, name, strlen(name) + 1);
 	pek->m_portName[len - 1] = '\0';
 
@@ -935,7 +920,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf* args) {
 	}
 
 	int tid = 0;
-	for (int i = 0; i < ArraySize(g_pTerminalInfos); i++) {
+	for (size_t i = 0; i < ArraySize(g_pTerminalInfos); i++) {
 		if (strcmp(g_pTerminalInfos[i]->m_pString, type) == 0) {
 			tid = g_pTerminalInfos[i]->m_nID;
 			break;
@@ -1480,7 +1465,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	if (str[0] == 0)
 		return 1;
 
-	memset(buf, 0, 512);
+	memset(buf, 0, sizeof(buf));
 	strcpy(buf, str);
 
 	/* Tokenize & separate into substrings */
@@ -1662,7 +1647,7 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 	char buf[512];
 	const char *pek9k = 0, *preg = 0;
 
-	memset(buf, 0, 512);
+	memset(buf, 0, sizeof(buf));
 	strncpy(buf, str, sizeof(buf) - 1);
 
 	if (!buf[0])
