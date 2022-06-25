@@ -51,8 +51,7 @@ public:
 /**
  * Determine size of an array
  */
-template<class T, size_t N>
-size_t ArraySize(T(&arr)[N]) {
+template <class T, size_t N> size_t ArraySize(T (&arr)[N]) {
 	return N;
 }
 

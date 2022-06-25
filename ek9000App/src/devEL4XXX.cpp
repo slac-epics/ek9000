@@ -68,7 +68,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 
 	/* Check for invalid */
 	if (!dpvt->terminal) {
-	        pRecord->pact = FALSE;
+		pRecord->pact = FALSE;
 		return;
 	}
 
@@ -109,11 +109,11 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	}
 
 	/* OK, we've written a value, everything looks good.  We need to reprocess this! */
-	struct typed_rset *prset=(struct typed_rset *)(pRecord->rset); 
-	dbScanLock((struct dbCommon *)pRecord); 
+	struct typed_rset* prset = (struct typed_rset*)(pRecord->rset);
+	dbScanLock((struct dbCommon*)pRecord);
 	pRecord->udf = FALSE;
-	(*prset->process)((struct dbCommon *)pRecord); /* This will set PACT false! */
-	dbScanUnlock((struct dbCommon *)pRecord); 
+	(*prset->process)((struct dbCommon*)pRecord); /* This will set PACT false! */
+	dbScanUnlock((struct dbCommon*)pRecord);
 }
 
 static long EL40XX_dev_report(int) {
@@ -166,12 +166,12 @@ static long EL40XX_init_record(void* record) {
 }
 
 static long EL40XX_write_record(void* record) {
-        struct aoRecord *prec = (struct aoRecord *) record;
+	struct aoRecord* prec = (struct aoRecord*)record;
 	if (prec->pact)
-	    prec->pact = FALSE;
+		prec->pact = FALSE;
 	else {
-	    prec->pact = TRUE;
-	    util::setupCallback(record, EL40XX_WriteCallback);
+		prec->pact = TRUE;
+		util::setupCallback(record, EL40XX_WriteCallback);
 	}
 	return 0;
 }

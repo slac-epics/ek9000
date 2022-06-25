@@ -36,7 +36,7 @@
 static long EL30XX_dev_report(int interest);
 static long EL30XX_init(int after);
 static long EL30XX_init_record(void* precord);
-static long EL30XX_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt);
+static long EL30XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long EL30XX_read_record(void* precord);
 static long EL30XX_linconv(void* precord, int after);
 
@@ -49,8 +49,13 @@ struct devEL30XX_t {
 	DEVSUPFUN read_record;
 	DEVSUPFUN linconv;
 } devEL30XX = {
-	6,	  (DEVSUPFUN)EL30XX_dev_report,	 (DEVSUPFUN)EL30XX_init,	(DEVSUPFUN)EL30XX_init_record,
-	(DEVSUPFUN)EL30XX_get_ioint_info, (DEVSUPFUN)EL30XX_read_record, (DEVSUPFUN)EL30XX_linconv,
+	6,
+	(DEVSUPFUN)EL30XX_dev_report,
+	(DEVSUPFUN)EL30XX_init,
+	(DEVSUPFUN)EL30XX_init_record,
+	(DEVSUPFUN)EL30XX_get_ioint_info,
+	(DEVSUPFUN)EL30XX_read_record,
+	(DEVSUPFUN)EL30XX_linconv,
 };
 
 epicsExportAddress(dset, devEL30XX);
@@ -127,17 +132,16 @@ static long EL30XX_init_record(void* precord) {
 	return 0;
 }
 
-static long EL30XX_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
-{
-    struct dbCommon *pRecord = static_cast<struct dbCommon *>(prec);
-    EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
+static long EL30XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
+	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
 
-    *iopvt = dpvt->device->m_analog_io;
-    return 0;
+	*iopvt = dpvt->device->m_analog_io;
+	return 0;
 }
 
 static long EL30XX_read_record(void* prec) {
-        struct aiRecord *pRecord = (struct aiRecord *) prec;
+	struct aiRecord* pRecord = (struct aiRecord*)prec;
 	EL30XXStandardInputPDO_t* spdo;
 	uint16_t buf[2];
 	/*static_assert(sizeof(buf) <= sizeof(EL30XXStandardInputPDO_t),
@@ -152,14 +156,14 @@ static long EL30XX_read_record(void* prec) {
 	int status;
 
 	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-					     dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+										 dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
 	pRecord->rval = spdo->value;
 
 	/* For standard PDO types, we have limits, so we should set alarms based on these,
 	   apparently the error bit is just equal to (overrange || underrange) */
 	if (spdo->overrange || spdo->underrange) {
-	    recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
+		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
 	}
 
 	/* Check for error */
@@ -190,7 +194,7 @@ static long EL30XX_linconv(void*, int) {
 static long EL36XX_dev_report(int interest);
 static long EL36XX_init(int after);
 static long EL36XX_init_record(void* precord);
-static long EL36XX_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt);
+static long EL36XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long EL36XX_read_record(void* precord);
 static long EL36XX_linconv(void* precord, int after);
 
@@ -203,8 +207,13 @@ struct devEL36XX_t {
 	DEVSUPFUN read_record;
 	DEVSUPFUN linconv;
 } devEL36XX = {
-	6,	  (DEVSUPFUN)EL36XX_dev_report,	 (DEVSUPFUN)EL36XX_init,	(DEVSUPFUN)EL36XX_init_record,
-	(DEVSUPFUN)EL36XX_get_ioint_info, (DEVSUPFUN)EL36XX_read_record, (DEVSUPFUN)EL36XX_linconv,
+	6,
+	(DEVSUPFUN)EL36XX_dev_report,
+	(DEVSUPFUN)EL36XX_init,
+	(DEVSUPFUN)EL36XX_init_record,
+	(DEVSUPFUN)EL36XX_get_ioint_info,
+	(DEVSUPFUN)EL36XX_read_record,
+	(DEVSUPFUN)EL36XX_linconv,
 };
 epicsExportAddress(dset, devEL36XX);
 
@@ -271,17 +280,16 @@ static long EL36XX_init_record(void* precord) {
 	return 0;
 }
 
-static long EL36XX_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
-{
-    struct dbCommon *pRecord = static_cast<struct dbCommon *>(prec);
-    EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
+static long EL36XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
+	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
 
-    *iopvt = dpvt->device->m_analog_io;
-    return 0;
+	*iopvt = dpvt->device->m_analog_io;
+	return 0;
 }
 
 static long EL36XX_read_record(void* prec) {
-        struct aiRecord *pRecord = (struct aiRecord *) prec;
+	struct aiRecord* pRecord = (struct aiRecord*)prec;
 	uint16_t buf[3];
 	EL36XXInputPDO_t* pdo = NULL;
 	/*static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
@@ -297,7 +305,7 @@ static long EL36XX_read_record(void* prec) {
 	int status;
 
 	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-					    dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+										 dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
 	pRecord->rval = pdo->inp;
 
@@ -335,7 +343,7 @@ static long EL36XX_linconv(void*, int) {
 static long EL331X_dev_report(int interest);
 static long EL331X_init(int after);
 static long EL331X_init_record(void* precord);
-static long EL331X_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt);
+static long EL331X_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long EL331X_read_record(void* precord);
 static long EL331X_linconv(void* precord, int after);
 
@@ -348,8 +356,13 @@ struct devEL331X_t {
 	DEVSUPFUN read_record;
 	DEVSUPFUN linconv;
 } devEL331X = {
-	6,	  (DEVSUPFUN)EL331X_dev_report,	 (DEVSUPFUN)EL331X_init,	(DEVSUPFUN)EL331X_init_record,
-	(DEVSUPFUN)EL331X_get_ioint_info, (DEVSUPFUN)EL331X_read_record, (DEVSUPFUN)EL331X_linconv,
+	6,
+	(DEVSUPFUN)EL331X_dev_report,
+	(DEVSUPFUN)EL331X_init,
+	(DEVSUPFUN)EL331X_init_record,
+	(DEVSUPFUN)EL331X_get_ioint_info,
+	(DEVSUPFUN)EL331X_read_record,
+	(DEVSUPFUN)EL331X_linconv,
 };
 epicsExportAddress(dset, devEL331X);
 
@@ -431,17 +444,16 @@ static long EL331X_init_record(void* precord) {
 	return 0;
 }
 
-static long EL331X_get_ioint_info(int cmd, void *prec, IOSCANPVT *iopvt)
-{
-    struct dbCommon *pRecord = static_cast<struct dbCommon *>(prec);
-    EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
+static long EL331X_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
+	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
 
-    *iopvt = dpvt->device->m_analog_io;
-    return 0;
+	*iopvt = dpvt->device->m_analog_io;
+	return 0;
 }
 
 static long EL331X_read_record(void* prec) {
-        struct aiRecord *pRecord = (struct aiRecord *) prec;
+	struct aiRecord* pRecord = (struct aiRecord*)prec;
 
 	uint16_t buf[2];
 	EL331XInputPDO_t* pdo = NULL;
