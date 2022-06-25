@@ -226,13 +226,13 @@ public:
 	/* Interrupts for analog/digital inputs */
 	IOSCANPVT m_analog_io;
 	IOSCANPVT m_digital_io;
-	int       m_analog_status;
-	int       m_digital_status;
+	int m_analog_status;
+	int m_digital_status;
 	/* The actual analog/digital data */
-	uint16_t  *m_analog_buf;
-	uint16_t  *m_digital_buf;
-	uint16_t  m_analog_cnt;
-	uint16_t  m_digital_cnt;
+	uint16_t* m_analog_buf;
+	uint16_t* m_digital_buf;
+	uint16_t m_analog_cnt;
+	uint16_t m_digital_cnt;
 
 public:
 	devEK9000();
