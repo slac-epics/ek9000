@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="palette">
+   <palette>
+    <active>
+     <colorrole role="Text">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>168</red>
+        <green>168</green>
+        <blue>168</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="PlaceholderText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="128">
+        <red>168</red>
+        <green>168</green>
+        <blue>168</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </active>
+    <inactive>
+     <colorrole role="Text">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>168</red>
+        <green>168</green>
+        <blue>168</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="PlaceholderText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="128">
+        <red>168</red>
+        <green>168</green>
+        <blue>168</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </inactive>
+    <disabled>
+     <colorrole role="Text">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>98</red>
+        <green>108</green>
+        <blue>118</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="PlaceholderText">
+      <brush brushstyle="SolidPattern">
+       <color alpha="128">
+        <red>252</red>
+        <green>252</green>
+        <blue>252</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </disabled>
+   </palette>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="PyDMLabel" name="channelname">
+       <property name="font">
+        <font>
+         <family>Monospace</family>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>${CHANNEL}</string>
+       </property>
+       <property name="channel" stdset="0">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLineEdit" name="desc">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="alarmSensitiveBorder" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${CHANNEL}.DESC</string>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignHCenter">
+      <widget class="PyDMLineEdit" name="highedit">
+       <property name="minimumSize">
+        <size>
+         <width>57</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>57</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${CHANNEL}.HIGH</string>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignHCenter">
+      <widget class="PyDMPushButton" name="onButton">
+       <property name="maximumSize">
+        <size>
+         <width>32</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>ON</string>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${CHANNEL}.VAL</string>
+       </property>
+       <property name="pressValue" stdset="0">
+        <string>1</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMPushButton" name="offButton">
+       <property name="maximumSize">
+        <size>
+         <width>32</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>OFF</string>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${CHANNEL}.VAL</string>
+       </property>
+       <property name="pressValue" stdset="0">
+        <string>0</string>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignVCenter">
+      <widget class="QWidget" name="widget" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>57</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>57</width>
+         <height>32</height>
+        </size>
+       </property>
+       <widget class="PyDMDrawingRectangle" name="PyDMDrawingRectangle_2">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>57</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>57</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>57</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="rules" stdset="0">
+         <string>[{&quot;name&quot;: &quot;make-vis&quot;, &quot;property&quot;: &quot;Visible&quot;, &quot;initial_value&quot;: &quot;1&quot;, &quot;expression&quot;: &quot;ch[0] == 1&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;ca://${CHANNEL}.RVAL&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}]}]</string>
+        </property>
+        <property name="brush" stdset="0">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>0</red>
+           <green>212</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </property>
+        <property name="penStyle" stdset="0">
+         <enum>Qt::SolidLine</enum>
+        </property>
+        <property name="penJoinStyle" stdset="0">
+         <enum>Qt::BevelJoin</enum>
+        </property>
+        <property name="penColor" stdset="0">
+         <color>
+          <red>62</red>
+          <green>62</green>
+          <blue>62</blue>
+         </color>
+        </property>
+       </widget>
+       <widget class="PyDMDrawingRectangle" name="PyDMDrawingRectangle_3">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>57</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>57</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>57</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="rules" stdset="0">
+         <string>[{&quot;name&quot;: &quot;make-visible&quot;, &quot;property&quot;: &quot;Visible&quot;, &quot;initial_value&quot;: &quot;&quot;, &quot;expression&quot;: &quot;ch[0] == 0&quot;, &quot;channels&quot;: [{&quot;channel&quot;: &quot;ca://${CHANNEL}.RVAL&quot;, &quot;trigger&quot;: true, &quot;use_enum&quot;: true}]}]</string>
+        </property>
+        <property name="brush" stdset="0">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>131</red>
+           <green>131</green>
+           <blue>131</blue>
+          </color>
+         </brush>
+        </property>
+        <property name="penStyle" stdset="0">
+         <enum>Qt::SolidLine</enum>
+        </property>
+        <property name="penJoinStyle" stdset="0">
+         <enum>Qt::BevelJoin</enum>
+        </property>
+        <property name="penColor" stdset="0">
+         <color>
+          <red>62</red>
+          <green>62</green>
+          <blue>62</blue>
+         </color>
+        </property>
+       </widget>
+       <widget class="PyDMLabel" name="PyDMLabel">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>57</width>
+          <height>32</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>57</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>57</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="alarmSensitiveContent" stdset="0">
+         <bool>true</bool>
+        </property>
+        <property name="channel" stdset="0">
+         <string>ca://${CHANNEL}.VAL</string>
+        </property>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PyDMLabel</class>
+   <extends>QLabel</extends>
+   <header>pydm.widgets.label</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMDrawingRectangle</class>
+   <extends>QWidget</extends>
+   <header>pydm.widgets.drawing</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>pydm.widgets.line_edit</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMPushButton</class>
+   <extends>QPushButton</extends>
+   <header>pydm.widgets.pushbutton</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
