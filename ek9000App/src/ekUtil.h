@@ -57,6 +57,16 @@ template <class T, size_t N> size_t ArraySize(T (&arr)[N]) {
 
 namespace util
 {
+	
+
+template<class T>
+bool DpvtValid(void* dpvt) {
+	T* pdpvt = static_cast<T*>(dpvt);
+	if (!dpvt || !pdpvt->device)
+		return false;
+	return true;
+}
+
 /**
  * Look up a terminal by ID and return a structure containing info about it
  */

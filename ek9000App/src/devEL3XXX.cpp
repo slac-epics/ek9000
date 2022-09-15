@@ -135,6 +135,8 @@ static long EL30XX_init_record(void* precord) {
 static long EL30XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
+	if (!util::DpvtValid<EL30XXDPVT_t>(dpvt))
+		return 1;
 
 	*iopvt = dpvt->device->m_analog_io;
 	return 0;

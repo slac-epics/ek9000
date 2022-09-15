@@ -126,7 +126,7 @@ static long EL20XX_init(int) {
 
 static long EL20XX_init_record(void* precord) {
 	boRecord* pRecord = (boRecord*)precord;
-	pRecord->dpvt = malloc(sizeof(EL20XXDpvt_t));
+	pRecord->dpvt = calloc(1, sizeof(EL20XXDpvt_t));
 	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
 
 	/* Grab terminal info */
