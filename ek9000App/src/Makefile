@@ -22,6 +22,11 @@ ifeq ($(BUILD_STRICT),1)
 USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -Wno-variadic-macros
 endif
 
+ifeq ($(ENABLE_ASAN),1)
+USR_CXXFLAGS += -fsanitize=address
+USR_LDFLAGS += -fsanitize=address -static-libasan
+endif
+
 # Unfortunately EPICS and some of the motor record headers cause warnings (well, and one of our generated headers)
 # So just disable those couple warnings to avoid spam (and so PEDANTIC=1 actually builds with -Werror
 USR_CXXFLAGS += -Wno-deprecated-declarations -Wno-unused-variable
