@@ -329,7 +329,7 @@ devEK9000::~devEK9000() {
 		free(m_name);
 	for (int i = 0; i < m_numTerms; i++)
 		free(m_terms[i].m_recordName);
-	delete [] m_terms;
+	delete[] m_terms;
 }
 
 devEK9000* devEK9000::FindDevice(const char* name) {
@@ -1209,7 +1209,8 @@ static long ek9000_init(int after) {
 	if (after == 0) {
 		epicsPrintf("Initializing EK9000 Couplers.\n");
 		// for (auto dev : GlobalDeviceList()) {
-		for (std::list<class devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
+		for (std::list<class devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end();
+			 ++it) {
 			class devEK9000* dev = (*it);
 			if (!dev->m_init)
 				dev->InitTerminals();

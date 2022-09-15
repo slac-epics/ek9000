@@ -89,15 +89,15 @@ std::list<devEK9000*>& GlobalDeviceList();
 #define TERMINAL_FAMILY_DIGITAL 0x2
 
 #define DevInfo(fmt, ...)                                                                                              \
-	if (devEK9000::debugEnabled) {                                                                                                    \
+	if (devEK9000::debugEnabled) {                                                                                     \
 		util::Log(fmt, __VA_ARGS__);                                                                                   \
 	}
 #define DevWarn(fmt, ...)                                                                                              \
-	if (devEK9000::debugEnabled) {                                                                                                    \
+	if (devEK9000::debugEnabled) {                                                                                     \
 		util::Warn(fmt, __VA_ARGS__);                                                                                  \
 	}
 #define DevError(fmt, ...)                                                                                             \
-	if (devEK9000::debugEnabled) {                                                                                                    \
+	if (devEK9000::debugEnabled) {                                                                                     \
 		util::Error(fmt, __VA_ARGS__);                                                                                 \
 	}
 
@@ -355,10 +355,10 @@ public:
 
 public:
 	/* Statics! */
-	
+
 	static bool debugEnabled;
 	static int pollDelay;
-	
+
 public:
 	/* Needed for the list impl */
 	bool operator==(const devEK9000& other) const {
