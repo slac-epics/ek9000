@@ -57,10 +57,8 @@ template <class T, size_t N> size_t ArraySize(T (&arr)[N]) {
 
 namespace util
 {
-	
 
-template<class T>
-bool DpvtValid(void* dpvt) {
+template <class T> bool DpvtValid(void* dpvt) {
 	T* pdpvt = static_cast<T*>(dpvt);
 	if (!dpvt || !pdpvt->device)
 		return false;
