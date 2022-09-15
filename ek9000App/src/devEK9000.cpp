@@ -58,17 +58,17 @@ class devEK9000;
 class CDeviceMgr;
 
 /* Globals */
-CDeviceMgr* g_pDeviceMgr = 0;
-bool g_bDebug = false;
-epicsThreadId g_PollThread = 0;
-epicsMutexId g_ThreadMutex = 0;
-int g_nPollDelay = 200;
-std::list<devEK9000*> g_Devices;
+static epicsThreadId g_PollThread = 0;
+static epicsMutexId g_ThreadMutex = 0;
 
 /* Global list accessor */
 std::list<devEK9000*>& GlobalDeviceList() {
-	return g_Devices;
+	static std::list<devEK9000*> devices;
+	return devices;
 }
+
+bool devEK9000::debugEnabled = false;
+int devEK9000::pollDelay = 200;
 
 //==========================================================//
 // Utils
@@ -90,8 +90,8 @@ void PollThreadFunc(void*) {
 	double duration_ms;
 	while (true) {
 		gettimeofday(&start, NULL);
-		// for (auto device : g_Devices) {
-		for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+		// for (auto device : GlobalDeviceList()) {
+		for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 			devEK9000* device = *it;
 			int status = device->Lock();
 			if (status)
@@ -128,8 +128,8 @@ void PollThreadFunc(void*) {
 		cnt = (cnt + 1) % 2;
 		gettimeofday(&finish, NULL);
 		duration_ms = (finish.tv_sec - start.tv_sec) * 1000. + (finish.tv_usec - start.tv_usec) / 1000.;
-		if (duration_ms < g_nPollDelay)
-			epicsThreadSleep(((float)g_nPollDelay - duration_ms) / 1000.0f);
+		if (duration_ms < devEK9000::pollDelay)
+			epicsThreadSleep(((float)devEK9000::pollDelay - duration_ms) / 1000.0f);
 	}
 }
 
@@ -221,8 +221,8 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 		return NULL;
 	}
 	else {
-		// for (auto dev : g_Devices) {
-		for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+		// for (auto dev : GlobalDeviceList()) {
+		for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 			devEK9000* dev = *it;
 			for (int i = 0; i < dev->m_numTerms; i++) {
 				if (!dev->m_terms[i].m_recordName)
@@ -329,12 +329,12 @@ devEK9000::~devEK9000() {
 		free(m_name);
 	for (int i = 0; i < m_numTerms; i++)
 		free(m_terms[i].m_recordName);
-	delete m_terms;
+	delete [] m_terms;
 }
 
 devEK9000* devEK9000::FindDevice(const char* name) {
-	// for (auto dev : g_Devices) {
-	for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+	// for (auto dev : GlobalDeviceList()) {
+	for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 		devEK9000* dev = *it;
 		if (!strcmp(name, dev->m_name))
 			return dev;
@@ -404,7 +404,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	uint16_t buf = 1;
 	pek->m_driver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
 
-	g_Devices.push_back(pek);
+	GlobalDeviceList().push_back(pek);
 	return pek;
 }
 
@@ -888,7 +888,7 @@ void ek9000Configure(const iocshArgBuf* args) {
 	devEK9000* dev;
 
 	char ipbuf[64];
-	sprintf(ipbuf, "%s:%i", ip, port);
+	snprintf(ipbuf, sizeof(ipbuf), "%s:%i", ip, port);
 
 	dev = devEK9000::Create(name, ipbuf, num);
 
@@ -945,7 +945,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf* args) {
 
 void ek9000Stat(const iocshArgBuf* args) {
 	const char* ek9k = args[0].sval;
-	if (!ek9k || !g_pDeviceMgr) {
+	if (!ek9k) {
 		epicsPrintf("Invalid parameter.\n");
 		return;
 	}
@@ -1010,18 +1010,18 @@ void ek9000Stat(const iocshArgBuf* args) {
 }
 
 void ek9000EnableDebug(const iocshArgBuf*) {
-	g_bDebug = true;
+	devEK9000::debugEnabled = true;
 	epicsPrintf("Debug enabled.\n");
 }
 
 void ek9000DisableDebug(const iocshArgBuf*) {
-	g_bDebug = false;
+	devEK9000::debugEnabled = false;
 	epicsPrintf("Debug disabled.\n");
 }
 
 void ek9000List(const iocshArgBuf*) {
-	// for (auto dev : g_Devices) {
-	for (std::list<devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+	// for (auto dev : GlobalDeviceList()) {
+	for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 		devEK9000* dev = *it;
 		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_name, dev->m_numTerms);
 		epicsPrintf("\tIP: %s\n", dev->m_ip);
@@ -1069,7 +1069,7 @@ void ek9000SetPollTime(const iocshArgBuf* args) {
 	devEK9000* dev = devEK9000::FindDevice(ek9k);
 	if (!dev)
 		return;
-	g_nPollDelay = time;
+	devEK9000::pollDelay = time;
 }
 
 void ek9kDumpMappings(const iocshArgBuf* args) {
@@ -1208,8 +1208,8 @@ static long ek9000_init_record(void*) {
 static long ek9000_init(int after) {
 	if (after == 0) {
 		epicsPrintf("Initializing EK9000 Couplers.\n");
-		// for (auto dev : g_Devices) {
-		for (std::list<class devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+		// for (auto dev : GlobalDeviceList()) {
+		for (std::list<class devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 			class devEK9000* dev = (*it);
 			if (!dev->m_init)
 				dev->InitTerminals();
@@ -1475,8 +1475,8 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 			buf[i] = 0;
 
 	/* Finally actually parse the integers, find the ek9k, etc. */
-	// for (auto dev : g_Devices) {
-	for (std::list<class devEK9000*>::iterator it = g_Devices.begin(); it != g_Devices.end(); ++it) {
+	// for (auto dev : GlobalDeviceList()) {
+	for (std::list<class devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 		class devEK9000* dev = *it;
 		if (strncmp(dev->m_name, buffers[0], strlen(dev->m_name)) == 0) {
 			pcoupler = dev;

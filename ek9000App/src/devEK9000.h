@@ -83,24 +83,21 @@
 class devEK9000;
 class devEK9000Terminal;
 
-extern std::list<devEK9000*> g_Devices;
-extern bool g_bDebug;
-
 std::list<devEK9000*>& GlobalDeviceList();
 
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
 
 #define DevInfo(fmt, ...)                                                                                              \
-	if (g_bDebug) {                                                                                                    \
+	if (devEK9000::debugEnabled) {                                                                                                    \
 		util::Log(fmt, __VA_ARGS__);                                                                                   \
 	}
 #define DevWarn(fmt, ...)                                                                                              \
-	if (g_bDebug) {                                                                                                    \
+	if (devEK9000::debugEnabled) {                                                                                                    \
 		util::Warn(fmt, __VA_ARGS__);                                                                                  \
 	}
 #define DevError(fmt, ...)                                                                                             \
-	if (g_bDebug) {                                                                                                    \
+	if (devEK9000::debugEnabled) {                                                                                                    \
 		util::Error(fmt, __VA_ARGS__);                                                                                 \
 	}
 
@@ -357,12 +354,11 @@ public:
 	int CoEVerifyConnection(uint16_t termid);
 
 public:
-	/* Error reporting function, only prints on debug */
-	// void ReportError(int errorcode, const char* _msg = NULL);
-
-	/* Enable/disable debug */
-	// void EnableDebug(bool enabled) { m_debug = enabled; };
-
+	/* Statics! */
+	
+	static bool debugEnabled;
+	static int pollDelay;
+	
 public:
 	/* Needed for the list impl */
 	bool operator==(const devEK9000& other) const {
