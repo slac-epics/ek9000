@@ -43,7 +43,6 @@ struct param_t {
 	unsigned int length; // only for string params
 };
 
-
 #define COE_PARAMETER(_name, _index, _subindex)                                                                        \
 	CONSTEXPR uint16_t _name##_INDEX = _index;                                                                         \
 	CONSTEXPR uint16_t _name##_SUBINDEX = _subindex

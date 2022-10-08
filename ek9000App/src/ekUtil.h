@@ -28,15 +28,14 @@
 
 // C++11 interop - mainly utils for catching problems in code
 #if __cplusplus >= 201103L
-#	define CONSTEXPR constexpr
-#	define OVERRIDE override
-#	define FINAL final
+#define CONSTEXPR constexpr
+#define OVERRIDE override
+#define FINAL final
 #else
-#	define CONSTEXPR static const
-#	define OVERRIDE
-#	define FINAL
+#define CONSTEXPR static const
+#define OVERRIDE
+#define FINAL
 #endif
-
 
 typedef struct {
 	const char* m_name;
