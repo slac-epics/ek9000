@@ -17,6 +17,7 @@
 #pragma once
 
 #include <epicsStdlib.h>
+#include "ekUtil.h"
 
 namespace coe
 {

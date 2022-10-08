@@ -4,6 +4,7 @@
  * Common utilities for use with EPICS
  *
  */
+
 #pragma once
 
 #include <iocsh.h>
@@ -24,7 +25,6 @@
 #include "ekLocal.h"
 
 #include "terminals.h"
-#include "devEK9000.h"
 
 // C++11 interop - mainly utils for catching problems in code
 #if __cplusplus >= 201103L
