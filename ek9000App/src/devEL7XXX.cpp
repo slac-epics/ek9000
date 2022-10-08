@@ -26,7 +26,7 @@
 #include <asynMotorController.h>
 
 #include <cstddef>
-#include <cstdint>
+#include <stdint.h>
 #include <cstring>
 #include <cmath>
 #include <vector>
@@ -37,45 +37,22 @@
 #include "errlog.h"
 #include "ekDiag.h"
 #include "ekLocal.h"
+#include "ekUtil.h"
 
-#define EL7047_START_TYPE_ABSOLUTE 0x1
-#define EL7047_START_TYPE_RELATIVE 0x2
+enum {
+	EL7047_START_TYPE_ABSOLUTE = 0x1,
+	EL7047_START_TYPE_RELATIVE = 0x2
+};
 
 #define STRUCT_REGISTER_SIZE(x) (sizeof(x) % 2 == 0 ? sizeof(x) / 2 : sizeof(x) / 2 + 1)
 #define BYTES_TO_REG_SIZE(x) ((x) % 2 == 0 ? (x) / 2 : (x) / 2 + 1)
 
+#define MOTOR_TRACE() 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "(%s) %s:%u\n", __FILE__, __FUNCTION__, __LINE__)
+
 #define BREAK() /* asm("int3\n\t") */
 
-std::vector<el70x7Controller*> controllers;
-
-#if __cplusplus >= 201103L
-#define CONSTEXPR constexpr
-#else
-#define CONSTEXPR static const
-#endif
-
-#define COE_PARAMETER(_name, _index, _subindex)                                                                        \
-	CONSTEXPR uint16_t _name##_INDEX = _index;                                                                         \
-	CONSTEXPR uint16_t _name##_SUBINDEX = _subindex
-
-namespace coe
-{
-COE_PARAMETER(SPEED_RANGE, 0x8012, 0x5);
-COE_PARAMETER(VELOCITY_MIN, 0x8020, 0x1);
-COE_PARAMETER(ACCELERATION_POS, 0x8020, 0x3);
-COE_PARAMETER(DECELERATION_POS, 0x8020, 0x5);
-COE_PARAMETER(MAXIMAL_CURRENT, 0x8010, 0x1);
-COE_PARAMETER(REDUCED_CURRENT, 0x8010, 0x2);
-COE_PARAMETER(NOMINAL_VOLTAGE, 0x8010, 0x3);
-COE_PARAMETER(MOTOR_COIL_RESISTANCE, 0x8010, 0x4);
-COE_PARAMETER(MOTOR_EMF, 0x8010, 0x5);
-COE_PARAMETER(MOTOR_FULLSTEPS, 0x8010, 0x6);
-COE_PARAMETER(ENCODER_INCREMENTS, 0x8010, 0x7);
-COE_PARAMETER(START_VELOCITY, 0x8010, 0x9);
-COE_PARAMETER(MOTOR_COIL_INDUCTANCE, 0x8010, 0xA);
-COE_PARAMETER(DRIVE_ON_DELAY, 0x8010, 0x10);
-COE_PARAMETER(DRIVE_OFF_DELAY, 0x8010, 0x11);
-} // namespace coe
+typedef std::vector<el70x7Controller*> ControllerListT;
+ControllerListT controllers;
 
 /*
 ========================================================
@@ -137,7 +114,7 @@ NOTES:
 */
 
 el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) : asynMotorAxis(pC, axisnum) {
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	uint16_t spd;
 	uint16_t tmp;
 	pC_ = pC;
@@ -156,8 +133,8 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) : asynMotorAxis(pC, ax
 												  (uint16_t*)&this->input, BYTES_TO_REG_SIZE(pcontroller->m_inputSize));
 	/* Read the configured speed */
 	spd = 0;
-	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::SPEED_RANGE_INDEX, 1, &spd,
-							coe::SPEED_RANGE_SUBINDEX);
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::EL704X_SPEED_RANGE_INDEX, 1, &spd,
+							coe::EL704X_SPEED_RANGE_SUBINDEX);
 	/* Clear everything initially */
 	this->curr_param.back_accel = 0.0;
 	this->curr_param.forward_accel = 0.0;
@@ -201,18 +178,18 @@ el70x7Axis::el70x7Axis(el70x7Controller* pC, int axisnum) : asynMotorAxis(pC, ax
 	/* For acceleration, decel and velocity we want to grab the initial values from the CoE parameters */
 	tmp = 0;
 	/* Read default min velocity */
-	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::VELOCITY_MIN_INDEX, 1, &tmp,
-							coe::VELOCITY_MIN_SUBINDEX);
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::EL704X_VELOCITY_MIN_INDEX, 1, &tmp,
+							coe::EL704X_VELOCITY_MIN_SUBINDEX);
 	this->output.pos_velocity = tmp;
 
 	/* Read default acceleration in the positive direction */
-	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::ACCELERATION_POS_INDEX, 1, &tmp,
-							coe::ACCELERATION_POS_SUBINDEX);
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::EL704X_ACCELERATION_POS_INDEX, 1, &tmp,
+							coe::EL704X_ACCELERATION_POS_SUBINDEX);
 	this->output.pos_accel = tmp;
 
 	/* Read default deceleration in the positive direction */
-	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::DECELERATION_POS_INDEX, 1, &tmp,
-							coe::DECELERATION_POS_SUBINDEX);
+	this->pcoupler->doCoEIO(0, pcontroller->m_terminalIndex, coe::EL704X_DECELERATION_POS_INDEX, 1, &tmp,
+							coe::EL704X_DECELERATION_POS_SUBINDEX);
 	this->output.pos_decel = tmp;
 
 	this->UpdatePDO();
@@ -224,12 +201,12 @@ error:
 }
 
 void el70x7Axis::lock() {
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	this->pcoupler->Lock();
 }
 
 void el70x7Axis::unlock() {
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	this->pcoupler->Unlock();
 }
 
@@ -242,30 +219,30 @@ asynStatus el70x7Axis::setMotorParameters(uint16_t min_start_vel, uint16_t max_c
 										  uint16_t reduced_coil_currrent, uint16_t nominal_voltage,
 										  uint16_t internal_resistance, uint16_t full_steps, uint16_t enc_inc) {
 	this->lock();
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	uint16_t tid = pcontroller->m_terminalIndex;
 	int stat =
-		pcoupler->doCoEIO(1, tid, coe::MAXIMAL_CURRENT_INDEX, 1, &max_coil_current, coe::MAXIMAL_CURRENT_SUBINDEX);
+		pcoupler->doCoEIO(1, tid, coe::EL704X_MAXIMAL_CURRENT_INDEX, 1, &max_coil_current, coe::EL704X_MAXIMAL_CURRENT_SUBINDEX);
 	if (stat)
 		goto error;
 	stat =
-		pcoupler->doCoEIO(1, tid, coe::REDUCED_CURRENT_INDEX, 1, &reduced_coil_currrent, coe::REDUCED_CURRENT_SUBINDEX);
+		pcoupler->doCoEIO(1, tid, coe::EL704X_REDUCED_CURRENT_INDEX, 1, &reduced_coil_currrent, coe::EL704X_REDUCED_CURRENT_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::NOMINAL_VOLTAGE_INDEX, 1, &nominal_voltage, coe::NOMINAL_VOLTAGE_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_NOMINAL_VOLTAGE_INDEX, 1, &nominal_voltage, coe::EL704X_NOMINAL_VOLTAGE_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::MOTOR_COIL_RESISTANCE_INDEX, 1, &internal_resistance,
-							 coe::MOTOR_COIL_RESISTANCE_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_MOTOR_COIL_RESISTANCE_INDEX, 1, &internal_resistance,
+							 coe::EL704X_MOTOR_COIL_RESISTANCE_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::MOTOR_FULLSTEPS_INDEX, 1, &full_steps, coe::MOTOR_FULLSTEPS_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_MOTOR_FULLSTEPS_INDEX, 1, &full_steps, coe::EL704X_MOTOR_FULLSTEPS_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::ENCODER_INCREMENTS_INDEX, 1, &enc_inc, coe::ENCODER_INCREMENTS_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_ENCODER_INCREMENTS_INDEX, 1, &enc_inc, coe::EL704X_ENCODER_INCREMENTS_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::START_VELOCITY_INDEX, 1, &min_start_vel, coe::START_VELOCITY_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_START_VELOCITY_INDEX, 1, &min_start_vel, coe::EL704X_START_VELOCITY_SUBINDEX);
 	if (stat)
 		goto error;
 	this->unlock();
@@ -290,7 +267,7 @@ accel is the acceleration of the motor [steps/s^2]
 */
 asynStatus el70x7Axis::move(double pos, int rel, double min_vel, double max_vel, double accel) {
 	this->lock();
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::move\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	this->ResetIfRequired();
 
 	SPositionInterface_Output prev = output;
@@ -331,7 +308,7 @@ accel is the acceleration of the motor in steps/s^2
 */
 asynStatus el70x7Axis::moveVelocity(double min_vel, double max_vel, double accel) {
 	this->lock();
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::moveVelocity\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	this->ResetIfRequired();
 
 	SPositionInterface_Output prev = output;
@@ -363,7 +340,7 @@ asynStatus el70x7Axis::home(double min_vel, double max_vel, double accel, int fo
 	UNUSED(forwards);
 
 	this->lock();
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::home\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	this->ResetIfRequired();
 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "Motor home\n");
 	this->output.pos_accel = (uint32_t)round(accel);
@@ -386,7 +363,7 @@ error:
 
 asynStatus el70x7Axis::stop(double accel) {
 	this->lock();
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::stop\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	this->ResetIfRequired();
 
 	/* Update the deceleration field */
@@ -428,7 +405,7 @@ asynStatus el70x7Axis::poll(bool* moving) {
 	}
 
 	this->lock();
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::poll\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	/* This will read params from the motor controller */
 	int stat = this->UpdatePDO();
 	if (stat)
@@ -496,7 +473,7 @@ error:
 
 asynStatus el70x7Axis::setEncoderPosition(double pos) {
 	this->lock();
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::setEncoderPosition", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 
 	output.enc_set_counter_val = (uint32_t)round(pos);
 	output.enc_set_counter = 1;
@@ -563,7 +540,7 @@ Executes a move by setting the execute bit and propagating changes
 asynStatus el70x7Axis::Execute(bool locked) {
 	UNUSED(locked);
 
-	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "%s:%u el70x7Axis::Execute\n", __FUNCTION__, __LINE__);
+	MOTOR_TRACE();
 	this->ResetExec();
 	this->output.pos_execute = 1;
 	this->output.pos_emergency_stp = 0;
@@ -627,12 +604,12 @@ void el7047_Stat(const iocshArgBuf* args) {
 		epicsPrintf("Invalid device.\n");
 		return;
 	}
-	for (auto x : controllers) {
+	for (ControllerListT::iterator x = controllers.begin(); x != controllers.end(); ++x) {
 		for (int i = 0;; i++) {
-			el70x7Axis* axis = x->getAxis(i);
+			el70x7Axis* axis = (*x)->getAxis(i);
 			if (!axis)
 				break;
-			epicsPrintf("%s\n", x->pcontroller->m_recordName);
+			epicsPrintf("%s\n", (*x)->pcontroller->m_recordName);
 			epicsPrintf("\tSpeed [steps/s]:      %u\n", axis->speed);
 			epicsPrintf("\tEncoder pos:          %u\n", axis->enc_pos);
 		}
@@ -650,7 +627,8 @@ void el70x7ReadCoE(const iocshArgBuf* args) {
 	if (!ek9k || !port || index < 0 || index > 65535 || subindex < 0 || subindex > 65535 || len < 0)
 		return;
 
-	for (el70x7Controller* x : controllers) {
+	for (ControllerListT::iterator it = controllers.begin(); it != controllers.end(); ++it) {
+		el70x7Controller* x = *it;
 		if (strcmp(port, x->portName) == 0) {
 			x->pcoupler->Lock();
 			uint16_t data[32];
@@ -671,17 +649,21 @@ struct diag_info_t {
 	uint16_t subindex;
 };
 
-static diag_info_t diag_info[] = {{"saturated", 0xA010, 0x1},
-								  {"over-temp", 0xA010, 0x2},
-								  {"torque-overload", 0xA010, 0x3},
-								  {"under-voltage", 0xA010, 0x4},
-								  {"over-voltage", 0xA010, 0x5},
-								  {"short", 0xA010, 0x6},
-								  {"no-control-pwr", 0xA010, 0x8},
-								  {"misc-err", 0xA010, 0x9},
-								  {"conf", 0xA010, 0xA},
-								  {"stall", 0xA010, 0xB},
-								  {}};
+// clang-format: off
+static diag_info_t diag_info[] = {
+	{"saturated", 0xA010, 0x1},
+	{"over-temp", 0xA010, 0x2},
+	{"torque-overload", 0xA010, 0x3},
+	{"under-voltage", 0xA010, 0x4},
+	{"over-voltage", 0xA010, 0x5},
+	{"short", 0xA010, 0x6},
+	{"no-control-pwr", 0xA010, 0x8},
+	{"misc-err", 0xA010, 0x9},
+	{"conf", 0xA010, 0xA},
+	{"stall", 0xA010, 0xB},
+	{}
+};
+// clang-format: on
 
 void el70x7PrintDiag(const iocshArgBuf* args) {
 	const char* port = args[0].sval;
@@ -689,7 +671,8 @@ void el70x7PrintDiag(const iocshArgBuf* args) {
 		epicsPrintf("No such port.\n");
 		return;
 	}
-	for (el70x7Controller* x : controllers) {
+	for (ControllerListT::iterator it = controllers.begin(); it != controllers.end(); ++it) {
+		el70x7Controller* x = *it;
 		if (strcmp(port, x->portName) == 0) {
 			x->pcoupler->Lock();
 			uint16_t data = 0;
@@ -715,7 +698,8 @@ void el70x7PrintMessages(const iocshArgBuf* args) {
 	const char* port = args[0].sval;
 	if (!port)
 		return;
-	for (auto x : controllers) {
+	for (ControllerListT::iterator it = controllers.begin(); it != controllers.end(); ++it) {
+		el70x7Controller* x = *it;
 		if (strcmp(x->portName, port) == 0) {
 			x->pcoupler->Lock();
 			uint16_t string[15];
@@ -746,7 +730,8 @@ void el70x7ResetMotor(const iocshArgBuf* args) {
 	const char* port = args[0].sval;
 	if (!port)
 		return;
-	for (auto x : controllers) {
+	for (ControllerListT::iterator it = controllers.begin(); it != controllers.end(); ++it) {
+		el70x7Controller* x = *it;
 		if (strcmp(x->portName, port) == 0) {
 			/* For this, we need to toggle the reset bit in case it's already been reset once */
 			el70x7Axis* axis = x->getAxis(0);
