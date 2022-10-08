@@ -47,7 +47,7 @@ enum {
 #define STRUCT_REGISTER_SIZE(x) (sizeof(x) % 2 == 0 ? sizeof(x) / 2 : sizeof(x) / 2 + 1)
 #define BYTES_TO_REG_SIZE(x) ((x) % 2 == 0 ? (x) / 2 : (x) / 2 + 1)
 
-#define MOTOR_TRACE() 	asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "(%s) %s:%u\n", __FILE__, __FUNCTION__, __LINE__)
+#define MOTOR_TRACE() asynPrint(this->pasynUser_, ASYN_TRACE_FLOW, "(%s) %s:%u\n", __FILE__, __FUNCTION__, __LINE__)
 
 #define BREAK() /* asm("int3\n\t") */
 
@@ -221,28 +221,32 @@ asynStatus el70x7Axis::setMotorParameters(uint16_t min_start_vel, uint16_t max_c
 	this->lock();
 	MOTOR_TRACE();
 	uint16_t tid = pcontroller->m_terminalIndex;
-	int stat =
-		pcoupler->doCoEIO(1, tid, coe::EL704X_MAXIMAL_CURRENT_INDEX, 1, &max_coil_current, coe::EL704X_MAXIMAL_CURRENT_SUBINDEX);
+	int stat = pcoupler->doCoEIO(1, tid, coe::EL704X_MAXIMAL_CURRENT_INDEX, 1, &max_coil_current,
+								 coe::EL704X_MAXIMAL_CURRENT_SUBINDEX);
 	if (stat)
 		goto error;
-	stat =
-		pcoupler->doCoEIO(1, tid, coe::EL704X_REDUCED_CURRENT_INDEX, 1, &reduced_coil_currrent, coe::EL704X_REDUCED_CURRENT_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_REDUCED_CURRENT_INDEX, 1, &reduced_coil_currrent,
+							 coe::EL704X_REDUCED_CURRENT_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_NOMINAL_VOLTAGE_INDEX, 1, &nominal_voltage, coe::EL704X_NOMINAL_VOLTAGE_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_NOMINAL_VOLTAGE_INDEX, 1, &nominal_voltage,
+							 coe::EL704X_NOMINAL_VOLTAGE_SUBINDEX);
 	if (stat)
 		goto error;
 	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_MOTOR_COIL_RESISTANCE_INDEX, 1, &internal_resistance,
 							 coe::EL704X_MOTOR_COIL_RESISTANCE_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_MOTOR_FULLSTEPS_INDEX, 1, &full_steps, coe::EL704X_MOTOR_FULLSTEPS_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_MOTOR_FULLSTEPS_INDEX, 1, &full_steps,
+							 coe::EL704X_MOTOR_FULLSTEPS_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_ENCODER_INCREMENTS_INDEX, 1, &enc_inc, coe::EL704X_ENCODER_INCREMENTS_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_ENCODER_INCREMENTS_INDEX, 1, &enc_inc,
+							 coe::EL704X_ENCODER_INCREMENTS_SUBINDEX);
 	if (stat)
 		goto error;
-	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_START_VELOCITY_INDEX, 1, &min_start_vel, coe::EL704X_START_VELOCITY_SUBINDEX);
+	stat = pcoupler->doCoEIO(1, tid, coe::EL704X_START_VELOCITY_INDEX, 1, &min_start_vel,
+							 coe::EL704X_START_VELOCITY_SUBINDEX);
 	if (stat)
 		goto error;
 	this->unlock();
@@ -649,7 +653,7 @@ struct diag_info_t {
 	uint16_t subindex;
 };
 
-// clang-format: off
+// clang-format off
 static diag_info_t diag_info[] = {
 	{"saturated", 0xA010, 0x1},
 	{"over-temp", 0xA010, 0x2},
@@ -663,7 +667,7 @@ static diag_info_t diag_info[] = {
 	{"stall", 0xA010, 0xB},
 	{}
 };
-// clang-format: on
+// clang-format on
 
 void el70x7PrintDiag(const iocshArgBuf* args) {
 	const char* port = args[0].sval;
