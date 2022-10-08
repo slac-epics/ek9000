@@ -11,11 +11,10 @@ DBD += devEK9000.dbd
 DBD += ek9000.dbd
 DBD += ek9000Include.dbd
 
-#ifneq ($(NO_FORCE_CXX11),1)
-#USR_CXXFLAGS += --std=c++11
-#endif
 ifneq ($(NO_FORCE_CXX03),1)
 USR_CXXFLAGS += -std=c++03
+else
+USR_CXXFLAGS += -std=c++11
 endif
 
 ifeq ($(BUILD_STRICT),1)
@@ -63,3 +62,4 @@ clangdb_commands:
 		echo -e "\t\"file\": \"$$src\"}," >> compile_commands.json; \
 	done
 	echo "{}]" >> compile_commands.json
+

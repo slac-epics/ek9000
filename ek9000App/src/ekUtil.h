@@ -26,6 +26,18 @@
 #include "terminals.h"
 #include "devEK9000.h"
 
+// C++11 interop - mainly utils for catching problems in code
+#if __cplusplus >= 201103L
+#	define CONSTEXPR constexpr
+#	define OVERRIDE override
+#	define FINAL final
+#else
+#	define CONSTEXPR static const
+#	define OVERRIDE
+#	define FINAL
+#endif
+
+
 typedef struct {
 	const char* m_name;
 	uint32_t m_id;
