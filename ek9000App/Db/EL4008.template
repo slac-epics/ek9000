@@ -4,6 +4,8 @@ record(ao,"$(TERMINAL):1")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 
 record(ao,"$(TERMINAL):2")
@@ -12,6 +14,8 @@ record(ao,"$(TERMINAL):2")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 
 record(ao,"$(TERMINAL):3")
@@ -20,6 +24,8 @@ record(ao,"$(TERMINAL):3")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 
 record(ao,"$(TERMINAL):4")
@@ -28,6 +34,8 @@ record(ao,"$(TERMINAL):4")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 
 record(ao,"$(TERMINAL):5")
@@ -36,6 +44,8 @@ record(ao,"$(TERMINAL):5")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 
 record(ao,"$(TERMINAL):6")
@@ -44,6 +54,8 @@ record(ao,"$(TERMINAL):6")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 
 record(ao,"$(TERMINAL):7")
@@ -52,6 +64,8 @@ record(ao,"$(TERMINAL):7")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 
 record(ao,"$(TERMINAL):8")
@@ -60,5 +74,7 @@ record(ao,"$(TERMINAL):8")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 

@@ -3,6 +3,8 @@ record(ao,"$(TERMINAL):1")
 	field(DTYP, "EL40XX")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
-	field(EGU, "Volts")
+	field(EGU, "mA")
+	field(EGUL, "4")
+	field(EGUF, "20")
 }
 

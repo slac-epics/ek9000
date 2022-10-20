@@ -12,7 +12,7 @@ JSON SYNTAX:
 
 {
 	"name": "EL3202",		// Name of the terminal
-	"type": "AnalogIn",		// Type AnalogIn, AnalogOut, DigIn, DigOut
+	"type": "AnalogIn",		// Type AnalogIn, AnalogOut, DigIn, DigOut, RegIn
 	"inputs": 2,			// Number of input channels
 	"outputs": 0,			// Number of output channels
 	"pdo_in_size": 4,		// PDO input size. For Digital terminals, this is COILS. For Analog terms, this is REGISTERS (16-bits per reg)  
@@ -111,6 +111,14 @@ class Terminal():
 		for v in _vals.items():
 			self.vals[v[0]] = v[1]
 
+	# Deletes a collection of values from the defaults list
+	def delete_values(self, _vals:list):
+		for v in _vals:
+                        try:
+                                del(self.vals[v])
+                        except:
+                                pass
+
 	# Write this record out to fp
 	def write(self, fp):
 		for i in range(self.num):
@@ -122,26 +130,26 @@ class Terminal():
 	def set_default_bi(self):
 		self.vals['ZNAM'] = 'low'
 		self.vals['ONAM'] = 'high'
-		self.vals['SCAN'] = '.1 second'
-		self.vals['PINI'] = 'YES'
+		self.vals['SCAN'] = 'I/O Intr'
 
 	def set_default_bo(self):
 		self.vals['ZNAM'] = 'low'
 		self.vals['ONAM'] = 'high'
-		self.vals['SCAN'] = '.1 second'
 		self.vals['PINI'] = 'YES'
 
 	def set_default_ai(self):
 		self.vals['LINR'] = 'LINEAR'
-		self.vals['PINI'] = 'YES'
 		self.vals['EGU'] = 'Volts'
-		self.vals['SCAN'] = '.1 second'
+		self.vals['SCAN'] = 'I/O Intr'
 
 	def set_default_ao(self):
 		self.vals['LINR'] = 'LINEAR'
 		self.vals['PINI'] = 'YES'
 		self.vals['EGU'] = 'Volts'
 
+	def set_default_longin(self):
+		self.vals['EGU'] = 'Counts'
+		self.vals['SCAN'] = 'I/O Intr'
 
 
 #
@@ -225,6 +233,8 @@ def get_dtyp(terminal: dict) -> str:
 			return "EL30XX"
 		elif terminal["type"] == "AnalogOut":
 			return "EL40XX"
+		elif terminal["type"] == "RegIn":
+			return "EL50XX"
 		else:
 			raise ValueError(f"Type is {terminal['type']}")
 
@@ -242,11 +252,15 @@ with open("../../Db/Templates.mak", "w") as fp:
 		typ = get_dtyp(terminal)
 
 		# Additional 'defaults'
-		extras = {}
 		try:
 			extras = terminal['defaults']
 		except:
 			extras = {}
+
+		try:
+			deletes = terminal['deletes']
+		except:
+                        deletes = {}
 
 		tfp = open(template_filename, "w")
 		sfp = open(subs_filename, "w")
@@ -254,21 +268,31 @@ with open("../../Db/Templates.mak", "w") as fp:
 			t = Terminal('bi', inputs, typ)
 			t.set_default_bi()
 			t.add_values(extras)
+			t.delete_values(deletes)
 			t.write(tfp)
 		elif terminal["type"] == "DigOut":
 			t = Terminal('bo', outputs, typ)
 			t.set_default_bo()
 			t.add_values(extras)
+			t.delete_values(deletes)
 			t.write(tfp)
 		elif terminal["type"] == "AnalogIn":
 			t = Terminal('ai', inputs, typ)
 			t.set_default_ai()
 			t.add_values(extras)
+			t.delete_values(deletes)
 			t.write(tfp)
 		elif terminal["type"] == "AnalogOut":
 			t = Terminal('ao', outputs, typ)
 			t.set_default_ao()
 			t.add_values(extras)
+			t.delete_values(deletes)
+			t.write(tfp)
+		elif terminal["type"] == "RegIn":
+			t = Terminal('longin', inputs, typ)
+			t.set_default_longin()
+			t.add_values(extras)
+			t.delete_values(deletes)
 			t.write(tfp)
 		# Write out the subs
 		sfp.write(subs.replace("$$FILE", name + ".template"))

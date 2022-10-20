@@ -2,31 +2,39 @@ record(ai,"$(TERMINAL):1")
 {
 	field(DTYP, "EL30XX")
 	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "mA")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "4")
+	field(EGUF, "20")
 }
 
 record(ai,"$(TERMINAL):2")
 {
 	field(DTYP, "EL30XX")
 	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "mA")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "4")
+	field(EGUF, "20")
 }
 
 record(ai,"$(TERMINAL):3")
 {
 	field(DTYP, "EL30XX")
 	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "mA")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "4")
+	field(EGUF, "20")
 }
 
 record(ai,"$(TERMINAL):4")
 {
 	field(DTYP, "EL30XX")
 	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "mA")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "4")
+	field(EGUF, "20")
 }
 

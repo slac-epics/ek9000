@@ -4,5 +4,7 @@ record(ai,"$(TERMINAL):1")
 	field(LINR, "LINEAR")
 	field(EGU, "Volts")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 

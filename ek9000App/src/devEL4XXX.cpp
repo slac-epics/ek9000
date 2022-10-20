@@ -176,6 +176,12 @@ static long EL40XX_write_record(void* record) {
 	return 0;
 }
 
-static long EL40XX_linconv(void*, int) {
-	return 0;
+static long EL40XX_linconv(void* precord, int after) {
+    if (after) {
+	aiRecord* pRecord = static_cast<aiRecord*>(precord);
+        double egul = (pRecord->egul < 0) ? 0.0 : pRecord->egul;
+	pRecord->eoff = egul;
+	pRecord->eslo = (pRecord->eguf - egul) / 32767.0;
+    }
+    return 0;
 }

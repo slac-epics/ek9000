@@ -2,7 +2,9 @@ record(ai,"$(TERMINAL):1")
 {
 	field(DTYP, "EL30XX")
 	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "mA")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "0")
+	field(EGUF, "20")
 }
 

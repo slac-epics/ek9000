@@ -4,6 +4,8 @@ record(ai,"$(TERMINAL):1")
 	field(LINR, "LINEAR")
 	field(EGU, "Volts")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "-10")
+	field(EGUF, "10")
 }
 
 record(ai,"$(TERMINAL):2")
@@ -12,6 +14,8 @@ record(ai,"$(TERMINAL):2")
 	field(LINR, "LINEAR")
 	field(EGU, "Volts")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "-10")
+	field(EGUF, "10")
 }
 
 record(ai,"$(TERMINAL):3")
@@ -20,6 +24,8 @@ record(ai,"$(TERMINAL):3")
 	field(LINR, "LINEAR")
 	field(EGU, "Volts")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "-10")
+	field(EGUF, "10")
 }
 
 record(ai,"$(TERMINAL):4")
@@ -28,5 +34,7 @@ record(ai,"$(TERMINAL):4")
 	field(LINR, "LINEAR")
 	field(EGU, "Volts")
 	field(SCAN, "I/O Intr")
+	field(EGUL, "-10")
+	field(EGUF, "10")
 }
 

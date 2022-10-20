@@ -334,7 +334,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3002",
@@ -342,7 +347,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3004",
@@ -350,7 +360,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 16,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3008",
@@ -358,7 +373,12 @@
 			"inputs": 8,
 			"outputs": 0,
 			"pdo_in_size": 32,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3012",
@@ -366,7 +386,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3014",
@@ -374,7 +399,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3021",
@@ -382,7 +412,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3022",
@@ -390,7 +425,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3024",
@@ -398,7 +438,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3041",
@@ -406,7 +451,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3042",
@@ -414,7 +464,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3044",
@@ -422,7 +477,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3048",
@@ -430,7 +490,12 @@
 			"inputs": 8,
 			"outputs": 0,
 			"pdo_in_size": 16,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3051",
@@ -438,7 +503,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3052",
@@ -446,7 +516,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3054",
@@ -454,7 +529,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3058",
@@ -462,7 +542,12 @@
 			"inputs": 8,
 			"outputs": 0,
 			"pdo_in_size": 16,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3061",
@@ -470,7 +555,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3062",
@@ -478,7 +568,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3064",
@@ -486,7 +581,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3068",
@@ -494,7 +594,12 @@
 			"inputs": 8,
 			"outputs": 0,
 			"pdo_in_size": 16,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3101",
@@ -502,7 +607,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3102",
@@ -510,7 +620,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3104",
@@ -518,7 +633,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3111",
@@ -526,7 +646,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3112",
@@ -534,7 +659,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3114",
@@ -542,7 +672,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3121",
@@ -550,7 +685,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3122",
@@ -558,7 +698,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3124",
@@ -566,7 +711,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3141",
@@ -574,7 +724,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3142",
@@ -582,7 +737,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3144",
@@ -590,7 +750,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3151",
@@ -598,7 +763,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3152",
@@ -606,7 +776,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3154",
@@ -614,7 +789,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL3161",
@@ -622,7 +802,12 @@
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3162",
@@ -630,7 +815,12 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3164",
@@ -638,7 +828,12 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL3174",
@@ -646,7 +841,8 @@
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "comment": "Multifunction: +/-10V, +/20 mA."
 		},
 		{
 			"name": "EL3202",
@@ -654,7 +850,11 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+		        "defaults": {
+		            "ESLO" : 0.1,
+		            "EGU"  : "C"
+			}
 		},
 		{
 			"name": "EL3314",
@@ -665,7 +865,7 @@
 			"pdo_out_size": 0,
 			"dtyp": "EL331X",
 			"defaults": {
-				"ESLO": "1",
+				"ESLO": "0.1",
 				"EGU": "C"
 			}
 		},
@@ -678,7 +878,7 @@
 			"pdo_out_size": 0,
 			"dtyp": "EL331X",
 			"defaults": {
-				"ESLO": "1",
+				"ESLO": "0.1",
 				"EGU": "C"
 			}
 		},
@@ -691,7 +891,7 @@
 			"pdo_out_size": 0,
 			"dtyp": "EL331X",
 			"defaults": {
-				"ESLO": "1",
+				"ESLO": "0.1",
 				"EGU": "C"
 			}
 		},
@@ -702,7 +902,8 @@
 			"outputs": 0,
 			"pdo_in_size": 4,
 			"pdo_out_size": 2,
-			"dtyp": "EL36XX"
+			"dtyp": "EL36XX",
+		        "comment": "Multimeter, 300V AC/DC 10 A."
 		},
 		{
 			"name": "EL4001",
@@ -710,7 +911,12 @@
 			"inputs": 0,
 			"outputs": 1,
 			"pdo_in_size": 0,
-			"pdo_out_size": 1
+			"pdo_out_size": 1,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4002",
@@ -718,7 +924,12 @@
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
-			"pdo_out_size": 2
+			"pdo_out_size": 2,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4004",
@@ -726,7 +937,12 @@
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
-			"pdo_out_size": 4
+			"pdo_out_size": 4,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4008",
@@ -734,7 +950,12 @@
 			"inputs": 0,
 			"outputs": 8,
 			"pdo_in_size": 0,
-			"pdo_out_size": 8
+			"pdo_out_size": 8,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4011",
@@ -742,7 +963,12 @@
 			"inputs": 0,
 			"outputs": 1,
 			"pdo_in_size": 0,
-			"pdo_out_size": 1
+			"pdo_out_size": 1,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4012",
@@ -750,7 +976,12 @@
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
-			"pdo_out_size": 2
+			"pdo_out_size": 2,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4014",
@@ -758,7 +989,12 @@
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
-			"pdo_out_size": 4
+			"pdo_out_size": 4,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4018",
@@ -766,7 +1002,12 @@
 			"inputs": 0,
 			"outputs": 8,
 			"pdo_in_size": 0,
-			"pdo_out_size": 8
+			"pdo_out_size": 8,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4021",
@@ -774,7 +1015,12 @@
 			"inputs": 0,
 			"outputs": 1,
 			"pdo_in_size": 0,
-			"pdo_out_size": 1
+			"pdo_out_size": 1,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4022",
@@ -782,7 +1028,12 @@
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
-			"pdo_out_size": 2
+			"pdo_out_size": 2,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4024",
@@ -790,7 +1041,12 @@
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
-			"pdo_out_size": 4
+			"pdo_out_size": 4,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4028",
@@ -798,7 +1054,12 @@
 			"inputs": 0,
 			"outputs": 8,
 			"pdo_in_size": 0,
-			"pdo_out_size": 8
+			"pdo_out_size": 8,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4031",
@@ -806,7 +1067,12 @@
 			"inputs": 0,
 			"outputs": 1,
 			"pdo_in_size": 0,
-			"pdo_out_size": 1
+			"pdo_out_size": 1,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4032",
@@ -814,7 +1080,12 @@
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
-			"pdo_out_size": 2
+			"pdo_out_size": 2,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4034",
@@ -822,7 +1093,12 @@
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
-			"pdo_out_size": 4
+			"pdo_out_size": 4,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4038",
@@ -830,7 +1106,12 @@
 			"inputs": 0,
 			"outputs": 8,
 			"pdo_in_size": 0,
-			"pdo_out_size": 8
+			"pdo_out_size": 8,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4102",
@@ -838,7 +1119,12 @@
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
-			"pdo_out_size": 2
+			"pdo_out_size": 2,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4104",
@@ -846,7 +1132,12 @@
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
-			"pdo_out_size": 4
+			"pdo_out_size": 4,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4114",
@@ -854,7 +1145,12 @@
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
-			"pdo_out_size": 4
+			"pdo_out_size": 4,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4112",
@@ -862,7 +1158,12 @@
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
-			"pdo_out_size": 2
+			"pdo_out_size": 2,
+		        "defaults": {
+		            "EGUL" : 0,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL4134",
@@ -870,7 +1171,12 @@
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
-			"pdo_out_size": 4
+			"pdo_out_size": 4,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4132",
@@ -878,7 +1184,12 @@
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
-			"pdo_out_size": 2
+			"pdo_out_size": 2,
+		        "defaults": {
+		            "EGUL" : -10,
+		            "EGUF" : 10,
+		            "EGU"  : "Volts"
+			}
 		},
 		{
 			"name": "EL4122",
@@ -886,11 +1197,16 @@
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
-			"pdo_out_size": 2
+			"pdo_out_size": 2,
+		        "defaults": {
+		            "EGUL" : 4,
+		            "EGUF" : 20,
+		            "EGU"  : "mA"
+			}
 		},
 		{
 			"name": "EL5042",
-			"type": "AnalogIn",
+			"type": "RegIn",
 			"dtyp": "EL5042",
 			"inputs": 2,
 			"outputs": 0,

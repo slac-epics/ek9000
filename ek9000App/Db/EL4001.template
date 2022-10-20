@@ -4,5 +4,7 @@ record(ao,"$(TERMINAL):1")
 	field(LINR, "LINEAR")
 	field(PINI, "YES")
 	field(EGU, "Volts")
+	field(EGUL, "0")
+	field(EGUF, "10")
 }
 

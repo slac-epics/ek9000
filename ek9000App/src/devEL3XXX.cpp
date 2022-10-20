@@ -154,7 +154,10 @@ static long EL30XX_read_record(void* prec) {
 	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
 					     dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
-	pRecord->rval = spdo->value;
+	if (spdo->value & 0x8000)
+	    pRecord->rval = 0xffff0000 | spdo->value;
+	else
+	    pRecord->rval = spdo->value;
 
 	/* For standard PDO types, we have limits, so we should set alarms based on these,
 	   apparently the error bit is just equal to (overrange || underrange) */
@@ -178,8 +181,14 @@ static long EL30XX_read_record(void* prec) {
 	return 0;
 }
 
-static long EL30XX_linconv(void*, int) {
-	return 0;
+static long EL30XX_linconv(void* precord, int after) {
+    if (after) {
+	aiRecord* pRecord = static_cast<aiRecord*>(precord);
+        double egul = (pRecord->egul < 0) ? 0.0 : pRecord->egul;
+	pRecord->eoff = egul;
+	pRecord->eslo = (pRecord->eguf - egul) / 32767.0;
+    }
+    return 0;
 }
 
 //======================================================//

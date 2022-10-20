@@ -4,7 +4,7 @@ record(ai,"$(TERMINAL):1")
 	field(LINR, "LINEAR")
 	field(EGU, "C")
 	field(SCAN, "I/O Intr")
-	field(ESLO, "1")
+	field(ESLO, "0.1")
 }
 
 record(ai,"$(TERMINAL):2")
@@ -13,7 +13,7 @@ record(ai,"$(TERMINAL):2")
 	field(LINR, "LINEAR")
 	field(EGU, "C")
 	field(SCAN, "I/O Intr")
-	field(ESLO, "1")
+	field(ESLO, "0.1")
 }
 
 record(ai,"$(TERMINAL):3")
@@ -22,7 +22,7 @@ record(ai,"$(TERMINAL):3")
 	field(LINR, "LINEAR")
 	field(EGU, "C")
 	field(SCAN, "I/O Intr")
-	field(ESLO, "1")
+	field(ESLO, "0.1")
 }
 
 record(ai,"$(TERMINAL):4")
@@ -31,6 +31,6 @@ record(ai,"$(TERMINAL):4")
 	field(LINR, "LINEAR")
 	field(EGU, "C")
 	field(SCAN, "I/O Intr")
-	field(ESLO, "1")
+	field(ESLO, "0.1")
 }
 
