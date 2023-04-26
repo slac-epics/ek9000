@@ -159,7 +159,6 @@ devEK9000Terminal::devEK9000Terminal() {
 	m_outputStart = 0;
 }
 
-
 devEK9000Terminal* devEK9000Terminal::Create(devEK9000* device, uint32_t termid, int termindex,
 											 const char* recordname) {
 	devEK9000Terminal* term = new devEK9000Terminal();
@@ -189,7 +188,7 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 
 	char ret[512];
 	strncpy(ret, recname, sizeof(ret));
-	ret[sizeof(ret)-1] = 0;
+	ret[sizeof(ret) - 1] = 0;
 
 	size_t len = strlen(ret);
 
@@ -361,7 +360,8 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 		return NULL;
 	}
 
-	pek->m_driver = new drvModbusAsyn(pek->m_name.data(), pek->m_portName.data(), 0, 2, -1, 256, dataTypeUInt16, 150, "");
+	pek->m_driver =
+		new drvModbusAsyn(pek->m_name.data(), pek->m_portName.data(), 0, 2, -1, 256, dataTypeUInt16, 150, "");
 
 	/* wdt =  */
 	uint16_t buf = 1;
@@ -780,47 +780,46 @@ struct SMsg_t {
 };
 
 const char* devEK9000::ErrorToString(int i) {
-	switch(i)
-	{
-	case EK_EOK:
-		return "No error";
-	case EK_EERR:
-		return "Unspecified error";
-	case EK_EBADTERM:
-		return "Invalid terminal or slave";
-	case EK_ENOCONN:
-		return "No connection";
-	case EK_EBADPARAM:
-		return "Invalid parameter";
-	case EK_EBADPTR:
-		return "Invalid pointer";
-	case EK_ENODEV:
-		return "Invalid device";
-	case EK_ENOENT:
-		return "No entry";
-	case EK_EWTCHDG:
-		return "Watchdog error";
-	case EK_EBADTYP:
-		return "Invalid type";
-	case EK_EBADIP:
-		return "Invalid IP address";
-	case EK_EBADPORT:
-		return "Invalid port";
-	case EK_EADSERR:
-		return "ADS error";
-	case EK_ETERMIDMIS:
-		return "Terminal ID mismatch";
-	case EK_EBADMUTEX:
-		return "Invalid mutex";
-	case EK_EMUTEXTIMEOUT:
-		return "Mutex operation timeout";
-	case EK_EBADTERMID:
-		return "Invalid terminal ID";
-	case EK_EMODBUSERR:
-		return "Modbus driver error";
-	default:
-		assert(!"Invalid parameter passed to ErrorToString");
-		return "Unknown";
+	switch (i) {
+		case EK_EOK:
+			return "No error";
+		case EK_EERR:
+			return "Unspecified error";
+		case EK_EBADTERM:
+			return "Invalid terminal or slave";
+		case EK_ENOCONN:
+			return "No connection";
+		case EK_EBADPARAM:
+			return "Invalid parameter";
+		case EK_EBADPTR:
+			return "Invalid pointer";
+		case EK_ENODEV:
+			return "Invalid device";
+		case EK_ENOENT:
+			return "No entry";
+		case EK_EWTCHDG:
+			return "Watchdog error";
+		case EK_EBADTYP:
+			return "Invalid type";
+		case EK_EBADIP:
+			return "Invalid IP address";
+		case EK_EBADPORT:
+			return "Invalid port";
+		case EK_EADSERR:
+			return "ADS error";
+		case EK_ETERMIDMIS:
+			return "Terminal ID mismatch";
+		case EK_EBADMUTEX:
+			return "Invalid mutex";
+		case EK_EMUTEXTIMEOUT:
+			return "Mutex operation timeout";
+		case EK_EBADTERMID:
+			return "Invalid terminal ID";
+		case EK_EMODBUSERR:
+			return "Modbus driver error";
+		default:
+			assert(!"Invalid parameter passed to ErrorToString");
+			return "Unknown";
 	}
 }
 
@@ -1432,7 +1431,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 		return 1;
 
 	memset(buf, 0, sizeof(buf));
-	strncpy(buf, str, sizeof(buf)-1);
+	strncpy(buf, str, sizeof(buf) - 1);
 
 	/* Tokenize & separate into substrings */
 	for (char* tok = strtok((char*)str, ","); tok; tok = strtok(NULL, ",")) {
