@@ -45,3 +45,8 @@ envPaths
 # Ignore script-downloaded XML files
 BhcConfigFiles.zip
 BhcConfigFiles/
+
+.ccls-cache
+.cache
+
+st*.cmd
