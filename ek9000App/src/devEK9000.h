@@ -129,15 +129,13 @@ enum ELinkType {
 class devEK9000Terminal {
 public:
 	/* Copy constructor */
-	devEK9000Terminal(const devEK9000Terminal& other);
 	devEK9000Terminal();
-	~devEK9000Terminal();
 
 	/* device is parent device, termid is 3064 in el3064 */
 	static devEK9000Terminal* Create(devEK9000* device, uint32_t termid, int termindex, const char* record);
 
 	/* Process record name */
-	static devEK9000Terminal* ProcessRecordName(const char* recname, int& outindex, char* outname);
+	static devEK9000Terminal* ProcessRecordName(const char* recname, int& outindex);
 
 	static void GetTerminalInfo(int termid, int& inp_size, int& out_size);
 
@@ -153,7 +151,7 @@ public:
 
 public:
 	/* Name of record */
-	char* m_recordName;
+	std::string m_recordName;
 	/* Terminal family */
 	int m_terminalFamily;
 	/* Zero-based index of the terminal */
@@ -205,9 +203,9 @@ public:
 	/* The driver */
 	drvModbusAsyn* m_driver;
 
-	char* m_name;
-	char* m_portName;
-	char* m_ip;
+	std::string m_name;
+	std::string m_portName;
+	std::string m_ip;
 
 	bool m_connected;
 	bool m_init;
@@ -362,7 +360,7 @@ public:
 public:
 	/* Needed for the list impl */
 	bool operator==(const devEK9000& other) const {
-		return (strcmp(this->m_name, other.m_name) == 0);
+		return (strcmp(this->m_name.data(), other.m_name.data()) == 0);
 	}
 
 	/* Couple utility functions */
@@ -403,7 +401,7 @@ template <class RecordT> bool devEK9000::setupCommonDpvt(RecordT* prec, Terminal
 			std::list<devEK9000*>& devList = GlobalDeviceList();
 			for (std::list<devEK9000*>::iterator x = devList.begin(); x != devList.end(); ++x) {
 				// for (const auto& x : GlobalDeviceList()) {
-				if (strcmp((*x)->m_name, param.value) == 0) {
+				if (strcmp((*x)->m_name.data(), param.value) == 0) {
 					dpvt.pdrv = *x;
 					found = true;
 					break;

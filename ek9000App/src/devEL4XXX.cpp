@@ -130,15 +130,14 @@ static long EL40XX_init_record(void* record) {
 	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
 
 	/* Find record name */
-	char* out = NULL;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, out);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
 
 	/* Verify terminal */
 	if (!dpvt->terminal) {
 		util::Error("EL40XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
-	free(out);
+
 	dpvt->device = dpvt->terminal->m_device;
 
 	/* Lock mutex for IO */

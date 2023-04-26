@@ -130,15 +130,14 @@ static long EL20XX_init_record(void* precord) {
 	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
 
 	/* Grab terminal info */
-	char* recname = NULL;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
 
 	/* Verify terminal */
 	if (dpvt->terminal == NULL) {
 		util::Error("EL20XX_init_record(): Unable to find terminal for %s\n", pRecord->name);
 		return 1;
 	}
-	free(recname);
+
 	/* Just another param reference */
 	dpvt->device = dpvt->terminal->m_device;
 

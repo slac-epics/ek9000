@@ -59,7 +59,6 @@ class CDeviceMgr;
 
 /* Globals */
 static epicsThreadId g_PollThread = 0;
-static epicsMutexId g_ThreadMutex = 0;
 
 /* Global list accessor */
 std::list<devEK9000*>& GlobalDeviceList() {
@@ -76,7 +75,6 @@ int devEK9000::pollDelay = 200;
 void PollThreadFunc(void* param);
 
 void Utl_InitThread() {
-	g_ThreadMutex = epicsMutexCreate();
 	g_PollThread = epicsThreadCreate("EK9000_PollThread", priorityHigh, epicsThreadGetStackSize(epicsThreadStackMedium),
 									 PollThreadFunc, NULL);
 }
@@ -100,16 +98,16 @@ void PollThreadFunc(void*) {
 				/* check connection every other loop */
 				bool connected = device->VerifyConnection();
 				if (!connected && device->m_connected) {
-					util::Warn("%s: Link status changed to DISCONNECTED\n", device->m_name);
+					util::Warn("%s: Link status changed to DISCONNECTED\n", device->m_name.data());
 					device->m_connected = false;
 				}
 				if (connected && !device->m_connected) {
-					util::Warn("%s: Link status changed to CONNECTED\n", device->m_name);
+					util::Warn("%s: Link status changed to CONNECTED\n", device->m_name.data());
 					device->m_connected = true;
 				}
 				uint16_t buf = 1;
 				if (device->m_driver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1)) {
-					util::Error("%s: FAILED TO RESET WATCHDOG!\n", device->m_name);
+					util::Error("%s: FAILED TO RESET WATCHDOG!\n", device->m_name.data());
 				}
 			}
 			/* read EL1xxx/EL3xxx/EL5xxx data */
@@ -137,20 +135,8 @@ void PollThreadFunc(void*) {
 // class devEK9000Terminal
 //		Holds important info about the terminals
 //==========================================================//
-devEK9000Terminal::devEK9000Terminal(const devEK9000Terminal& other) {
-	this->m_inputSize = other.m_inputSize;
-	this->m_outputSize = other.m_outputSize;
-	this->m_inputStart = other.m_inputStart;
-	this->m_outputStart = other.m_outputStart;
-	this->m_recordName = strdup(other.m_recordName);
-	this->m_terminalId = other.m_terminalId;
-	this->m_terminalIndex = other.m_terminalIndex;
-	this->m_terminalFamily = other.m_terminalFamily;
-}
 
 devEK9000Terminal::devEK9000Terminal() {
-	/* Name of record */
-	m_recordName = NULL;
 	/* Terminal family */
 	m_terminalFamily = 0;
 	/* Zero-based index of the terminal */
@@ -173,10 +159,6 @@ devEK9000Terminal::devEK9000Terminal() {
 	m_outputStart = 0;
 }
 
-devEK9000Terminal::~devEK9000Terminal() {
-	if (this->m_recordName)
-		free(this->m_recordName);
-}
 
 devEK9000Terminal* devEK9000Terminal::Create(devEK9000* device, uint32_t termid, int termindex,
 											 const char* recordname) {
@@ -202,9 +184,13 @@ devEK9000Terminal* devEK9000Terminal::Create(devEK9000* device, uint32_t termid,
 	return term;
 }
 
-devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int& outindex, char* outname) {
+devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int& outindex) {
 	int good = 0;
-	char* ret = strdup(recname);
+
+	char ret[512];
+	strncpy(ret, recname, sizeof(ret));
+	ret[sizeof(ret)-1] = 0;
+
 	size_t len = strlen(ret);
 
 	for (int i = len; i >= 0; i--) {
@@ -217,7 +203,6 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 	}
 
 	if (!good) {
-		free(ret);
 		return NULL;
 	}
 	else {
@@ -225,15 +210,13 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 		for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 			devEK9000* dev = *it;
 			for (int i = 0; i < dev->m_numTerms; i++) {
-				if (!dev->m_terms[i].m_recordName)
+				if (dev->m_terms[i].m_recordName.empty())
 					continue;
-				if (strcmp(dev->m_terms[i].m_recordName, ret) == 0) {
-					outname = ret;
+				if (strcmp(dev->m_terms[i].m_recordName.data(), ret) == 0) {
 					return &dev->m_terms[i];
 				}
 			}
 		}
-		free(ret);
 		return NULL;
 	}
 }
@@ -300,9 +283,6 @@ devEK9000::devEK9000() {
 	m_terms = NULL;
 	m_numTerms = 0;
 	m_driver = NULL;
-	m_name = NULL;
-	m_portName = NULL;
-	m_ip = NULL;
 	m_connected = false;
 	m_init = false;
 	m_debug = false;
@@ -321,14 +301,6 @@ devEK9000::devEK9000() {
 
 devEK9000::~devEK9000() {
 	epicsMutexDestroy(this->m_Mutex);
-	if (m_ip)
-		free(m_ip);
-	if (m_portName)
-		free(m_portName);
-	if (m_name)
-		free(m_name);
-	for (int i = 0; i < m_numTerms; i++)
-		free(m_terms[i].m_recordName);
 	delete[] m_terms;
 }
 
@@ -336,7 +308,7 @@ devEK9000* devEK9000::FindDevice(const char* name) {
 	// for (auto dev : GlobalDeviceList()) {
 	for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 		devEK9000* dev = *it;
-		if (!strcmp(name, dev->m_name))
+		if (!strcmp(name, dev->m_name.data()))
 			return dev;
 	}
 	// return nullptr;
@@ -353,32 +325,23 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	/* Allocate space for terminals */
 	pek->m_terms = new devEK9000Terminal[terminal_count];
 
-	/* Free the previously allocated stuff */
-	free(pek->m_portName);
-	free(pek->m_name);
-
 	/* Copy name */
 	pek->m_name = strdup(name);
 
-	/* Create terminal name */
-	size_t prefixlen = strlen(PORT_PREFIX);
-	size_t len = strlen(name) + strlen(PORT_PREFIX) + 1;
-	pek->m_portName = (char*)malloc(len);
-	memcpy(pek->m_portName, PORT_PREFIX, prefixlen);
-	memcpy(pek->m_portName + prefixlen, name, strlen(name) + 1);
-	pek->m_portName[len - 1] = '\0';
+	pek->m_portName = PORT_PREFIX;
+	pek->m_portName.append(name);
 
 	/* Copy IP */
-	pek->m_ip = strdup(ip);
+	pek->m_ip = ip;
 
-	int status = drvAsynIPPortConfigure(pek->m_portName, ip, 0, 0, 0);
+	int status = drvAsynIPPortConfigure(pek->m_portName.data(), ip, 0, 0, 0);
 
 	if (status) {
 		util::Error("devEK9000::Create(): Unable to configure drvAsynIPPort.");
 		return NULL;
 	}
 
-	status = modbusInterposeConfig(pek->m_portName, modbusLinkTCP, 5000, 0);
+	status = modbusInterposeConfig(pek->m_portName.data(), modbusLinkTCP, 5000, 0);
 
 	if (status) {
 		util::Error("devEK9000::Create(): Unable to configure modbus driver.");
@@ -387,7 +350,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 
 	/* check connection */
 	asynUser* usr = pasynManager->createAsynUser(NULL, NULL);
-	pasynManager->connectDevice(usr, pek->m_portName, 0);
+	pasynManager->connectDevice(usr, pek->m_portName.data(), 0);
 	int conn = 0;
 	pasynManager->isConnected(usr, &conn);
 	pasynManager->disconnect(usr);
@@ -398,7 +361,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 		return NULL;
 	}
 
-	pek->m_driver = new drvModbusAsyn(pek->m_name, pek->m_portName, 0, 2, -1, 256, dataTypeUInt16, 150, "");
+	pek->m_driver = new drvModbusAsyn(pek->m_name.data(), pek->m_portName.data(), 0, 2, -1, 256, dataTypeUInt16, 150, "");
 
 	/* wdt =  */
 	uint16_t buf = 1;
@@ -502,7 +465,7 @@ int devEK9000::InitTerminals() {
 
 devEK9000Terminal* devEK9000::GetTerminal(const char* recordname) {
 	for (int i = 0; i < m_numTerms; i++) {
-		if (strcmp(m_terms[i].m_recordName, recordname) == 0)
+		if (strcmp(m_terms[i].m_recordName.data(), recordname) == 0)
 			return &m_terms[i];
 	}
 	return NULL;
@@ -514,7 +477,7 @@ int devEK9000::VerifyConnection() const {
 	usr->timeout = 0.5; /* 500ms timeout */
 
 	/* Try for connection */
-	pasynManager->connectDevice(usr, this->m_portName, 0);
+	pasynManager->connectDevice(usr, this->m_portName.data(), 0);
 	int yn = 0;
 	pasynManager->isConnected(usr, &yn);
 	pasynManager->disconnect(usr);
@@ -817,43 +780,48 @@ struct SMsg_t {
 };
 
 const char* devEK9000::ErrorToString(int i) {
-	if (i == EK_EADSERR)
-		return "ADS Error";
-	else if (i == EK_EBADIP)
-		return "Malformed IP address";
-	else if (i == EK_EBADMUTEX)
-		return "Invalid mutex";
-	else if (i == EK_EBADPARAM)
-		return "Invalid parameter";
-	else if (i == EK_EBADPORT)
-		return "Invalid port";
-	else if (i == EK_EBADPTR)
-		return "Invalid pointer";
-	else if (i == EK_EBADTERM)
-		return "Invalid terminal or slave";
-	else if (i == EK_EBADTERMID)
-		return "Invalid terminal id";
-	else if (i == EK_EBADTYP)
-		return "Invalid type";
-	else if (i == EK_EERR)
-		return "Unspecified error";
-	else if (i == EK_EMODBUSERR)
-		return "Modbus driver error";
-	else if (i == EK_EMUTEXTIMEOUT)
-		return "Mutex operation timeout";
-	else if (i == EK_ENOCONN)
-		return "No connection";
-	else if (i == EK_ENODEV)
-		return "Invalid device";
-	else if (i == EK_ENOENT)
-		return "No entry";
-	else if (i == EK_EOK)
+	switch(i)
+	{
+	case EK_EOK:
 		return "No error";
-	else if (i == EK_ETERMIDMIS)
-		return "Terminal id mismatch";
-	else if (i == EK_EWTCHDG)
+	case EK_EERR:
+		return "Unspecified error";
+	case EK_EBADTERM:
+		return "Invalid terminal or slave";
+	case EK_ENOCONN:
+		return "No connection";
+	case EK_EBADPARAM:
+		return "Invalid parameter";
+	case EK_EBADPTR:
+		return "Invalid pointer";
+	case EK_ENODEV:
+		return "Invalid device";
+	case EK_ENOENT:
+		return "No entry";
+	case EK_EWTCHDG:
 		return "Watchdog error";
-	return "Invalid error code";
+	case EK_EBADTYP:
+		return "Invalid type";
+	case EK_EBADIP:
+		return "Invalid IP address";
+	case EK_EBADPORT:
+		return "Invalid port";
+	case EK_EADSERR:
+		return "ADS error";
+	case EK_ETERMIDMIS:
+		return "Terminal ID mismatch";
+	case EK_EBADMUTEX:
+		return "Invalid mutex";
+	case EK_EMUTEXTIMEOUT:
+		return "Mutex operation timeout";
+	case EK_EBADTERMID:
+		return "Invalid terminal ID";
+	case EK_EMODBUSERR:
+		return "Modbus driver error";
+	default:
+		assert(!"Invalid parameter passed to ErrorToString");
+		return "Unknown";
+	}
 }
 
 //==========================================================//
@@ -981,8 +949,8 @@ void ek9000Stat(const iocshArgBuf* args) {
 		epicsPrintf("\tStatus: CONNECTED\n");
 	else
 		epicsPrintf("\tStatus: NOT CONNECTED\n");
-	epicsPrintf("\tIP: %s\n", dev->m_ip);
-	epicsPrintf("\tAsyn Port Name: %s\n", dev->m_portName);
+	epicsPrintf("\tIP: %s\n", dev->m_ip.data());
+	epicsPrintf("\tAsyn Port Name: %s\n", dev->m_portName.data());
 	epicsPrintf("\tAO size: %u [bytes]\n", ao);
 	epicsPrintf("\tAI size: %u [bytes]\n", ai);
 	epicsPrintf("\tBI size: %u [bits]\n", bi);
@@ -995,11 +963,11 @@ void ek9000Stat(const iocshArgBuf* args) {
 	epicsPrintf("\tMfg date: %u/%u/%u\n", month, day, year);
 
 	for (int i = 0; i < dev->m_numTerms; i++) {
-		if (!dev->m_terms[i].m_recordName)
+		if (dev->m_terms[i].m_recordName.empty())
 			continue;
 		epicsPrintf("\tSlave #%i:\n", i + 1);
 		epicsPrintf("\t\tType: %u\n", dev->m_terms[i].m_terminalId);
-		epicsPrintf("\t\tRecord Name: %s\n", dev->m_terms[i].m_recordName);
+		epicsPrintf("\t\tRecord Name: %s\n", dev->m_terms[i].m_recordName.data());
 		epicsPrintf("\t\tOutput Size: %u\n", dev->m_terms[i].m_outputSize);
 		epicsPrintf("\t\tOutput Start: %u\n", dev->m_terms[i].m_outputStart);
 		epicsPrintf("\t\tInput Size: %u\n", dev->m_terms[i].m_inputSize);
@@ -1023,8 +991,8 @@ void ek9000List(const iocshArgBuf*) {
 	// for (auto dev : GlobalDeviceList()) {
 	for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 		devEK9000* dev = *it;
-		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_name, dev->m_numTerms);
-		epicsPrintf("\tIP: %s\n", dev->m_ip);
+		epicsPrintf("Device: %s\n\tSlave Count: %i\n", dev->m_name.data(), dev->m_numTerms);
+		epicsPrintf("\tIP: %s\n", dev->m_ip.data());
 		epicsPrintf("\tConnected: %s\n", dev->VerifyConnection() ? "TRUE" : "FALSE");
 	}
 }
@@ -1464,7 +1432,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 		return 1;
 
 	memset(buf, 0, sizeof(buf));
-	strcpy(buf, str);
+	strncpy(buf, str, sizeof(buf)-1);
 
 	/* Tokenize & separate into substrings */
 	for (char* tok = strtok((char*)str, ","); tok; tok = strtok(NULL, ",")) {
@@ -1479,7 +1447,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	// for (auto dev : GlobalDeviceList()) {
 	for (std::list<class devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 		class devEK9000* dev = *it;
-		if (strncmp(dev->m_name, buffers[0], strlen(dev->m_name)) == 0) {
+		if (strncmp(dev->m_name.data(), buffers[0], dev->m_name.size()) == 0) {
 			pcoupler = dev;
 			break;
 		}
