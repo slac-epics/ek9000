@@ -99,13 +99,11 @@ static long EL30XX_init_record(void* precord) {
 	devEK9000::setupCommonDpvt<aiRecord>(pRecord, dpvt->newDpvt);
 
 	/* Get the terminal */
-	char* recname = NULL;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
 	if (!dpvt->terminal) {
 		util::Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
-	free(recname);
 
 	dpvt->device = dpvt->terminal->m_device;
 	dpvt->device->Lock();
@@ -249,13 +247,11 @@ static long EL36XX_init_record(void* precord) {
 	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
 
 	/* Get the terminal */
-	char* recname = NULL;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
 	if (!dpvt->terminal) {
 		util::Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
-	free(recname);
 
 	dpvt->device = dpvt->terminal->m_device;
 	dpvt->device->Lock();
@@ -413,13 +409,11 @@ static long EL331X_init_record(void* precord) {
 	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
 
 	/* Get the terminal */
-	char* recname = NULL;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, recname);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
 	if (!dpvt->terminal) {
 		util::Error("EL331X_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
-	free(recname);
 
 	dpvt->device = dpvt->terminal->m_device;
 	dpvt->device->Lock();

@@ -72,15 +72,14 @@ static long EL10XX_init_record(void* precord) {
 	pRecord->dpvt = calloc(1, sizeof(EL10XXDpvt_t));
 	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
 	/* Get terminal */
-	char* name = NULL;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, name);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
 
 	/* Verify terminal */
 	if (!dpvt->terminal) {
 		util::Error("EL10XX_init_record(): Unable to terminal for record %s\n", pRecord->name);
 		return 1;
 	}
-	free(name);
+
 	dpvt->device = dpvt->terminal->m_device;
 	/* Lock mutex for modbus io */
 	int status = dpvt->device->Lock();
