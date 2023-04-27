@@ -100,6 +100,7 @@ static long el50xx_init_record(void* precord) {
 }
 
 static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(pRecord->dpvt);
 
@@ -274,6 +275,7 @@ Called to update the I/O interrupt data
 ---------------------------------------
 */
 static long el5042_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(pRecord->dpvt);
 

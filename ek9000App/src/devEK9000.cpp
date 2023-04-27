@@ -192,7 +192,7 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 
 	size_t len = strlen(ret);
 
-	for (int i = len; i >= 0; i--) {
+	for (size_t i = len; i >= 0; i--) {
 		if (ret[i] == ':' && (size_t)i < len) {
 			ret[i] = '\0';
 			good = 1;
@@ -230,7 +230,7 @@ void devEK9000Terminal::GetTerminalInfo(int termid, int& inp_size, int& out_size
 	}
 }
 
-int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, size_t len) {
+int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, int len) {
 	if (!this->m_device || !this->m_device->m_driver) {
 		return EK_EBADTERM;
 	}
@@ -241,7 +241,7 @@ int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, size_t
 	return EK_EOK;
 }
 
-int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, size_t len) {
+int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, int len) {
 	if (!this->m_device || !this->m_device->m_driver) {
 		return EK_EBADTERM;
 	}
@@ -371,7 +371,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	return pek;
 }
 
-int devEK9000::AddTerminal(const char* name, int type, int position) {
+int devEK9000::AddTerminal(const char* name, uint32_t type, int position) {
 	if (position > m_numTerms || !name)
 		return EK_EBADPARAM;
 
@@ -461,14 +461,6 @@ int devEK9000::InitTerminals() {
 	else
 		m_digital_buf = NULL;
 	return EK_EOK;
-}
-
-devEK9000Terminal* devEK9000::GetTerminal(const char* recordname) {
-	for (int i = 0; i < m_numTerms; i++) {
-		if (strcmp(m_terms[i].m_recordName.data(), recordname) == 0)
-			return &m_terms[i];
-	}
-	return NULL;
 }
 
 int devEK9000::VerifyConnection() const {
@@ -758,10 +750,7 @@ int devEK9000::Poll(float duration, int timeout) {
 		this->m_driver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
 	}
 
-	if (timeout <= 0)
-		return 1;
-	else
-		return 0;
+	return timeout <= 0 ? 1 : 0;
 }
 
 int devEK9000::LastError() {
@@ -773,11 +762,6 @@ int devEK9000::LastError() {
 const char* devEK9000::LastErrorString() {
 	return ErrorToString(LastError());
 }
-
-struct SMsg_t {
-	void* rec;
-	void (*callback)(void*);
-};
 
 const char* devEK9000::ErrorToString(int i) {
 	switch (i) {
@@ -884,7 +868,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf* args) {
 		return;
 	}
 
-	int tid = 0;
+	uint32_t tid = 0;
 	for (size_t i = 0; i < ArraySize(g_pTerminalInfos); i++) {
 		if (strcmp(g_pTerminalInfos[i]->m_pString, type) == 0) {
 			tid = g_pTerminalInfos[i]->m_nID;
@@ -1039,17 +1023,14 @@ void ek9000SetPollTime(const iocshArgBuf* args) {
 	devEK9000::pollDelay = time;
 }
 
-void ek9kDumpMappings(const iocshArgBuf* args) {
-}
-
 int ek9000RegisterFunctions() {
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Time", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetWatchdogTime", 2, args};
-		static const iocshFuncDef func2 = {"ek9kSetWdTime", 2, args};
+		static const iocshFuncDef func = {"ek9000SetWatchdogTime", 2, args, NULL};
+		static const iocshFuncDef func2 = {"ek9kSetWdTime", 2, args, NULL};
 		iocshRegister(&func, ek9000SetWatchdogTime);
 		iocshRegister(&func2, ek9000SetWatchdogTime);
 	}
@@ -1059,8 +1040,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Type", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetWatchdogType", 2, args};
-		static const iocshFuncDef func2 = {"ek9kSetWdType", 2, args};
+		static const iocshFuncDef func = {"ek9000SetWatchdogType", 2, args, NULL};
+		static const iocshFuncDef func2 = {"ek9kSetWdType", 2, args, NULL};
 		iocshRegister(&func, ek9000SetWatchdogType);
 		iocshRegister(&func2, ek9000SetWatchdogType);
 	}
@@ -1070,8 +1051,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Type", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetPollTime", 2, args};
-		static const iocshFuncDef func2 = {"ek9kSetPollTime", 2, args};
+		static const iocshFuncDef func = {"ek9000SetPollTime", 2, args, NULL};
+		static const iocshFuncDef func2 = {"ek9kSetPollTime", 2, args, NULL};
 		iocshRegister(&func, ek9000SetPollTime);
 		iocshRegister(&func2, ek9000SetPollTime);
 	}
@@ -1083,8 +1064,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg3 = {"Port", iocshArgInt};
 		static const iocshArg arg4 = {"# of Terminals", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"ek9000Configure", 4, args};
-		static const iocshFuncDef func2 = {"ek9kConfigure", 4, args};
+		static const iocshFuncDef func = {"ek9000Configure", 4, args, NULL};
+		static const iocshFuncDef func2 = {"ek9kConfigure", 4, args, NULL};
 		iocshRegister(&func, ek9000Configure);
 		iocshRegister(&func2, ek9000Configure);
 	}
@@ -1096,8 +1077,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg3 = {"Type", iocshArgString};
 		static const iocshArg arg4 = {"Positon", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"ek9000ConfigureTerminal", 4, args};
-		static const iocshFuncDef func2 = {"ek9kConfigureTerm", 4, args};
+		static const iocshFuncDef func = {"ek9000ConfigureTerminal", 4, args, NULL};
+		static const iocshFuncDef func2 = {"ek9kConfigureTerm", 4, args, NULL};
 		iocshRegister(&func, ek9000ConfigureTerminal);
 		iocshRegister(&func2, ek9000ConfigureTerminal);
 	}
@@ -1106,8 +1087,8 @@ int ek9000RegisterFunctions() {
 	{
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000Stat", 1, args};
-		static const iocshFuncDef func2 = {"ek9kStat", 1, args};
+		static const iocshFuncDef func = {"ek9000Stat", 1, args, NULL};
+		static const iocshFuncDef func2 = {"ek9kStat", 1, args, NULL};
 		iocshRegister(&func, ek9000Stat);
 		iocshRegister(&func2, ek9000Stat);
 	}
@@ -1116,8 +1097,8 @@ int ek9000RegisterFunctions() {
 	{
 		static const iocshArg arg1 = {"EK9k", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000EnableDebug", 1, args};
-		static const iocshFuncDef func2 = {"ek9kEnableDbg", 1, args};
+		static const iocshFuncDef func = {"ek9000EnableDebug", 1, args, NULL};
+		static const iocshFuncDef func2 = {"ek9kEnableDbg", 1, args, NULL};
 		iocshRegister(&func, ek9000EnableDebug);
 		iocshRegister(&func2, ek9000EnableDebug);
 	}
@@ -1126,16 +1107,16 @@ int ek9000RegisterFunctions() {
 	{
 		static const iocshArg arg1 = {"EK9K", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9kDisableDebug", 1, args};
-		static const iocshFuncDef func2 = {"ek9kDisableDbg", 1, args};
+		static const iocshFuncDef func = {"ek9kDisableDebug", 1, args, NULL};
+		static const iocshFuncDef func2 = {"ek9kDisableDbg", 1, args, NULL};
 		iocshRegister(&func, ek9000DisableDebug);
 		iocshRegister(&func2, ek9000DisableDebug);
 	}
 
 	/* ek9000List */
 	{
-		static iocshFuncDef func = {"ek9000List", 0, NULL};
-		static iocshFuncDef func2 = {"ek9kList", 0, NULL};
+		static iocshFuncDef func = {"ek9000List", 0, NULL, NULL};
+		static iocshFuncDef func2 = {"ek9kList", 0, NULL, NULL};
 		iocshRegister(&func, ek9000List);
 		iocshRegister(&func2, ek9000List);
 	}
@@ -1419,11 +1400,10 @@ static long ek9k_conflo_write_record(void* prec) {
 //-----------------------------------------------------------------//
 
 int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
-	int strl = strlen(str);
 	class devEK9000* pcoupler = 0;
 	devEK9000Terminal* pterm = 0;
 	int termid;
-	int i, bufcnt = 0;
+	size_t bufcnt = 0;
 	char buf[512];
 	char* buffers[5];
 
@@ -1438,7 +1418,9 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 		buffers[bufcnt] = tok;
 		++bufcnt;
 	}
-	for (i = 0; i < strl; i++)
+
+	const size_t strl = strlen(str);
+	for (size_t i = 0; i < strl; i++)
 		if (buf[i] == ',')
 			buf[i] = 0;
 
@@ -1481,11 +1463,11 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 
 	param->pterm = pterm;
 	param->ek9k = pcoupler;
-	param->index = strtol(buffers[2], 0, 16);
+	param->index = (int)strtol(buffers[2], 0, 16);
 	if (errno != 0)
 		return 1;
 
-	param->subindex = strtol(buffers[3], 0, 16);
+	param->subindex = (int)strtol(buffers[3], 0, 16);
 	if (errno != 0)
 		return 1;
 
@@ -1620,8 +1602,8 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 	pek9k = buf;
 
 	/* Read until we hit a comma, then replace */
-	int strl = strlen(buf);
-	for (int i = 0; i < strl; i++) {
+	const size_t strl = strlen(buf);
+	for (size_t i = 0; i < strl; i++) {
 		if (buf[i] == ',') {
 			buf[i] = '\0';
 			preg = &buf[i + 1];
@@ -1633,7 +1615,7 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 
 	/* Find the coupler */
 	param->ek9k = devEK9000::FindDevice(pek9k);
-	param->reg = strtol(preg, 0, 16);
+	param->reg = (int)strtol(preg, 0, 16);
 
 	if (!param->ek9k) {
 		printf("Unable to find the specified coupler\n");
@@ -1659,7 +1641,7 @@ bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, Lin
 	switch (linkType) {
 		case LINK_INST_IO:
 			{
-				int linkLen = strlen(link);
+				size_t linkLen = strlen(link);
 				if (linkLen <= 1)
 					return false;
 				if (link[0] != '@')
@@ -1667,7 +1649,7 @@ bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, Lin
 
 				/* Count the number of commas, which correspond to params */
 				int paramCount = 0;
-				for (int i = 0; i < linkLen; i++)
+				for (size_t i = 0; i < linkLen; i++)
 					if (link[i] == ',')
 						paramCount++;
 				// LinkParameter_t* linkParams = nullptr;
@@ -1681,10 +1663,8 @@ bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, Lin
 				link++;
 				char buf[1024];
 				snprintf(buf, sizeof(buf), "%s", link);
-				char *param, *value;
+				char *param = NULL, *value = NULL;
 				int paramIndex = 0;
-				// param = value = nullptr;
-				param = value = NULL;
 				for (char* tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
 					param = tok;
 					/* Search for the = to break the thing up */

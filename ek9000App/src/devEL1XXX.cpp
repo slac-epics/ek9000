@@ -108,6 +108,7 @@ static long EL10XX_init_record(void* precord) {
 }
 
 static long EL10XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL10XXDpvt_t* dpvt = static_cast<EL10XXDpvt_t*>(pRecord->dpvt);
 	if (!util::DpvtValid<EL10XXDpvt_t>(dpvt))
