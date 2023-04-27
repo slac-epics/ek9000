@@ -131,6 +131,7 @@ static long EL30XX_init_record(void* precord) {
 }
 
 static long EL30XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
 	if (!util::DpvtValid<EL30XXDPVT_t>(dpvt))
@@ -279,6 +280,7 @@ static long EL36XX_init_record(void* precord) {
 }
 
 static long EL36XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
 
@@ -441,6 +443,7 @@ static long EL331X_init_record(void* precord) {
 }
 
 static long EL331X_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
 

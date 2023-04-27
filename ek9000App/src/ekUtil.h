@@ -22,8 +22,6 @@
 #include <string>
 #include <list>
 
-#include "ekLocal.h"
-
 #include "terminals.h"
 
 // C++11 interop - mainly utils for catching problems in code
@@ -36,6 +34,12 @@
 #define OVERRIDE
 #define FINAL
 #endif
+
+#undef UNUSED
+#define UNUSED(x) (void)x
+
+// This comes from a windows header
+#undef CALLBACK
 
 typedef struct {
 	const char* m_name;
@@ -63,6 +67,7 @@ public:
  * Determine size of an array
  */
 template <class T, size_t N> size_t ArraySize(T (&arr)[N]) {
+	UNUSED(arr);
 	return N;
 }
 

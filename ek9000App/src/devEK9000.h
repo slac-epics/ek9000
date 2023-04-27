@@ -140,10 +140,10 @@ public:
 	static void GetTerminalInfo(int termid, int& inp_size, int& out_size);
 
 	/* Do EK9000 IO */
-	int doEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
+	int doEK9000IO(int type, int startaddr, uint16_t* buf, int len);
 
 	/* Same calling convention as above, but use the buffered data! */
-	int getEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
+	int getEK9000IO(int type, int startaddr, uint16_t* buf, int len);
 
 	template <class T> bool CoEWriteParameter(coe::param_t param, T value);
 
@@ -242,13 +242,7 @@ public:
 	/* Allows for better error handling (instead of using print statements to indicate error) */
 	static devEK9000* Create(const char* name, const char* ip, int terminal_count);
 
-	int AddTerminal(const char* name, int type, int position);
-
-	devEK9000Terminal* GetTerminal(const char* recordname);
-
-	devEK9000Terminal* GetAllTerminals() {
-		return m_terms;
-	}
+	int AddTerminal(const char* name, uint32_t type, int position);
 
 	/* Initializes a terminal (after it's been added). This should be called from the init_record routines */
 	int InitTerminal(int termindex);
