@@ -1,35 +1,37 @@
 # SNL programs or functions to be invoked from iocsh
 registrar(ek9000RegisterFunctions)
 
-device(bi,INST_IO,devEK9000,"devEK9000")
+device(bi, INST_IO, devEK9000, "devEK9000")
 
 #
 # ANALOG INPUT TERMINALS
 #
-device(ai,INST_IO,devEL30XX,"EL30XX")
-device(ai,INST_IO,devEL36XX,"EL36XX")
-device(ai,INST_IO,devEL331X,"EL331X")
+device(ai, INST_IO, devEL30XX, "EL30XX")
+device(ai, INST_IO, devEL36XX, "EL36XX")
+device(ai, INST_IO, devEL331X, "EL331X")
 
 #
 # ANALOG OUTPUT TERMINALS
 #
-device(ao,INST_IO,devEL40XX,"EL40XX")
+device(ao, INST_IO, devEL40XX, "EL40XX")
 
 #
 # DIGITAL INPUT TERMINALS
 #
-device(bi,INST_IO,devEL10XX,"EL10XX")
+device(bi, INST_IO, devEL10XX, "EL10XX")
+device(mbbiDirect, INST_IO, devEL10XX_mbbiDirect, "EL10XX_mbbiDirect")
 
 #
 # DIGITAL OUTPUT TERMINALS
 #
 device(bo,INST_IO,devEL20XX,"EL20XX")
+device(mbboDirect, INST_IO, devEL20XX_mbboDirect, "EL20XX_mbboDirect")
 
 #
 # ENCODER TERMINALS
 #
-device(longin,INST_IO,devEL50XX,"EL50XX")
-device(longin,INST_IO,devEL5042,"EL5042")
+device(longin, INST_IO, devEL50XX, "EL50XX")
+device(longin, INST_IO, devEL5042, "EL5042")
 
 device(int64in, INST_IO, devEK9KCoERO, "devEK9KCoERO")
 device(int64out, INST_IO, devEK9KCoERW, "devEK9KCoERW")

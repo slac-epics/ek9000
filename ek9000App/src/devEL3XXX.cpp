@@ -99,7 +99,7 @@ static long EL30XX_init_record(void* precord) {
 	devEK9000::setupCommonDpvt<aiRecord>(pRecord, dpvt->newDpvt);
 
 	/* Get the terminal */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, &dpvt->channel);
 	if (!dpvt->terminal) {
 		util::Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
@@ -248,7 +248,7 @@ static long EL36XX_init_record(void* precord) {
 	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
 
 	/* Get the terminal */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, &dpvt->channel);
 	if (!dpvt->terminal) {
 		util::Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
@@ -283,6 +283,8 @@ static long EL36XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
+	if (!util::DpvtValid<EL36XXDpvt_t>(dpvt))
+		return 1;
 
 	*iopvt = dpvt->device->m_analog_io;
 	return 0;
@@ -411,7 +413,7 @@ static long EL331X_init_record(void* precord) {
 	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
 
 	/* Get the terminal */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, &dpvt->channel);
 	if (!dpvt->terminal) {
 		util::Error("EL331X_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
@@ -446,6 +448,8 @@ static long EL331X_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
+	if (!util::DpvtValid<EL331XDpvt_t>(dpvt))
+		return 1;
 
 	*iopvt = dpvt->device->m_analog_io;
 	return 0;
