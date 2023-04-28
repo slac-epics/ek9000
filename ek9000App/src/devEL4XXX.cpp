@@ -34,8 +34,6 @@ struct EL40XXDpvt_t {
 	int channel;
 	devEK9000Terminal* terminal;
 	devEK9000* device;
-	/* Standard or compact PDO used */
-	bool compactPDO;
 };
 
 static long EL40XX_dev_report(int after);
@@ -130,7 +128,7 @@ static long EL40XX_init_record(void* record) {
 	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
 
 	/* Find record name */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, &dpvt->channel);
 
 	/* Verify terminal */
 	if (!dpvt->terminal) {

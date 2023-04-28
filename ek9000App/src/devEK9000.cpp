@@ -66,7 +66,7 @@ std::list<devEK9000*>& GlobalDeviceList() {
 	return devices;
 }
 
-bool devEK9000::debugEnabled = false;
+bool devEK9000::debugEnabled = true;
 int devEK9000::pollDelay = 200;
 
 //==========================================================//
@@ -145,10 +145,6 @@ devEK9000Terminal::devEK9000Terminal() {
 	m_device = NULL;
 	/* Terminal id, aka the 1124 in EL1124 */
 	m_terminalId = 0;
-	/* Number of inputs */
-	m_inputs = 0;
-	/* Number of outputs */
-	m_outputs = 0;
 	/* Size of inputs */
 	m_inputSize = 0;
 	/* Size of outputs */
@@ -183,41 +179,41 @@ devEK9000Terminal* devEK9000Terminal::Create(devEK9000* device, uint32_t termid,
 	return term;
 }
 
-devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int& outindex) {
-	int good = 0;
-
+// If multi is true, we do not expect a channel selector at the end of the record name
+// In that case, outindex is not set
+devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int* outindex) {
 	char ret[512];
 	strncpy(ret, recname, sizeof(ret));
 	ret[sizeof(ret) - 1] = 0;
 
 	size_t len = strlen(ret);
 
-	for (size_t i = len; i >= 0; i--) {
-		if (ret[i] == ':' && (size_t)i < len) {
-			ret[i] = '\0';
-			good = 1;
-			outindex = atoi(&ret[i + 1]);
-			break;
-		}
-	}
-
-	if (!good) {
-		return NULL;
-	}
-	else {
-		// for (auto dev : GlobalDeviceList()) {
-		for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
-			devEK9000* dev = *it;
-			for (int i = 0; i < dev->m_numTerms; i++) {
-				if (dev->m_terms[i].m_recordName.empty())
-					continue;
-				if (strcmp(dev->m_terms[i].m_recordName.data(), ret) == 0) {
-					return &dev->m_terms[i];
-				}
+	if (outindex) {
+		bool good = false;
+		for (size_t i = len; i >= 0; i--) {
+			if (ret[i] == ':' && (size_t)i < len) {
+				ret[i] = '\0';
+				good = true;
+				*outindex = atoi(&ret[i + 1]);
+				break;
 			}
 		}
-		return NULL;
+		if (!good)
+			return NULL;
 	}
+
+	// for (auto dev : GlobalDeviceList()) {
+	for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
+		devEK9000* dev = *it;
+		for (int i = 0; i < dev->m_numTerms; i++) {
+			if (dev->m_terms[i].m_recordName.empty())
+				continue;
+			if (strcmp(dev->m_terms[i].m_recordName.data(), ret) == 0) {
+				return &dev->m_terms[i];
+			}
+		}
+	}
+	return NULL;
 }
 
 void devEK9000Terminal::GetTerminalInfo(int termid, int& inp_size, int& out_size) {
@@ -457,6 +453,7 @@ int devEK9000::InitTerminals() {
 		m_analog_buf = NULL;
 	m_digital_cnt = coil_in - 1;
 	if (coil_in != 1)
+		// Despite being 1-bit inputs, the modbus driver gives us one digital input per 16-bit int in the output buffer
 		m_digital_buf = (uint16_t*)calloc(m_digital_cnt, sizeof(uint16_t));
 	else
 		m_digital_buf = NULL;

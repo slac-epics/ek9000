@@ -68,7 +68,7 @@ static long el50xx_init_record(void* precord) {
 
 	/* Get the terminal */
 	int channel = 0;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(record->name, channel);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(record->name, &channel);
 	if (!dpvt->terminal) {
 		util::Error("EL50XX_init_record(): Unable to find terminal for record %s\n", record->name);
 		return 1;
@@ -103,10 +103,8 @@ static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(pRecord->dpvt);
-
-	if (!dpvt) {
+	if (!util::DpvtValid<EL50XXDpvt_t>(dpvt))
 		return 1;
-	}
 
 	*iopvt = dpvt->device->m_analog_io;
 	return 0;
@@ -230,7 +228,7 @@ static long el5042_init_record(void* prec) {
 
 	/* Get the terminal */
 	int channel = 0;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(record->name, channel);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(record->name, &channel);
 	dpvt->channel = channel;
 	if (!dpvt->terminal) {
 		util::Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
@@ -278,10 +276,8 @@ static long el5042_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(pRecord->dpvt);
-
-	if (!dpvt) {
+	if (!util::DpvtValid<EL5042Dpvt_t>(dpvt))
 		return 1;
-	}
 
 	*iopvt = dpvt->device->m_analog_io;
 	return 0;

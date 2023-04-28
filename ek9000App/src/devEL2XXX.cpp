@@ -19,7 +19,7 @@
 #include <epicsMath.h>
 #include <devSup.h>
 #include <alarm.h>
-#include <mbboRecord.h>
+#include <mbboDirectRecord.h>
 #include <callback.h>
 #include <recGbl.h>
 #include <drvModbusAsyn.h>
@@ -34,25 +34,6 @@
 // EL20XX device support
 //
 //======================================================//
-static void EL20XX_WriteCallback(CALLBACK* callback);
-static long EL20XX_dev_report(int interest);
-static long EL20XX_init(int after);
-static long EL20XX_init_record(void* precord);
-static long EL20XX_write_record(void* precord);
-
-struct devEL20XX_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN write_record;
-} devEL20XX = {
-	5,	  (DEVSUPFUN)EL20XX_dev_report,	  (DEVSUPFUN)EL20XX_init, (DEVSUPFUN)EL20XX_init_record,
-	NULL, (DEVSUPFUN)EL20XX_write_record,
-};
-
-epicsExportAddress(dset, devEL20XX);
 
 struct EL20XXDpvt_t {
 	int channel;
@@ -60,11 +41,15 @@ struct EL20XXDpvt_t {
 	devEK9000* device;
 };
 
+static inline uint16_t get_nobt(boRecord* record) { return 1; }
+static inline uint16_t get_nobt(mbboDirectRecord* record) { return record->nobt; }
+
+template<class RecordT>
 static void EL20XX_WriteCallback(CALLBACK* callback) {
-	boRecord* pRecord;
+	RecordT* pRecord;
 	void* record;
 	callbackGetUser(record, callback);
-	pRecord = (boRecord*)record;
+	pRecord = (RecordT*)record;
 	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
 	free(callback);
 
@@ -84,13 +69,29 @@ static void EL20XX_WriteCallback(CALLBACK* callback) {
 		return;
 	}
 
-	uint16_t buf = pRecord->val;
+	const bool mbbo = std::is_same<mbboDirectRecord, RecordT>::value;
+
+	uint16_t buf[32];
+	const uint16_t length = get_nobt(pRecord); // Will be 1 for bo, nobt for mbboDirect
+	if (mbbo) {
+		// Inflate packed bit data into the input buffer
+		for (int i = 0; i < length; ++i) {
+			buf[i] = (pRecord->rval & (1<<i)) >> i;
+		}
+	}
+	else {
+		buf[0] = pRecord->val;
+	}
+	
+	const uint16_t addr = 
+		mbbo ?
+		dpvt->terminal->m_outputStart - 1 :
+		dpvt->terminal->m_outputStart + (dpvt->channel - 2);
 
 	/* Write to buffer */
 	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and
 	 * inputStart is 1-based **/
-	status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS,
-										dpvt->terminal->m_outputStart + (dpvt->channel - 2), &buf, 1);
+	status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, addr, buf, length);
 
 	dpvt->device->Unlock();
 
@@ -124,19 +125,31 @@ static long EL20XX_init(int) {
 	return 0;
 }
 
+static inline void type_specific_setup(boRecord* record, int16_t numbits) {};
+static inline void type_specific_setup(mbboDirectRecord* record, int16_t numbits) {
+	record->nobt = numbits;
+	record->mask = (1<<numbits) - 1;
+	record->shft = 0;
+}
+
+template<class RecordT>
 static long EL20XX_init_record(void* precord) {
-	boRecord* pRecord = (boRecord*)precord;
+	RecordT* pRecord = (RecordT*)precord;
 	pRecord->dpvt = calloc(1, sizeof(EL20XXDpvt_t));
 	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
 
+	const bool mbbo = std::is_same<RecordT, mbboDirectRecord>::value;
+
 	/* Grab terminal info */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, mbbo ? nullptr : &dpvt->channel);
 
 	/* Verify terminal */
 	if (dpvt->terminal == NULL) {
 		util::Error("EL20XX_init_record(): Unable to find terminal for %s\n", pRecord->name);
 		return 1;
 	}
+	
+	type_specific_setup(pRecord, dpvt->terminal->m_outputSize);
 
 	/* Just another param reference */
 	dpvt->device = dpvt->terminal->m_device;
@@ -172,13 +185,42 @@ static long EL20XX_init_record(void* precord) {
 	return 0;
 }
 
+template<class T>
 static long EL20XX_write_record(void* precord) {
-	struct boRecord* prec = (struct boRecord*)precord;
+	T* prec = (T*)precord;
 	if (prec->pact)
 		prec->pact = FALSE;
 	else {
 		prec->pact = TRUE;
-		util::setupCallback(precord, EL20XX_WriteCallback);
+		util::setupCallback(precord, EL20XX_WriteCallback<T>);
 	}
 	return 0;
 }
+
+struct devEL20XX_t {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN write_record;
+} devEL20XX = {
+	5,	  (DEVSUPFUN)EL20XX_dev_report,	  (DEVSUPFUN)EL20XX_init, (DEVSUPFUN)EL20XX_init_record<boRecord>,
+	NULL, (DEVSUPFUN)EL20XX_write_record<boRecord>,
+};
+
+epicsExportAddress(dset, devEL20XX);
+
+struct {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN write_record;
+} devEL20XX_mbboDirect = {
+	5,	  (DEVSUPFUN)EL20XX_dev_report,	  (DEVSUPFUN)EL20XX_init, (DEVSUPFUN)EL20XX_init_record<mbboDirectRecord>,
+	NULL, (DEVSUPFUN)EL20XX_write_record<mbboDirectRecord>,
+};
+
+epicsExportAddress(dset, devEL20XX_mbboDirect);

@@ -184,11 +184,11 @@ def get_dtyp(terminal: dict, type: str) -> str:
         if type == "DigIn":
             return "EL10XX"
         elif type == "DigInMulti":
-            return "EL10XX_mbbi"
+            return "EL10XX_mbbiDirect"
         elif type == "DigOut":
             return "EL20XX"
         elif type == 'DigOutMulti':
-            return "EL20XX_mbbo"
+            return "EL20XX_mbboDirect"
         elif type == "AnalogIn":
             return "EL30XX"
         elif type == "AnalogOut":
@@ -203,7 +203,7 @@ def get_dtyp(terminal: dict, type: str) -> str:
 
 def emit_terminal(terminal: dict, fp, type: str, extras: dict):
     # Add a postfix for mbbo/mbbi types
-    postfix = '_mbbi' if type == 'DigInMulti' else '_mbbo' if type == 'DigOutMulti' else ''
+    postfix = '_mbbiDirect' if type == 'DigInMulti' else '_mbboDirect' if type == 'DigOutMulti' else ''
     template_filename = f'../../Db/{terminal["name"]}{postfix}.template'
     subs_filename = f'../../Db/{terminal["name"]}{postfix}.substitutions'
     
@@ -231,10 +231,10 @@ def emit_terminal(terminal: dict, fp, type: str, extras: dict):
         t = Terminal('longin', inputs, dtyp, type)
         t.set_default_longin()
     elif type == "DigInMulti":
-        t = Terminal('mbbi', inputs, dtyp, type)
+        t = Terminal('mbbiDirect', inputs, dtyp, type)
         t.set_default_mbbi()
     elif type == "DigOutMulti":
-        t = Terminal('mbbo', outputs, dtyp, type)
+        t = Terminal('mbboDirect', outputs, dtyp, type)
         t.set_default_mbbo()
     else:
         raise RuntimeError(f"Unexpected terminal type: {terminal}")

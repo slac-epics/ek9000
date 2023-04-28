@@ -60,24 +60,26 @@
 #define STRUCT_SIZE_TO_MODBUS_SIZE(_x) ((_x % 2) == 0 ? (_x) / 2 : ((_x) / 2) + 1)
 
 /* This device's error types */
-#define EK_EOK 0		 /* OK */
-#define EK_EERR 1		 /* Unspecified err */
-#define EK_EBADTERM 2	 /* Bad terminal */
-#define EK_ENOCONN 3	 /* Bad connection */
-#define EK_EBADPARAM 4	 /* Bad parameter passed */
-#define EK_EBADPTR 5	 /* Bad pointer */
-#define EK_ENODEV 6		 /* Bad device */
-#define EK_ENOENT 7		 /* No dir entry */
-#define EK_EWTCHDG 8	 /* Watchdog error */
-#define EK_EBADTYP 9	 /* Bad terminal type */
-#define EK_EBADIP 10	 /* Bad IP format */
-#define EK_EBADPORT 11	 /* Bad port # */
-#define EK_EADSERR 12	 /* ADS error */
-#define EK_ETERMIDMIS 13 /* Terminal id mismatch. e.g. term type is EL1124, but id is 2008 */
-#define EK_EBADMUTEX 14	 /* Mutex error */
-#define EK_EMUTEXTIMEOUT 15
-#define EK_EBADTERMID 16 /* Invalid terminal id */
-#define EK_EMODBUSERR 17 /* Modbus error */
+enum {
+	EK_EOK = 0,			/* OK */
+	EK_EERR = 1,		/* Unspecified err */
+	EK_EBADTERM = 2,	/* Bad terminal */
+	EK_ENOCONN = 3,		/* Bad connection */
+	EK_EBADPARAM = 4,	/* Bad parameter passed */
+	EK_EBADPTR = 5,		/* Bad pointer */
+	EK_ENODEV = 6,		/* Bad device */
+	EK_ENOENT = 7,		/* No dir entry */
+	EK_EWTCHDG = 8,		/* Watchdog error */
+	EK_EBADTYP = 9,		/* Bad terminal type */
+	EK_EBADIP = 10,		/* Bad IP format */
+	EK_EBADPORT = 11,	/* Bad port # */
+	EK_EADSERR = 12,	/* ADS error */
+	EK_ETERMIDMIS = 13, /* Terminal id mismatch. e.g. term type is EL1124, but id is 2008 */
+	EK_EBADMUTEX = 14,	/* Mutex error */
+	EK_EMUTEXTIMEOUT = 15,
+	EK_EBADTERMID = 16, /* Invalid terminal id */
+	EK_EMODBUSERR = 17, /* Modbus error */
+};
 
 /* Forward decls */
 class devEK9000;
@@ -134,8 +136,9 @@ public:
 	/* device is parent device, termid is 3064 in el3064 */
 	static devEK9000Terminal* Create(devEK9000* device, uint32_t termid, int termindex, const char* record);
 
-	/* Process record name */
-	static devEK9000Terminal* ProcessRecordName(const char* recname, int& outindex);
+	/* Process a record name. if outindex is nullptr, we are not expecting a channel selector at the end of the record
+	 * name */
+	static devEK9000Terminal* ProcessRecordName(const char* recname, int* outindex);
 
 	static void GetTerminalInfo(int termid, int& inp_size, int& out_size);
 
@@ -160,10 +163,6 @@ public:
 	devEK9000* m_device;
 	/* Terminal id, aka the 1124 in EL1124 */
 	int m_terminalId;
-	/* Number of inputs */
-	int m_inputs;
-	/* Number of outputs */
-	int m_outputs;
 	/* Size of inputs */
 	int m_inputSize;
 	/* Size of outputs */
@@ -190,9 +189,6 @@ private:
 	epicsMutexId m_Mutex;
 
 public:
-	/* Device info */
-	// EK9000Device m_pDevice;
-
 	/* List of attached terminals */
 	/* TODO: Redefine terminal struct */
 	devEK9000Terminal* m_terms;
@@ -274,7 +270,7 @@ public:
 	/* Return 1 for connect */
 	int VerifyConnection() const;
 
-	/* Do a simple I/O thing */
+	/* Do a simple *blocking* I/O request. For optimized coupler IO use getEK9000IO */
 	/* rw = 0 for read, rw = 1 for write */
 	/* term = -1 for no terminal */
 	/* len = number of regs to read */
@@ -377,7 +373,6 @@ public:
  */
 template <class RecordT> bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
 	const char* function = "util::setupCommonDpvt<RecordT>()";
-	std::list<devEK9000*>& devList = GlobalDeviceList();
 
 	if (!devEK9000::ParseLinkSpecification(prec->inp.text, LINK_INST_IO, dpvt.linkSpec)) {
 		/* Try to work with legacy stuff */
