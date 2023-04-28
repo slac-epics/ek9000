@@ -18,7 +18,7 @@
 		},
 		{
 			"name": "EL1004",
-			"type": "DigIn",
+			"type": ["DigIn", "DigInMulti"],
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 4,
