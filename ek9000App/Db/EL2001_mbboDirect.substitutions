@@ -1,0 +1,10 @@
+
+file EL2001.template
+{       pattern
+        {
+                TERMINAL,
+
+        }
+        {
+        }
+}

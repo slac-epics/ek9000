@@ -1,0 +1,10 @@
+
+file EL2816.template
+{       pattern
+        {
+                TERMINAL,
+
+        }
+        {
+        }
+}

@@ -1,6 +1,0 @@
-record(mbbi,"$(TERMINAL)")
-{
-	field(DTYP, "EL10XX_mbbi")
-	field(SCAN, "I/O Intr")
-}
-
