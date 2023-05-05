@@ -1,0 +1,10 @@
+
+file EL1722.template
+{       pattern
+        {
+                TERMINAL,
+
+        }
+        {
+        }
+}

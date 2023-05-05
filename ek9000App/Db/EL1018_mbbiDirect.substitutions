@@ -1,0 +1,10 @@
+
+file EL1018.template
+{       pattern
+        {
+                TERMINAL,
+
+        }
+        {
+        }
+}

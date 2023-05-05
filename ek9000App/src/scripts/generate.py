@@ -139,7 +139,7 @@ class Terminal():
         self.vals['SCAN'] = 'I/O Intr'
         
     def set_default_mbbo(self):
-        self.vals['SCAN'] = 'I/O Intr'
+        self.vals['PINI'] = 'YES'
 
     def set_default_bo(self):
         self.vals['ZNAM'] = 'low'

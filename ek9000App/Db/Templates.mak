@@ -4,131 +4,254 @@
 # EL1001 
 DB += ../../Db/EL1001.template ../../Db/EL1001.substitutions
 
+# EL1001 
+DB += ../../Db/EL1001_mbbiDirect.template ../../Db/EL1001_mbbiDirect.substitutions
+
 # EL1002 
 DB += ../../Db/EL1002.template ../../Db/EL1002.substitutions
+
+# EL1002 
+DB += ../../Db/EL1002_mbbiDirect.template ../../Db/EL1002_mbbiDirect.substitutions
 
 # EL1004 
 DB += ../../Db/EL1004.template ../../Db/EL1004.substitutions
 
 # EL1004 
-DB += ../../Db/EL1004_mbbi.template ../../Db/EL1004_mbbi.substitutions
+DB += ../../Db/EL1004_mbbiDirect.template ../../Db/EL1004_mbbiDirect.substitutions
 
 # EL1008 
 DB += ../../Db/EL1008.template ../../Db/EL1008.substitutions
 
+# EL1008 
+DB += ../../Db/EL1008_mbbiDirect.template ../../Db/EL1008_mbbiDirect.substitutions
+
 # EL1012 
 DB += ../../Db/EL1012.template ../../Db/EL1012.substitutions
+
+# EL1012 
+DB += ../../Db/EL1012_mbbiDirect.template ../../Db/EL1012_mbbiDirect.substitutions
 
 # EL1014 
 DB += ../../Db/EL1014.template ../../Db/EL1014.substitutions
 
+# EL1014 
+DB += ../../Db/EL1014_mbbiDirect.template ../../Db/EL1014_mbbiDirect.substitutions
+
 # EL1018 
 DB += ../../Db/EL1018.template ../../Db/EL1018.substitutions
+
+# EL1018 
+DB += ../../Db/EL1018_mbbiDirect.template ../../Db/EL1018_mbbiDirect.substitutions
 
 # EL1024 
 DB += ../../Db/EL1024.template ../../Db/EL1024.substitutions
 
+# EL1024 
+DB += ../../Db/EL1024_mbbiDirect.template ../../Db/EL1024_mbbiDirect.substitutions
+
 # EL1034 
 DB += ../../Db/EL1034.template ../../Db/EL1034.substitutions
+
+# EL1034 
+DB += ../../Db/EL1034_mbbiDirect.template ../../Db/EL1034_mbbiDirect.substitutions
 
 # EL1084 
 DB += ../../Db/EL1084.template ../../Db/EL1084.substitutions
 
+# EL1084 
+DB += ../../Db/EL1084_mbbiDirect.template ../../Db/EL1084_mbbiDirect.substitutions
+
 # EL1088 
 DB += ../../Db/EL1088.template ../../Db/EL1088.substitutions
+
+# EL1088 
+DB += ../../Db/EL1088_mbbiDirect.template ../../Db/EL1088_mbbiDirect.substitutions
 
 # EL1094 
 DB += ../../Db/EL1094.template ../../Db/EL1094.substitutions
 
+# EL1094 
+DB += ../../Db/EL1094_mbbiDirect.template ../../Db/EL1094_mbbiDirect.substitutions
+
 # EL1098 
 DB += ../../Db/EL1098.template ../../Db/EL1098.substitutions
+
+# EL1098 
+DB += ../../Db/EL1098_mbbiDirect.template ../../Db/EL1098_mbbiDirect.substitutions
 
 # EL1104 
 DB += ../../Db/EL1104.template ../../Db/EL1104.substitutions
 
+# EL1104 
+DB += ../../Db/EL1104_mbbiDirect.template ../../Db/EL1104_mbbiDirect.substitutions
+
 # EL1114 
 DB += ../../Db/EL1114.template ../../Db/EL1114.substitutions
+
+# EL1114 
+DB += ../../Db/EL1114_mbbiDirect.template ../../Db/EL1114_mbbiDirect.substitutions
 
 # EL1124 
 DB += ../../Db/EL1124.template ../../Db/EL1124.substitutions
 
+# EL1124 
+DB += ../../Db/EL1124_mbbiDirect.template ../../Db/EL1124_mbbiDirect.substitutions
+
 # EL1134 
 DB += ../../Db/EL1134.template ../../Db/EL1134.substitutions
+
+# EL1134 
+DB += ../../Db/EL1134_mbbiDirect.template ../../Db/EL1134_mbbiDirect.substitutions
 
 # EL1144 
 DB += ../../Db/EL1144.template ../../Db/EL1144.substitutions
 
+# EL1144 
+DB += ../../Db/EL1144_mbbiDirect.template ../../Db/EL1144_mbbiDirect.substitutions
+
 # EL1184 
 DB += ../../Db/EL1184.template ../../Db/EL1184.substitutions
+
+# EL1184 
+DB += ../../Db/EL1184_mbbiDirect.template ../../Db/EL1184_mbbiDirect.substitutions
 
 # EL1202 
 DB += ../../Db/EL1202.template ../../Db/EL1202.substitutions
 
+# EL1202 
+DB += ../../Db/EL1202_mbbiDirect.template ../../Db/EL1202_mbbiDirect.substitutions
+
 # EL1382 
 DB += ../../Db/EL1382.template ../../Db/EL1382.substitutions
+
+# EL1382 
+DB += ../../Db/EL1382_mbbiDirect.template ../../Db/EL1382_mbbiDirect.substitutions
 
 # EL1702 
 DB += ../../Db/EL1702.template ../../Db/EL1702.substitutions
 
+# EL1702 
+DB += ../../Db/EL1702_mbbiDirect.template ../../Db/EL1702_mbbiDirect.substitutions
+
 # EL1712 
 DB += ../../Db/EL1712.template ../../Db/EL1712.substitutions
+
+# EL1712 
+DB += ../../Db/EL1712_mbbiDirect.template ../../Db/EL1712_mbbiDirect.substitutions
 
 # EL1722 
 DB += ../../Db/EL1722.template ../../Db/EL1722.substitutions
 
+# EL1722 
+DB += ../../Db/EL1722_mbbiDirect.template ../../Db/EL1722_mbbiDirect.substitutions
+
 # EL1804 
 DB += ../../Db/EL1804.template ../../Db/EL1804.substitutions
+
+# EL1804 
+DB += ../../Db/EL1804_mbbiDirect.template ../../Db/EL1804_mbbiDirect.substitutions
 
 # EL1808 
 DB += ../../Db/EL1808.template ../../Db/EL1808.substitutions
 
+# EL1808 
+DB += ../../Db/EL1808_mbbiDirect.template ../../Db/EL1808_mbbiDirect.substitutions
+
 # EL1809 
 DB += ../../Db/EL1809.template ../../Db/EL1809.substitutions
+
+# EL1809 
+DB += ../../Db/EL1809_mbbiDirect.template ../../Db/EL1809_mbbiDirect.substitutions
 
 # EL1814 
 DB += ../../Db/EL1814.template ../../Db/EL1814.substitutions
 
+# EL1814 
+DB += ../../Db/EL1814_mbbiDirect.template ../../Db/EL1814_mbbiDirect.substitutions
+
 # EL1819 
 DB += ../../Db/EL1819.template ../../Db/EL1819.substitutions
+
+# EL1819 
+DB += ../../Db/EL1819_mbbiDirect.template ../../Db/EL1819_mbbiDirect.substitutions
 
 # EL2001 
 DB += ../../Db/EL2001.template ../../Db/EL2001.substitutions
 
+# EL2001 
+DB += ../../Db/EL2001_mbboDirect.template ../../Db/EL2001_mbboDirect.substitutions
+
 # EL2002 
 DB += ../../Db/EL2002.template ../../Db/EL2002.substitutions
+
+# EL2002 
+DB += ../../Db/EL2002_mbboDirect.template ../../Db/EL2002_mbboDirect.substitutions
 
 # EL2004 
 DB += ../../Db/EL2004.template ../../Db/EL2004.substitutions
 
+# EL2004 
+DB += ../../Db/EL2004_mbboDirect.template ../../Db/EL2004_mbboDirect.substitutions
+
 # EL2008 
 DB += ../../Db/EL2008.template ../../Db/EL2008.substitutions
+
+# EL2008 
+DB += ../../Db/EL2008_mbboDirect.template ../../Db/EL2008_mbboDirect.substitutions
 
 # EL2022 
 DB += ../../Db/EL2022.template ../../Db/EL2022.substitutions
 
+# EL2022 
+DB += ../../Db/EL2022_mbboDirect.template ../../Db/EL2022_mbboDirect.substitutions
+
 # EL2024 
 DB += ../../Db/EL2024.template ../../Db/EL2024.substitutions
+
+# EL2024 
+DB += ../../Db/EL2024_mbboDirect.template ../../Db/EL2024_mbboDirect.substitutions
 
 # EL2042 
 DB += ../../Db/EL2042.template ../../Db/EL2042.substitutions
 
+# EL2042 
+DB += ../../Db/EL2042_mbboDirect.template ../../Db/EL2042_mbboDirect.substitutions
+
 # EL2084 
 DB += ../../Db/EL2084.template ../../Db/EL2084.substitutions
+
+# EL2084 
+DB += ../../Db/EL2084_mbboDirect.template ../../Db/EL2084_mbboDirect.substitutions
 
 # EL2088 
 DB += ../../Db/EL2088.template ../../Db/EL2088.substitutions
 
+# EL2088 
+DB += ../../Db/EL2088_mbboDirect.template ../../Db/EL2088_mbboDirect.substitutions
+
 # EL2124 
 DB += ../../Db/EL2124.template ../../Db/EL2124.substitutions
+
+# EL2124 
+DB += ../../Db/EL2124_mbboDirect.template ../../Db/EL2124_mbboDirect.substitutions
 
 # EL2794 
 DB += ../../Db/EL2794.template ../../Db/EL2794.substitutions
 
+# EL2794 
+DB += ../../Db/EL2794_mbboDirect.template ../../Db/EL2794_mbboDirect.substitutions
+
 # EL2808 
 DB += ../../Db/EL2808.template ../../Db/EL2808.substitutions
 
+# EL2808 
+DB += ../../Db/EL2808_mbboDirect.template ../../Db/EL2808_mbboDirect.substitutions
+
 # EL2816 
 DB += ../../Db/EL2816.template ../../Db/EL2816.substitutions
+
+# EL2816 
+DB += ../../Db/EL2816_mbboDirect.template ../../Db/EL2816_mbboDirect.substitutions
 
 # EL3001 
 DB += ../../Db/EL3001.template ../../Db/EL3001.substitutions
