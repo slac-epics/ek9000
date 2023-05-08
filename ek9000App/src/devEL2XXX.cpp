@@ -69,7 +69,7 @@ static void EL20XX_WriteCallback(CALLBACK* callback) {
 		return;
 	}
 
-	const bool mbbo = std::is_same<mbboDirectRecord, RecordT>::value;
+	const bool mbbo = util::is_same<mbboDirectRecord, RecordT>::value;
 
 	uint16_t buf[32];
 	const uint16_t length = get_nobt(pRecord); // Will be 1 for bo, nobt for mbboDirect
@@ -138,10 +138,10 @@ static long EL20XX_init_record(void* precord) {
 	pRecord->dpvt = calloc(1, sizeof(EL20XXDpvt_t));
 	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
 
-	const bool mbbo = std::is_same<RecordT, mbboDirectRecord>::value;
+	const bool mbbo = util::is_same<RecordT, mbboDirectRecord>::value;
 
 	/* Grab terminal info */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, mbbo ? nullptr : &dpvt->channel);
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, mbbo ? NULL : &dpvt->channel);
 
 	/* Verify terminal */
 	if (dpvt->terminal == NULL) {
