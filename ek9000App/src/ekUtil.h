@@ -75,19 +75,15 @@ namespace util
 {
 
 #if __cplusplus >= 201103L
-	using std::is_same;
+using std::is_same;
 #else
-	template<class T, class U>
-	struct is_same { static bool value; };
-	
-	template<class T, class U>
-	bool is_same<T,U>::value = false;
-	
-	template<class T>
-	struct is_same<T,T> { static bool value; };
-	
-	template<class T>
-	bool is_same<T,T>::value = true;
+template <class T, class U> struct is_same { static bool value; };
+
+template <class T, class U> bool is_same<T, U>::value = false;
+
+template <class T> struct is_same<T, T> { static bool value; };
+
+template <class T> bool is_same<T, T>::value = true;
 #endif
 
 template <class T> bool DpvtValid(void* dpvt) {
