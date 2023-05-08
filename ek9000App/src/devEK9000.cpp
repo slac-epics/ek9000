@@ -1184,7 +1184,7 @@ struct ek9k_coe_param_t {
 		COE_TYPE_INT8,
 		COE_TYPE_INT16,
 		COE_TYPE_INT32,
-		COE_TYPE_INT64,
+		COE_TYPE_INT64
 	} type;
 };
 

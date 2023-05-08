@@ -78,7 +78,7 @@ enum {
 	EK_EBADMUTEX = 14,	/* Mutex error */
 	EK_EMUTEXTIMEOUT = 15,
 	EK_EBADTERMID = 16, /* Invalid terminal id */
-	EK_EMODBUSERR = 17, /* Modbus error */
+	EK_EMODBUSERR = 17  /* Modbus error */
 };
 
 /* Forward decls */
@@ -125,7 +125,7 @@ typedef struct {
 
 enum ELinkType {
 	BAD = 0,
-	LINK_INST_IO,
+	LINK_INST_IO
 };
 
 class devEK9000Terminal {

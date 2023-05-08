@@ -44,7 +44,7 @@ static long EL10XX_init(int) {
 	return 0;
 }
 
-static inline void type_specific_setup(biRecord* record, uint16_t numbits) {};
+static inline void type_specific_setup(biRecord*, uint16_t) {}
 static inline void type_specific_setup(mbbiDirectRecord* record, uint16_t numbits) {
 	record->nobt = numbits;
 	record->mask = (1<<numbits)-1;
@@ -58,8 +58,8 @@ static long EL10XX_init_record(void* precord) {
 	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
 	
 	/* Get terminal */
-	const bool mbbi = std::is_same<RecordT, mbbiDirectRecord>::value;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, mbbi ? nullptr : &dpvt->channel);
+	const bool mbbi = util::is_same<RecordT, mbbiDirectRecord>::value;
+	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, mbbi ? NULL : &dpvt->channel);
 
 	/* Verify terminal */
 	if (!dpvt->terminal) {
@@ -107,7 +107,7 @@ static long EL10XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	return 0;
 }
 
-static inline void set_mbbi_rval(biRecord* record, uint32_t val) {};
+static inline void set_mbbi_rval(biRecord*, uint32_t) {}
 static inline void set_mbbi_rval(mbbiDirectRecord* record, uint32_t val) {
 	record->rval = (val >> record->shft) & record->mask;
 }
@@ -124,7 +124,7 @@ static long EL10XX_read_record(void* prec) {
 	/* Lock for modbus io */
 	int status;
 
-	const bool mbbi = std::is_same<RecordT, mbbiDirectRecord>::value;
+	const bool mbbi = util::is_same<RecordT, mbbiDirectRecord>::value;
 
 	/* Do the actual IO */
 	uint16_t buf[32];
