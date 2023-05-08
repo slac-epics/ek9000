@@ -44,19 +44,19 @@ static long EL10XX_init(int) {
 	return 0;
 }
 
-static inline void type_specific_setup(biRecord*, uint16_t) {}
+static inline void type_specific_setup(biRecord*, uint16_t) {
+}
 static inline void type_specific_setup(mbbiDirectRecord* record, uint16_t numbits) {
 	record->nobt = numbits;
-	record->mask = (1<<numbits)-1;
+	record->mask = (1 << numbits) - 1;
 	record->shft = 0;
 }
 
-template<class RecordT>
-static long EL10XX_init_record(void* precord) {
+template <class RecordT> static long EL10XX_init_record(void* precord) {
 	RecordT* pRecord = (RecordT*)precord;
 	pRecord->dpvt = calloc(1, sizeof(EL10XXDpvt_t));
 	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
-	
+
 	/* Get terminal */
 	const bool mbbi = util::is_same<RecordT, mbbiDirectRecord>::value;
 	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, mbbi ? NULL : &dpvt->channel);
@@ -107,13 +107,13 @@ static long EL10XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	return 0;
 }
 
-static inline void set_mbbi_rval(biRecord*, uint32_t) {}
+static inline void set_mbbi_rval(biRecord*, uint32_t) {
+}
 static inline void set_mbbi_rval(mbbiDirectRecord* record, uint32_t val) {
 	record->rval = (val >> record->shft) & record->mask;
 }
 
-template<class RecordT>
-static long EL10XX_read_record(void* prec) {
+template <class RecordT> static long EL10XX_read_record(void* prec) {
 	RecordT* pRecord = (RecordT*)prec;
 	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
 
@@ -129,13 +129,14 @@ static long EL10XX_read_record(void* prec) {
 	/* Do the actual IO */
 	uint16_t buf[32];
 	const uint16_t num = mbbi ? dpvt->terminal->m_inputSize : 1;
-	uint16_t addr = mbbi ? 
-		dpvt->terminal->m_inputStart - 1
-		: dpvt->terminal->m_inputStart + (dpvt->channel - 2);		// For non-mbbi records compute the coil offset. 
-																	// channel is 1-based index, m_inputStart is also 1-based, but modbus coils are 0-based, hence the -2
+	uint16_t addr = mbbi ? dpvt->terminal->m_inputStart - 1
+						 : dpvt->terminal->m_inputStart +
+							   (dpvt->channel - 2); // For non-mbbi records compute the coil offset.
+													// channel is 1-based index, m_inputStart is also 1-based, but
+													// modbus coils are 0-based, hence the -2
 	assert(num <= sizeof(buf));
 	status = dpvt->terminal->getEK9000IO(MODBUS_READ_DISCRETE_INPUTS, addr, buf, num);
-	
+
 	/* Error states */
 	if (status) {
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
@@ -147,13 +148,13 @@ static long EL10XX_read_record(void* prec) {
 		DevError("EL10XX_read_record() for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));
 		return 0;
 	}
-	
+
 	// for mbbi, we need to composite our channel data into a single bit vector and leave .VAL alone
 	if (mbbi) {
 		uint32_t outVec = 0;
-		STATIC_ASSERT(sizeof(buf)/sizeof(buf[0]) <= sizeof(outVec) * 8);
+		STATIC_ASSERT(sizeof(buf) / sizeof(buf[0]) <= sizeof(outVec) * 8);
 		for (size_t i = 0; i < ArraySize(buf); ++i)
-			outVec |= (buf[i] << i) & (1<<i);
+			outVec |= (buf[i] << i) & (1 << i);
 		// Template hack because we have no if constexpr before C++17
 		set_mbbi_rval(pRecord, outVec);
 	}
