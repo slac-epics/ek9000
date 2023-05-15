@@ -3,7 +3,6 @@ record(bo,"$(TERMINAL):1")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):2")
@@ -11,7 +10,6 @@ record(bo,"$(TERMINAL):2")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):3")
@@ -19,7 +17,6 @@ record(bo,"$(TERMINAL):3")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):4")
@@ -27,7 +24,6 @@ record(bo,"$(TERMINAL):4")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):5")
@@ -35,7 +31,6 @@ record(bo,"$(TERMINAL):5")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):6")
@@ -43,7 +38,6 @@ record(bo,"$(TERMINAL):6")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):7")
@@ -51,7 +45,6 @@ record(bo,"$(TERMINAL):7")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):8")
@@ -59,7 +52,6 @@ record(bo,"$(TERMINAL):8")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):9")
@@ -67,7 +59,6 @@ record(bo,"$(TERMINAL):9")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):10")
@@ -75,7 +66,6 @@ record(bo,"$(TERMINAL):10")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):11")
@@ -83,7 +73,6 @@ record(bo,"$(TERMINAL):11")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):12")
@@ -91,7 +80,6 @@ record(bo,"$(TERMINAL):12")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):13")
@@ -99,7 +87,6 @@ record(bo,"$(TERMINAL):13")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):14")
@@ -107,7 +94,6 @@ record(bo,"$(TERMINAL):14")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):15")
@@ -115,7 +101,6 @@ record(bo,"$(TERMINAL):15")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):16")
@@ -123,6 +108,5 @@ record(bo,"$(TERMINAL):16")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
