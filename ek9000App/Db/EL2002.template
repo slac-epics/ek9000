@@ -3,7 +3,6 @@ record(bo,"$(TERMINAL):1")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 
 record(bo,"$(TERMINAL):2")
@@ -11,6 +10,5 @@ record(bo,"$(TERMINAL):2")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
-	field(PINI, "YES")
 }
 

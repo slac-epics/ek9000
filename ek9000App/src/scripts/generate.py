@@ -139,12 +139,11 @@ class Terminal():
         self.vals['SCAN'] = 'I/O Intr'
         
     def set_default_mbbo(self):
-        self.vals['PINI'] = 'YES'
+        pass
 
     def set_default_bo(self):
         self.vals['ZNAM'] = 'low'
         self.vals['ONAM'] = 'high'
-        self.vals['PINI'] = 'YES'
 
     def set_default_ai(self):
         self.vals['LINR'] = 'LINEAR'
@@ -157,7 +156,6 @@ class Terminal():
 
     def set_default_ao(self):
         self.vals['LINR'] = 'LINEAR'
-        self.vals['PINI'] = 'YES'
         self.vals['EGU'] = 'Volts'
 
 

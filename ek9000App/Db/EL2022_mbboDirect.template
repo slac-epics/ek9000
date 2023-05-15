@@ -1,6 +1,5 @@
 record(mbboDirect,"$(TERMINAL)")
 {
 	field(DTYP, "EL20XX_mbboDirect")
-	field(PINI, "YES")
 }
 

@@ -66,7 +66,7 @@ std::list<devEK9000*>& GlobalDeviceList() {
 	return devices;
 }
 
-bool devEK9000::debugEnabled = true;
+bool devEK9000::debugEnabled = false;
 int devEK9000::pollDelay = 200;
 
 //==========================================================//

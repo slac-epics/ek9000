@@ -2,7 +2,6 @@ record(ao,"$(TERMINAL):1")
 {
 	field(DTYP, "EL40XX")
 	field(LINR, "LINEAR")
-	field(PINI, "YES")
 	field(EGU, "Volts")
 }
 
@@ -10,7 +9,6 @@ record(ao,"$(TERMINAL):2")
 {
 	field(DTYP, "EL40XX")
 	field(LINR, "LINEAR")
-	field(PINI, "YES")
 	field(EGU, "Volts")
 }
 
@@ -18,7 +16,6 @@ record(ao,"$(TERMINAL):3")
 {
 	field(DTYP, "EL40XX")
 	field(LINR, "LINEAR")
-	field(PINI, "YES")
 	field(EGU, "Volts")
 }
 
@@ -26,7 +23,6 @@ record(ao,"$(TERMINAL):4")
 {
 	field(DTYP, "EL40XX")
 	field(LINR, "LINEAR")
-	field(PINI, "YES")
 	field(EGU, "Volts")
 }
 
