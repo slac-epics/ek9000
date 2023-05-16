@@ -22,10 +22,11 @@ env:
   APT: re2c
   CHOCO: re2c
   BREW: re2c
-  MODULES: "asyn modbus motor"
+  MODULES: "asyn modbus"
   ASYN: master
   MODBUS: master
-  MOTOR: master
+  # FIXME: Motor module build fails in mingw/windows. Only needed for motor support though
+  #MOTOR: master
 
 jobs:
   format:
