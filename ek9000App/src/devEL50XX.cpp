@@ -207,6 +207,8 @@ struct EL5042InputPDO_t {
 };
 #pragma pack()
 
+DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5042InputPDO_t, EL5042);
+
 /*
 -------------------------------------
 Report on all EL5042 devices

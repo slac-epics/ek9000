@@ -69,6 +69,18 @@ std::list<devEK9000*>& GlobalDeviceList() {
 bool devEK9000::debugEnabled = false;
 int devEK9000::pollDelay = 200;
 
+
+// This is a big hack for safety reasons. This will force you to use the define PDO macro for every terminal type at least once,
+// so we can catch size mismatches easily. If LTO removes this symbol, it's not the end of the world, it'll still serve its purpose in
+// non-optimized debug builds
+void __PDOHack() {
+	__PDO_CheckHack();
+}
+
+#ifndef EK9000_MOTOR_SUPPORT
+DEFINE_DUMMY_PDO_CHECK(EL7047)
+#endif
+
 //==========================================================//
 // Utils
 //==========================================================//
