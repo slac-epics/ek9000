@@ -63,6 +63,19 @@ public:
 
 #define AUTO_LOCK(x) CAutoLockWrapper<epicsMutex> __auto_lock(x)
 
+// The following macros are for checking PDO size against what exists in terminals.h
+
+#define DEFINE_SINGLE_CHANNEL_INPUT_PDO(_pdoTypeName, _terminalType) \
+	STATIC_ASSERT(sizeof(_pdoTypeName) == (_terminalType ## _INPUT_SIZE / _terminalType ## _INPUTS ) * 2); \
+	int __g_ ## _terminalType ## _PDO_Check;
+
+#define DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(_pdoTypeName, _terminalType) \
+	STATIC_ASSERT(sizeof(_pdoTypeName) == (_terminalType ## _OUTPUT_SIZE / _terminalType ## _OUTPUTS ) * 2 ); \
+	int __g_ ## _terminalType ## _PDO_Check;
+
+#define DEFINE_DUMMY_PDO_CHECK(_terminalType) \
+	int __g_ ## _terminalType ## _PDO_Check;
+
 /**
  * Determine size of an array
  */

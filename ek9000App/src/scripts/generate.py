@@ -39,6 +39,12 @@ parser.add_argument("--verify", dest="verify", action="store_const", const=1, he
 parser.add_argument("--verbose", dest="verbose", action='store_true', help='Run with extra debug inf')
 args = parser.parse_args()
 
+
+def is_digital(terminal: dict) -> bool:
+    type = terminal['type']
+    return 'DigIn' in type or 'DigOut' in type
+
+
 #
 # Files are in json format, check them out to figure out the actual syntax
 #
@@ -80,7 +86,8 @@ header.newlines(3)
 
 try:
     count = 0
-    vars = list()
+    vars = []
+    checks = [] # List of all pdo check symbols
     for terminal in json_stuff["terminals"]:
         count = count + 1
         name = terminal["name"]
@@ -90,14 +97,24 @@ try:
         outsize = terminal["pdo_out_size"]
         insize = terminal["pdo_in_size"]
         header.add_block_comment(name)
-        header.add_define(name + "_STRING", '"' + name + '"')
-        header.add_define(name + "_ID", name.replace("EL", ""))
-        header.add_define(name + "_OUTPUT_SIZE", str(outsize))
-        header.add_define(name + "_INPUT_SIZE", str(insize))
+        header.add_define(f'{name}_STRING', f'"{name}"')
+        header.add_define(f'{name}_ID', name.replace("EL", ""))
+        header.add_define(f'{name}_OUTPUT_SIZE', str(outsize))
+        header.add_define(f'{name}_INPUT_SIZE', str(insize))
+        header.add_define(f'{name}_INPUTS', str(terminal['inputs']))
+        header.add_define(f'{name}_OUTPUTS', str(terminal['outputs']))
         header.add_init_struct("STerminalInfoConst_t", name + "_Info", name + "_STRING", name + "_ID",
                                name + "_OUTPUT_SIZE", name + "_INPUT_SIZE", static=True, const=True)
+        if not is_digital(terminal):
+            checks.append(f'__g_{name}_PDO_Check')
+            header.add_extern_variable(checks[len(checks)-1], 'int')
+
     header.newlines(2)
     header.add_array_variable("g_pTerminalInfos", "STerminalInfoConst_t*", vars, const=True, static=True)
+    header.fs.write('\n\nstatic void __PDO_CheckHack() {\n')
+    for check in checks:
+        header.fs.write(f'\t{check} = 1;\n')
+    header.fs.write('}\n\n')
 except KeyError as e:
     print("Malformed JSON:")
     print("\tMissing the array key 'terminals'.")
