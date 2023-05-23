@@ -357,7 +357,7 @@
 			"type": "AnalogIn",
 			"inputs": 4,
 			"outputs": 0,
-			"pdo_in_size": 16,
+			"pdo_in_size": 8,
 			"pdo_out_size": 0
 		},
 		{
@@ -365,7 +365,7 @@
 			"type": "AnalogIn",
 			"inputs": 8,
 			"outputs": 0,
-			"pdo_in_size": 32,
+			"pdo_in_size": 16,
 			"pdo_out_size": 0
 		},
 		{
@@ -373,7 +373,7 @@
 			"type": "AnalogIn",
 			"inputs": 2,
 			"outputs": 0,
-			"pdo_in_size": 2,
+			"pdo_in_size": 4,
 			"pdo_out_size": 0
 		},
 		{
@@ -429,7 +429,7 @@
 			"type": "AnalogIn",
 			"inputs": 4,
 			"outputs": 0,
-			"pdo_in_size": 4,
+			"pdo_in_size": 8,
 			"pdo_out_size": 0
 		},
 		{
@@ -707,8 +707,8 @@
 			"name": "EL3681",
 			"type": "AnalogIn",
 			"inputs": 1,
-			"outputs": 0,
-			"pdo_in_size": 4,
+			"outputs": 1,
+			"pdo_in_size": 3,
 			"pdo_out_size": 2,
 			"dtyp": "EL36XX"
 		},
@@ -902,7 +902,7 @@
 			"dtyp": "EL5042",
 			"inputs": 2,
 			"outputs": 0,
-			"pdo_in_size": 3,
+			"pdo_in_size": 6,
 			"pdo_out_size": 0
 		},
 		{
