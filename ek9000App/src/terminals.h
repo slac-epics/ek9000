@@ -640,7 +640,7 @@ static const STerminalInfoConst_t EL3002_Info = {
 #define EL3004_STRING "EL3004"
 #define EL3004_ID 3004
 #define EL3004_OUTPUT_SIZE 0
-#define EL3004_INPUT_SIZE 16
+#define EL3004_INPUT_SIZE 8
 static const STerminalInfoConst_t EL3004_Info = {
 	EL3004_STRING,
 	EL3004_ID,
@@ -654,7 +654,7 @@ static const STerminalInfoConst_t EL3004_Info = {
 #define EL3008_STRING "EL3008"
 #define EL3008_ID 3008
 #define EL3008_OUTPUT_SIZE 0
-#define EL3008_INPUT_SIZE 32
+#define EL3008_INPUT_SIZE 16
 static const STerminalInfoConst_t EL3008_Info = {
 	EL3008_STRING,
 	EL3008_ID,
@@ -668,7 +668,7 @@ static const STerminalInfoConst_t EL3008_Info = {
 #define EL3012_STRING "EL3012"
 #define EL3012_ID 3012
 #define EL3012_OUTPUT_SIZE 0
-#define EL3012_INPUT_SIZE 2
+#define EL3012_INPUT_SIZE 4
 static const STerminalInfoConst_t EL3012_Info = {
 	EL3012_STRING,
 	EL3012_ID,
@@ -766,7 +766,7 @@ static const STerminalInfoConst_t EL3042_Info = {
 #define EL3044_STRING "EL3044"
 #define EL3044_ID 3044
 #define EL3044_OUTPUT_SIZE 0
-#define EL3044_INPUT_SIZE 4
+#define EL3044_INPUT_SIZE 8
 static const STerminalInfoConst_t EL3044_Info = {
 	EL3044_STRING,
 	EL3044_ID,
@@ -1228,7 +1228,7 @@ static const STerminalInfoConst_t EL3311_Info = {
 #define EL3681_STRING "EL3681"
 #define EL3681_ID 3681
 #define EL3681_OUTPUT_SIZE 2
-#define EL3681_INPUT_SIZE 4
+#define EL3681_INPUT_SIZE 3
 static const STerminalInfoConst_t EL3681_Info = {
 	EL3681_STRING,
 	EL3681_ID,
@@ -1564,7 +1564,7 @@ static const STerminalInfoConst_t EL4122_Info = {
 #define EL5042_STRING "EL5042"
 #define EL5042_ID 5042
 #define EL5042_OUTPUT_SIZE 0
-#define EL5042_INPUT_SIZE 3
+#define EL5042_INPUT_SIZE 6
 static const STerminalInfoConst_t EL5042_Info = {
 	EL5042_STRING,
 	EL5042_ID,
