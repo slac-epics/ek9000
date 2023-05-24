@@ -17,6 +17,8 @@
 
 #include "devEK9000.h"
 
+#include "terminal_types.g.h"
+
 using namespace util;
 
 /* Maintain a list of handles to iocsh args */
@@ -28,10 +30,10 @@ struct iocshHandles_t {
 };
 std::vector<iocshHandles_t*> functions;
 
-const STerminalInfoConst_t* util::FindTerminal(unsigned int id) {
-	for (unsigned int i = 0; i < ArraySize(g_pTerminalInfos); i++)
-		if (g_pTerminalInfos[i]->m_nID == id)
-			return g_pTerminalInfos[i];
+const terminal_t* util::FindTerminal(unsigned int id) {
+	for (unsigned int i = 0; i < ArraySize(s_terminalInfos); i++)
+		if (s_terminalInfos[i].id == id)
+			return &s_terminalInfos[i];
 	return NULL;
 }
 

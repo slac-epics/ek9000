@@ -31,6 +31,8 @@
 #include "ekUtil.h"
 #include "devEK9000.h"
 
+#include "terminal_types.g.h"
+
 struct EL40XXDpvt_t {
 	int channel;
 	devEK9000Terminal* terminal;

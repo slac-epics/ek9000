@@ -13,6 +13,8 @@
 #include "devEK9000.h"
 #include "devEL50XX.h"
 
+#include "terminal_types.g.h"
+
 /* NOTE: There doesn't seem to be any EL5001/EL5002 in the Db directory for this! */
 
 struct EL50XXDpvt_t {
