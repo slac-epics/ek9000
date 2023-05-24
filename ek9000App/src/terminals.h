@@ -705,7 +705,7 @@ static const STerminalInfoConst_t EL3001_Info = {
 	EL3001_OUTPUT_SIZE,
 	EL3001_INPUT_SIZE,
 };
-extern int __g_EL3001_PDO_Check;
+extern int __g_EL3001_Input_PDO_Check;
 
 //=========================================================//
 // EL3002
@@ -722,7 +722,7 @@ static const STerminalInfoConst_t EL3002_Info = {
 	EL3002_OUTPUT_SIZE,
 	EL3002_INPUT_SIZE,
 };
-extern int __g_EL3002_PDO_Check;
+extern int __g_EL3002_Input_PDO_Check;
 
 //=========================================================//
 // EL3004
@@ -739,7 +739,7 @@ static const STerminalInfoConst_t EL3004_Info = {
 	EL3004_OUTPUT_SIZE,
 	EL3004_INPUT_SIZE,
 };
-extern int __g_EL3004_PDO_Check;
+extern int __g_EL3004_Input_PDO_Check;
 
 //=========================================================//
 // EL3008
@@ -756,7 +756,7 @@ static const STerminalInfoConst_t EL3008_Info = {
 	EL3008_OUTPUT_SIZE,
 	EL3008_INPUT_SIZE,
 };
-extern int __g_EL3008_PDO_Check;
+extern int __g_EL3008_Input_PDO_Check;
 
 //=========================================================//
 // EL3012
@@ -773,7 +773,7 @@ static const STerminalInfoConst_t EL3012_Info = {
 	EL3012_OUTPUT_SIZE,
 	EL3012_INPUT_SIZE,
 };
-extern int __g_EL3012_PDO_Check;
+extern int __g_EL3012_Input_PDO_Check;
 
 //=========================================================//
 // EL3014
@@ -790,7 +790,7 @@ static const STerminalInfoConst_t EL3014_Info = {
 	EL3014_OUTPUT_SIZE,
 	EL3014_INPUT_SIZE,
 };
-extern int __g_EL3014_PDO_Check;
+extern int __g_EL3014_Input_PDO_Check;
 
 //=========================================================//
 // EL3021
@@ -807,7 +807,7 @@ static const STerminalInfoConst_t EL3021_Info = {
 	EL3021_OUTPUT_SIZE,
 	EL3021_INPUT_SIZE,
 };
-extern int __g_EL3021_PDO_Check;
+extern int __g_EL3021_Input_PDO_Check;
 
 //=========================================================//
 // EL3022
@@ -824,7 +824,7 @@ static const STerminalInfoConst_t EL3022_Info = {
 	EL3022_OUTPUT_SIZE,
 	EL3022_INPUT_SIZE,
 };
-extern int __g_EL3022_PDO_Check;
+extern int __g_EL3022_Input_PDO_Check;
 
 //=========================================================//
 // EL3024
@@ -841,7 +841,7 @@ static const STerminalInfoConst_t EL3024_Info = {
 	EL3024_OUTPUT_SIZE,
 	EL3024_INPUT_SIZE,
 };
-extern int __g_EL3024_PDO_Check;
+extern int __g_EL3024_Input_PDO_Check;
 
 //=========================================================//
 // EL3041
@@ -858,7 +858,7 @@ static const STerminalInfoConst_t EL3041_Info = {
 	EL3041_OUTPUT_SIZE,
 	EL3041_INPUT_SIZE,
 };
-extern int __g_EL3041_PDO_Check;
+extern int __g_EL3041_Input_PDO_Check;
 
 //=========================================================//
 // EL3042
@@ -875,7 +875,7 @@ static const STerminalInfoConst_t EL3042_Info = {
 	EL3042_OUTPUT_SIZE,
 	EL3042_INPUT_SIZE,
 };
-extern int __g_EL3042_PDO_Check;
+extern int __g_EL3042_Input_PDO_Check;
 
 //=========================================================//
 // EL3044
@@ -892,7 +892,7 @@ static const STerminalInfoConst_t EL3044_Info = {
 	EL3044_OUTPUT_SIZE,
 	EL3044_INPUT_SIZE,
 };
-extern int __g_EL3044_PDO_Check;
+extern int __g_EL3044_Input_PDO_Check;
 
 //=========================================================//
 // EL3048
@@ -909,7 +909,7 @@ static const STerminalInfoConst_t EL3048_Info = {
 	EL3048_OUTPUT_SIZE,
 	EL3048_INPUT_SIZE,
 };
-extern int __g_EL3048_PDO_Check;
+extern int __g_EL3048_Input_PDO_Check;
 
 //=========================================================//
 // EL3051
@@ -926,7 +926,7 @@ static const STerminalInfoConst_t EL3051_Info = {
 	EL3051_OUTPUT_SIZE,
 	EL3051_INPUT_SIZE,
 };
-extern int __g_EL3051_PDO_Check;
+extern int __g_EL3051_Input_PDO_Check;
 
 //=========================================================//
 // EL3052
@@ -943,7 +943,7 @@ static const STerminalInfoConst_t EL3052_Info = {
 	EL3052_OUTPUT_SIZE,
 	EL3052_INPUT_SIZE,
 };
-extern int __g_EL3052_PDO_Check;
+extern int __g_EL3052_Input_PDO_Check;
 
 //=========================================================//
 // EL3054
@@ -960,7 +960,7 @@ static const STerminalInfoConst_t EL3054_Info = {
 	EL3054_OUTPUT_SIZE,
 	EL3054_INPUT_SIZE,
 };
-extern int __g_EL3054_PDO_Check;
+extern int __g_EL3054_Input_PDO_Check;
 
 //=========================================================//
 // EL3058
@@ -977,7 +977,7 @@ static const STerminalInfoConst_t EL3058_Info = {
 	EL3058_OUTPUT_SIZE,
 	EL3058_INPUT_SIZE,
 };
-extern int __g_EL3058_PDO_Check;
+extern int __g_EL3058_Input_PDO_Check;
 
 //=========================================================//
 // EL3061
@@ -994,7 +994,7 @@ static const STerminalInfoConst_t EL3061_Info = {
 	EL3061_OUTPUT_SIZE,
 	EL3061_INPUT_SIZE,
 };
-extern int __g_EL3061_PDO_Check;
+extern int __g_EL3061_Input_PDO_Check;
 
 //=========================================================//
 // EL3062
@@ -1011,7 +1011,7 @@ static const STerminalInfoConst_t EL3062_Info = {
 	EL3062_OUTPUT_SIZE,
 	EL3062_INPUT_SIZE,
 };
-extern int __g_EL3062_PDO_Check;
+extern int __g_EL3062_Input_PDO_Check;
 
 //=========================================================//
 // EL3064
@@ -1028,7 +1028,7 @@ static const STerminalInfoConst_t EL3064_Info = {
 	EL3064_OUTPUT_SIZE,
 	EL3064_INPUT_SIZE,
 };
-extern int __g_EL3064_PDO_Check;
+extern int __g_EL3064_Input_PDO_Check;
 
 //=========================================================//
 // EL3068
@@ -1045,7 +1045,7 @@ static const STerminalInfoConst_t EL3068_Info = {
 	EL3068_OUTPUT_SIZE,
 	EL3068_INPUT_SIZE,
 };
-extern int __g_EL3068_PDO_Check;
+extern int __g_EL3068_Input_PDO_Check;
 
 //=========================================================//
 // EL3101
@@ -1062,7 +1062,7 @@ static const STerminalInfoConst_t EL3101_Info = {
 	EL3101_OUTPUT_SIZE,
 	EL3101_INPUT_SIZE,
 };
-extern int __g_EL3101_PDO_Check;
+extern int __g_EL3101_Input_PDO_Check;
 
 //=========================================================//
 // EL3102
@@ -1079,7 +1079,7 @@ static const STerminalInfoConst_t EL3102_Info = {
 	EL3102_OUTPUT_SIZE,
 	EL3102_INPUT_SIZE,
 };
-extern int __g_EL3102_PDO_Check;
+extern int __g_EL3102_Input_PDO_Check;
 
 //=========================================================//
 // EL3104
@@ -1096,7 +1096,7 @@ static const STerminalInfoConst_t EL3104_Info = {
 	EL3104_OUTPUT_SIZE,
 	EL3104_INPUT_SIZE,
 };
-extern int __g_EL3104_PDO_Check;
+extern int __g_EL3104_Input_PDO_Check;
 
 //=========================================================//
 // EL3111
@@ -1113,7 +1113,7 @@ static const STerminalInfoConst_t EL3111_Info = {
 	EL3111_OUTPUT_SIZE,
 	EL3111_INPUT_SIZE,
 };
-extern int __g_EL3111_PDO_Check;
+extern int __g_EL3111_Input_PDO_Check;
 
 //=========================================================//
 // EL3112
@@ -1130,7 +1130,7 @@ static const STerminalInfoConst_t EL3112_Info = {
 	EL3112_OUTPUT_SIZE,
 	EL3112_INPUT_SIZE,
 };
-extern int __g_EL3112_PDO_Check;
+extern int __g_EL3112_Input_PDO_Check;
 
 //=========================================================//
 // EL3114
@@ -1147,7 +1147,7 @@ static const STerminalInfoConst_t EL3114_Info = {
 	EL3114_OUTPUT_SIZE,
 	EL3114_INPUT_SIZE,
 };
-extern int __g_EL3114_PDO_Check;
+extern int __g_EL3114_Input_PDO_Check;
 
 //=========================================================//
 // EL3121
@@ -1164,7 +1164,7 @@ static const STerminalInfoConst_t EL3121_Info = {
 	EL3121_OUTPUT_SIZE,
 	EL3121_INPUT_SIZE,
 };
-extern int __g_EL3121_PDO_Check;
+extern int __g_EL3121_Input_PDO_Check;
 
 //=========================================================//
 // EL3122
@@ -1181,7 +1181,7 @@ static const STerminalInfoConst_t EL3122_Info = {
 	EL3122_OUTPUT_SIZE,
 	EL3122_INPUT_SIZE,
 };
-extern int __g_EL3122_PDO_Check;
+extern int __g_EL3122_Input_PDO_Check;
 
 //=========================================================//
 // EL3124
@@ -1198,7 +1198,7 @@ static const STerminalInfoConst_t EL3124_Info = {
 	EL3124_OUTPUT_SIZE,
 	EL3124_INPUT_SIZE,
 };
-extern int __g_EL3124_PDO_Check;
+extern int __g_EL3124_Input_PDO_Check;
 
 //=========================================================//
 // EL3141
@@ -1215,7 +1215,7 @@ static const STerminalInfoConst_t EL3141_Info = {
 	EL3141_OUTPUT_SIZE,
 	EL3141_INPUT_SIZE,
 };
-extern int __g_EL3141_PDO_Check;
+extern int __g_EL3141_Input_PDO_Check;
 
 //=========================================================//
 // EL3142
@@ -1232,7 +1232,7 @@ static const STerminalInfoConst_t EL3142_Info = {
 	EL3142_OUTPUT_SIZE,
 	EL3142_INPUT_SIZE,
 };
-extern int __g_EL3142_PDO_Check;
+extern int __g_EL3142_Input_PDO_Check;
 
 //=========================================================//
 // EL3144
@@ -1249,7 +1249,7 @@ static const STerminalInfoConst_t EL3144_Info = {
 	EL3144_OUTPUT_SIZE,
 	EL3144_INPUT_SIZE,
 };
-extern int __g_EL3144_PDO_Check;
+extern int __g_EL3144_Input_PDO_Check;
 
 //=========================================================//
 // EL3151
@@ -1266,7 +1266,7 @@ static const STerminalInfoConst_t EL3151_Info = {
 	EL3151_OUTPUT_SIZE,
 	EL3151_INPUT_SIZE,
 };
-extern int __g_EL3151_PDO_Check;
+extern int __g_EL3151_Input_PDO_Check;
 
 //=========================================================//
 // EL3152
@@ -1283,7 +1283,7 @@ static const STerminalInfoConst_t EL3152_Info = {
 	EL3152_OUTPUT_SIZE,
 	EL3152_INPUT_SIZE,
 };
-extern int __g_EL3152_PDO_Check;
+extern int __g_EL3152_Input_PDO_Check;
 
 //=========================================================//
 // EL3154
@@ -1300,7 +1300,7 @@ static const STerminalInfoConst_t EL3154_Info = {
 	EL3154_OUTPUT_SIZE,
 	EL3154_INPUT_SIZE,
 };
-extern int __g_EL3154_PDO_Check;
+extern int __g_EL3154_Input_PDO_Check;
 
 //=========================================================//
 // EL3161
@@ -1317,7 +1317,7 @@ static const STerminalInfoConst_t EL3161_Info = {
 	EL3161_OUTPUT_SIZE,
 	EL3161_INPUT_SIZE,
 };
-extern int __g_EL3161_PDO_Check;
+extern int __g_EL3161_Input_PDO_Check;
 
 //=========================================================//
 // EL3162
@@ -1334,7 +1334,7 @@ static const STerminalInfoConst_t EL3162_Info = {
 	EL3162_OUTPUT_SIZE,
 	EL3162_INPUT_SIZE,
 };
-extern int __g_EL3162_PDO_Check;
+extern int __g_EL3162_Input_PDO_Check;
 
 //=========================================================//
 // EL3164
@@ -1351,7 +1351,7 @@ static const STerminalInfoConst_t EL3164_Info = {
 	EL3164_OUTPUT_SIZE,
 	EL3164_INPUT_SIZE,
 };
-extern int __g_EL3164_PDO_Check;
+extern int __g_EL3164_Input_PDO_Check;
 
 //=========================================================//
 // EL3174
@@ -1368,7 +1368,7 @@ static const STerminalInfoConst_t EL3174_Info = {
 	EL3174_OUTPUT_SIZE,
 	EL3174_INPUT_SIZE,
 };
-extern int __g_EL3174_PDO_Check;
+extern int __g_EL3174_Input_PDO_Check;
 
 //=========================================================//
 // EL3202
@@ -1385,7 +1385,7 @@ static const STerminalInfoConst_t EL3202_Info = {
 	EL3202_OUTPUT_SIZE,
 	EL3202_INPUT_SIZE,
 };
-extern int __g_EL3202_PDO_Check;
+extern int __g_EL3202_Input_PDO_Check;
 
 //=========================================================//
 // EL3314
@@ -1402,7 +1402,7 @@ static const STerminalInfoConst_t EL3314_Info = {
 	EL3314_OUTPUT_SIZE,
 	EL3314_INPUT_SIZE,
 };
-extern int __g_EL3314_PDO_Check;
+extern int __g_EL3314_Input_PDO_Check;
 
 //=========================================================//
 // EL3312
@@ -1419,7 +1419,7 @@ static const STerminalInfoConst_t EL3312_Info = {
 	EL3312_OUTPUT_SIZE,
 	EL3312_INPUT_SIZE,
 };
-extern int __g_EL3312_PDO_Check;
+extern int __g_EL3312_Input_PDO_Check;
 
 //=========================================================//
 // EL3311
@@ -1436,7 +1436,7 @@ static const STerminalInfoConst_t EL3311_Info = {
 	EL3311_OUTPUT_SIZE,
 	EL3311_INPUT_SIZE,
 };
-extern int __g_EL3311_PDO_Check;
+extern int __g_EL3311_Input_PDO_Check;
 
 //=========================================================//
 // EL3681
@@ -1453,7 +1453,8 @@ static const STerminalInfoConst_t EL3681_Info = {
 	EL3681_OUTPUT_SIZE,
 	EL3681_INPUT_SIZE,
 };
-extern int __g_EL3681_PDO_Check;
+extern int __g_EL3681_Output_PDO_Check;
+extern int __g_EL3681_Input_PDO_Check;
 
 //=========================================================//
 // EL4001
@@ -1470,7 +1471,7 @@ static const STerminalInfoConst_t EL4001_Info = {
 	EL4001_OUTPUT_SIZE,
 	EL4001_INPUT_SIZE,
 };
-extern int __g_EL4001_PDO_Check;
+extern int __g_EL4001_Output_PDO_Check;
 
 //=========================================================//
 // EL4002
@@ -1487,7 +1488,7 @@ static const STerminalInfoConst_t EL4002_Info = {
 	EL4002_OUTPUT_SIZE,
 	EL4002_INPUT_SIZE,
 };
-extern int __g_EL4002_PDO_Check;
+extern int __g_EL4002_Output_PDO_Check;
 
 //=========================================================//
 // EL4004
@@ -1504,7 +1505,7 @@ static const STerminalInfoConst_t EL4004_Info = {
 	EL4004_OUTPUT_SIZE,
 	EL4004_INPUT_SIZE,
 };
-extern int __g_EL4004_PDO_Check;
+extern int __g_EL4004_Output_PDO_Check;
 
 //=========================================================//
 // EL4008
@@ -1521,7 +1522,7 @@ static const STerminalInfoConst_t EL4008_Info = {
 	EL4008_OUTPUT_SIZE,
 	EL4008_INPUT_SIZE,
 };
-extern int __g_EL4008_PDO_Check;
+extern int __g_EL4008_Output_PDO_Check;
 
 //=========================================================//
 // EL4011
@@ -1538,7 +1539,7 @@ static const STerminalInfoConst_t EL4011_Info = {
 	EL4011_OUTPUT_SIZE,
 	EL4011_INPUT_SIZE,
 };
-extern int __g_EL4011_PDO_Check;
+extern int __g_EL4011_Output_PDO_Check;
 
 //=========================================================//
 // EL4012
@@ -1555,7 +1556,7 @@ static const STerminalInfoConst_t EL4012_Info = {
 	EL4012_OUTPUT_SIZE,
 	EL4012_INPUT_SIZE,
 };
-extern int __g_EL4012_PDO_Check;
+extern int __g_EL4012_Output_PDO_Check;
 
 //=========================================================//
 // EL4014
@@ -1572,7 +1573,7 @@ static const STerminalInfoConst_t EL4014_Info = {
 	EL4014_OUTPUT_SIZE,
 	EL4014_INPUT_SIZE,
 };
-extern int __g_EL4014_PDO_Check;
+extern int __g_EL4014_Output_PDO_Check;
 
 //=========================================================//
 // EL4018
@@ -1589,7 +1590,7 @@ static const STerminalInfoConst_t EL4018_Info = {
 	EL4018_OUTPUT_SIZE,
 	EL4018_INPUT_SIZE,
 };
-extern int __g_EL4018_PDO_Check;
+extern int __g_EL4018_Output_PDO_Check;
 
 //=========================================================//
 // EL4021
@@ -1606,7 +1607,7 @@ static const STerminalInfoConst_t EL4021_Info = {
 	EL4021_OUTPUT_SIZE,
 	EL4021_INPUT_SIZE,
 };
-extern int __g_EL4021_PDO_Check;
+extern int __g_EL4021_Output_PDO_Check;
 
 //=========================================================//
 // EL4022
@@ -1623,7 +1624,7 @@ static const STerminalInfoConst_t EL4022_Info = {
 	EL4022_OUTPUT_SIZE,
 	EL4022_INPUT_SIZE,
 };
-extern int __g_EL4022_PDO_Check;
+extern int __g_EL4022_Output_PDO_Check;
 
 //=========================================================//
 // EL4024
@@ -1640,7 +1641,7 @@ static const STerminalInfoConst_t EL4024_Info = {
 	EL4024_OUTPUT_SIZE,
 	EL4024_INPUT_SIZE,
 };
-extern int __g_EL4024_PDO_Check;
+extern int __g_EL4024_Output_PDO_Check;
 
 //=========================================================//
 // EL4028
@@ -1657,7 +1658,7 @@ static const STerminalInfoConst_t EL4028_Info = {
 	EL4028_OUTPUT_SIZE,
 	EL4028_INPUT_SIZE,
 };
-extern int __g_EL4028_PDO_Check;
+extern int __g_EL4028_Output_PDO_Check;
 
 //=========================================================//
 // EL4031
@@ -1674,7 +1675,7 @@ static const STerminalInfoConst_t EL4031_Info = {
 	EL4031_OUTPUT_SIZE,
 	EL4031_INPUT_SIZE,
 };
-extern int __g_EL4031_PDO_Check;
+extern int __g_EL4031_Output_PDO_Check;
 
 //=========================================================//
 // EL4032
@@ -1691,7 +1692,7 @@ static const STerminalInfoConst_t EL4032_Info = {
 	EL4032_OUTPUT_SIZE,
 	EL4032_INPUT_SIZE,
 };
-extern int __g_EL4032_PDO_Check;
+extern int __g_EL4032_Output_PDO_Check;
 
 //=========================================================//
 // EL4034
@@ -1708,7 +1709,7 @@ static const STerminalInfoConst_t EL4034_Info = {
 	EL4034_OUTPUT_SIZE,
 	EL4034_INPUT_SIZE,
 };
-extern int __g_EL4034_PDO_Check;
+extern int __g_EL4034_Output_PDO_Check;
 
 //=========================================================//
 // EL4038
@@ -1725,7 +1726,7 @@ static const STerminalInfoConst_t EL4038_Info = {
 	EL4038_OUTPUT_SIZE,
 	EL4038_INPUT_SIZE,
 };
-extern int __g_EL4038_PDO_Check;
+extern int __g_EL4038_Output_PDO_Check;
 
 //=========================================================//
 // EL4102
@@ -1742,7 +1743,7 @@ static const STerminalInfoConst_t EL4102_Info = {
 	EL4102_OUTPUT_SIZE,
 	EL4102_INPUT_SIZE,
 };
-extern int __g_EL4102_PDO_Check;
+extern int __g_EL4102_Output_PDO_Check;
 
 //=========================================================//
 // EL4104
@@ -1759,7 +1760,7 @@ static const STerminalInfoConst_t EL4104_Info = {
 	EL4104_OUTPUT_SIZE,
 	EL4104_INPUT_SIZE,
 };
-extern int __g_EL4104_PDO_Check;
+extern int __g_EL4104_Output_PDO_Check;
 
 //=========================================================//
 // EL4114
@@ -1776,7 +1777,7 @@ static const STerminalInfoConst_t EL4114_Info = {
 	EL4114_OUTPUT_SIZE,
 	EL4114_INPUT_SIZE,
 };
-extern int __g_EL4114_PDO_Check;
+extern int __g_EL4114_Output_PDO_Check;
 
 //=========================================================//
 // EL4112
@@ -1793,7 +1794,7 @@ static const STerminalInfoConst_t EL4112_Info = {
 	EL4112_OUTPUT_SIZE,
 	EL4112_INPUT_SIZE,
 };
-extern int __g_EL4112_PDO_Check;
+extern int __g_EL4112_Output_PDO_Check;
 
 //=========================================================//
 // EL4134
@@ -1810,7 +1811,7 @@ static const STerminalInfoConst_t EL4134_Info = {
 	EL4134_OUTPUT_SIZE,
 	EL4134_INPUT_SIZE,
 };
-extern int __g_EL4134_PDO_Check;
+extern int __g_EL4134_Output_PDO_Check;
 
 //=========================================================//
 // EL4132
@@ -1827,7 +1828,7 @@ static const STerminalInfoConst_t EL4132_Info = {
 	EL4132_OUTPUT_SIZE,
 	EL4132_INPUT_SIZE,
 };
-extern int __g_EL4132_PDO_Check;
+extern int __g_EL4132_Output_PDO_Check;
 
 //=========================================================//
 // EL4122
@@ -1844,7 +1845,7 @@ static const STerminalInfoConst_t EL4122_Info = {
 	EL4122_OUTPUT_SIZE,
 	EL4122_INPUT_SIZE,
 };
-extern int __g_EL4122_PDO_Check;
+extern int __g_EL4122_Output_PDO_Check;
 
 //=========================================================//
 // EL5042
@@ -1861,7 +1862,7 @@ static const STerminalInfoConst_t EL5042_Info = {
 	EL5042_OUTPUT_SIZE,
 	EL5042_INPUT_SIZE,
 };
-extern int __g_EL5042_PDO_Check;
+extern int __g_EL5042_Input_PDO_Check;
 
 //=========================================================//
 // EL7047
@@ -1878,7 +1879,8 @@ static const STerminalInfoConst_t EL7047_Info = {
 	EL7047_OUTPUT_SIZE,
 	EL7047_INPUT_SIZE,
 };
-extern int __g_EL7047_PDO_Check;
+extern int __g_EL7047_Output_PDO_Check;
+extern int __g_EL7047_Input_PDO_Check;
 
 static const STerminalInfoConst_t* g_pTerminalInfos[112] = {
 	&EL1001_Info, &EL1002_Info, &EL1004_Info, &EL1008_Info, &EL1012_Info, &EL1014_Info, &EL1018_Info, &EL1024_Info,
@@ -1898,74 +1900,76 @@ static const STerminalInfoConst_t* g_pTerminalInfos[112] = {
 };
 
 static void __PDO_CheckHack() {
-	__g_EL3001_PDO_Check = 1;
-	__g_EL3002_PDO_Check = 1;
-	__g_EL3004_PDO_Check = 1;
-	__g_EL3008_PDO_Check = 1;
-	__g_EL3012_PDO_Check = 1;
-	__g_EL3014_PDO_Check = 1;
-	__g_EL3021_PDO_Check = 1;
-	__g_EL3022_PDO_Check = 1;
-	__g_EL3024_PDO_Check = 1;
-	__g_EL3041_PDO_Check = 1;
-	__g_EL3042_PDO_Check = 1;
-	__g_EL3044_PDO_Check = 1;
-	__g_EL3048_PDO_Check = 1;
-	__g_EL3051_PDO_Check = 1;
-	__g_EL3052_PDO_Check = 1;
-	__g_EL3054_PDO_Check = 1;
-	__g_EL3058_PDO_Check = 1;
-	__g_EL3061_PDO_Check = 1;
-	__g_EL3062_PDO_Check = 1;
-	__g_EL3064_PDO_Check = 1;
-	__g_EL3068_PDO_Check = 1;
-	__g_EL3101_PDO_Check = 1;
-	__g_EL3102_PDO_Check = 1;
-	__g_EL3104_PDO_Check = 1;
-	__g_EL3111_PDO_Check = 1;
-	__g_EL3112_PDO_Check = 1;
-	__g_EL3114_PDO_Check = 1;
-	__g_EL3121_PDO_Check = 1;
-	__g_EL3122_PDO_Check = 1;
-	__g_EL3124_PDO_Check = 1;
-	__g_EL3141_PDO_Check = 1;
-	__g_EL3142_PDO_Check = 1;
-	__g_EL3144_PDO_Check = 1;
-	__g_EL3151_PDO_Check = 1;
-	__g_EL3152_PDO_Check = 1;
-	__g_EL3154_PDO_Check = 1;
-	__g_EL3161_PDO_Check = 1;
-	__g_EL3162_PDO_Check = 1;
-	__g_EL3164_PDO_Check = 1;
-	__g_EL3174_PDO_Check = 1;
-	__g_EL3202_PDO_Check = 1;
-	__g_EL3314_PDO_Check = 1;
-	__g_EL3312_PDO_Check = 1;
-	__g_EL3311_PDO_Check = 1;
-	__g_EL3681_PDO_Check = 1;
-	__g_EL4001_PDO_Check = 1;
-	__g_EL4002_PDO_Check = 1;
-	__g_EL4004_PDO_Check = 1;
-	__g_EL4008_PDO_Check = 1;
-	__g_EL4011_PDO_Check = 1;
-	__g_EL4012_PDO_Check = 1;
-	__g_EL4014_PDO_Check = 1;
-	__g_EL4018_PDO_Check = 1;
-	__g_EL4021_PDO_Check = 1;
-	__g_EL4022_PDO_Check = 1;
-	__g_EL4024_PDO_Check = 1;
-	__g_EL4028_PDO_Check = 1;
-	__g_EL4031_PDO_Check = 1;
-	__g_EL4032_PDO_Check = 1;
-	__g_EL4034_PDO_Check = 1;
-	__g_EL4038_PDO_Check = 1;
-	__g_EL4102_PDO_Check = 1;
-	__g_EL4104_PDO_Check = 1;
-	__g_EL4114_PDO_Check = 1;
-	__g_EL4112_PDO_Check = 1;
-	__g_EL4134_PDO_Check = 1;
-	__g_EL4132_PDO_Check = 1;
-	__g_EL4122_PDO_Check = 1;
-	__g_EL5042_PDO_Check = 1;
-	__g_EL7047_PDO_Check = 1;
+	__g_EL3001_Input_PDO_Check = 1;
+	__g_EL3002_Input_PDO_Check = 1;
+	__g_EL3004_Input_PDO_Check = 1;
+	__g_EL3008_Input_PDO_Check = 1;
+	__g_EL3012_Input_PDO_Check = 1;
+	__g_EL3014_Input_PDO_Check = 1;
+	__g_EL3021_Input_PDO_Check = 1;
+	__g_EL3022_Input_PDO_Check = 1;
+	__g_EL3024_Input_PDO_Check = 1;
+	__g_EL3041_Input_PDO_Check = 1;
+	__g_EL3042_Input_PDO_Check = 1;
+	__g_EL3044_Input_PDO_Check = 1;
+	__g_EL3048_Input_PDO_Check = 1;
+	__g_EL3051_Input_PDO_Check = 1;
+	__g_EL3052_Input_PDO_Check = 1;
+	__g_EL3054_Input_PDO_Check = 1;
+	__g_EL3058_Input_PDO_Check = 1;
+	__g_EL3061_Input_PDO_Check = 1;
+	__g_EL3062_Input_PDO_Check = 1;
+	__g_EL3064_Input_PDO_Check = 1;
+	__g_EL3068_Input_PDO_Check = 1;
+	__g_EL3101_Input_PDO_Check = 1;
+	__g_EL3102_Input_PDO_Check = 1;
+	__g_EL3104_Input_PDO_Check = 1;
+	__g_EL3111_Input_PDO_Check = 1;
+	__g_EL3112_Input_PDO_Check = 1;
+	__g_EL3114_Input_PDO_Check = 1;
+	__g_EL3121_Input_PDO_Check = 1;
+	__g_EL3122_Input_PDO_Check = 1;
+	__g_EL3124_Input_PDO_Check = 1;
+	__g_EL3141_Input_PDO_Check = 1;
+	__g_EL3142_Input_PDO_Check = 1;
+	__g_EL3144_Input_PDO_Check = 1;
+	__g_EL3151_Input_PDO_Check = 1;
+	__g_EL3152_Input_PDO_Check = 1;
+	__g_EL3154_Input_PDO_Check = 1;
+	__g_EL3161_Input_PDO_Check = 1;
+	__g_EL3162_Input_PDO_Check = 1;
+	__g_EL3164_Input_PDO_Check = 1;
+	__g_EL3174_Input_PDO_Check = 1;
+	__g_EL3202_Input_PDO_Check = 1;
+	__g_EL3314_Input_PDO_Check = 1;
+	__g_EL3312_Input_PDO_Check = 1;
+	__g_EL3311_Input_PDO_Check = 1;
+	__g_EL3681_Output_PDO_Check = 1;
+	__g_EL3681_Input_PDO_Check = 1;
+	__g_EL4001_Output_PDO_Check = 1;
+	__g_EL4002_Output_PDO_Check = 1;
+	__g_EL4004_Output_PDO_Check = 1;
+	__g_EL4008_Output_PDO_Check = 1;
+	__g_EL4011_Output_PDO_Check = 1;
+	__g_EL4012_Output_PDO_Check = 1;
+	__g_EL4014_Output_PDO_Check = 1;
+	__g_EL4018_Output_PDO_Check = 1;
+	__g_EL4021_Output_PDO_Check = 1;
+	__g_EL4022_Output_PDO_Check = 1;
+	__g_EL4024_Output_PDO_Check = 1;
+	__g_EL4028_Output_PDO_Check = 1;
+	__g_EL4031_Output_PDO_Check = 1;
+	__g_EL4032_Output_PDO_Check = 1;
+	__g_EL4034_Output_PDO_Check = 1;
+	__g_EL4038_Output_PDO_Check = 1;
+	__g_EL4102_Output_PDO_Check = 1;
+	__g_EL4104_Output_PDO_Check = 1;
+	__g_EL4114_Output_PDO_Check = 1;
+	__g_EL4112_Output_PDO_Check = 1;
+	__g_EL4134_Output_PDO_Check = 1;
+	__g_EL4132_Output_PDO_Check = 1;
+	__g_EL4122_Output_PDO_Check = 1;
+	__g_EL5042_Input_PDO_Check = 1;
+	__g_EL7047_Output_PDO_Check = 1;
+	__g_EL7047_Input_PDO_Check = 1;
 }

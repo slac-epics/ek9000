@@ -276,6 +276,7 @@ struct EL36XXInputPDO_t {
 #pragma pack()
 
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL36XXInputPDO_t, EL3681);
+DEFINE_DUMMY_OUTPUT_PDO_CHECK(EL3681); // Currently no output support for EL3681 outputs. This is a TODO!
 
 #define EL36XX_OVERRANGE_MASK 0x2
 #define EL36XX_UNDERRANGE_MASK 0x1

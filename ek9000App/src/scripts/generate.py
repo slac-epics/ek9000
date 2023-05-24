@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-# 
-# Author: Jeremy Lorelli
 #
 # From terminals.json, this script generates:
 #   * ../../../SupportedDevices.md
@@ -105,9 +103,14 @@ try:
         header.add_define(f'{name}_OUTPUTS', str(terminal['outputs']))
         header.add_init_struct("STerminalInfoConst_t", name + "_Info", name + "_STRING", name + "_ID",
                                name + "_OUTPUT_SIZE", name + "_INPUT_SIZE", static=True, const=True)
+        # Add PDO size check symbols. Only used by non-digital terminal types
         if not is_digital(terminal):
-            checks.append(f'__g_{name}_PDO_Check')
-            header.add_extern_variable(checks[len(checks)-1], 'int')
+            if outsize > 0:
+                checks.append(f'__g_{name}_Output_PDO_Check')
+                header.add_extern_variable(checks[-1], 'int')
+            if insize > 0:
+                checks.append(f'__g_{name}_Input_PDO_Check')
+                header.add_extern_variable(checks[-1], 'int')
 
     header.newlines(2)
     header.add_array_variable("g_pTerminalInfos", "STerminalInfoConst_t*", vars, const=True, static=True)
@@ -284,3 +287,5 @@ def write_templates():
         fp.write("\n\n")
 
 write_templates()
+
+# vim: et:ts=4:syn=py
