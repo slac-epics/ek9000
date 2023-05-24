@@ -71,17 +71,18 @@ public:
 // The following macros are for validating terminal_types.g.h against any PDO structs defined in code
 
 #define DEFINE_SINGLE_CHANNEL_INPUT_PDO(_pdoTypeName, _terminalType)                                                   \
-	void _terminalType##_t :: _pdo_input_check() { STATIC_ASSERT(sizeof(_pdoTypeName) == (_terminalType##_t::INPUT_SIZE / _terminalType##_t::NUM_INPUTS) * 2); }
+	void _terminalType##_t ::_pdo_input_check() {                                                                      \
+		STATIC_ASSERT(sizeof(_pdoTypeName) == (_terminalType##_t::INPUT_SIZE / _terminalType##_t::NUM_INPUTS) * 2);    \
+	}
 
 #define DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(_pdoTypeName, _terminalType)                                                  \
-	void _terminalType##_t :: _pdo_output_check() { STATIC_ASSERT(sizeof(_pdoTypeName) == (_terminalType##_t::OUTPUT_SIZE / _terminalType##_t::NUM_OUTPUTS) * 2); }
+	void _terminalType##_t ::_pdo_output_check() {                                                                     \
+		STATIC_ASSERT(sizeof(_pdoTypeName) == (_terminalType##_t::OUTPUT_SIZE / _terminalType##_t::NUM_OUTPUTS) * 2);  \
+	}
 
-#define DEFINE_DUMMY_INPUT_PDO_CHECK(_terminalType) \
-	void _terminalType##_t :: _pdo_input_check() {};
+#define DEFINE_DUMMY_INPUT_PDO_CHECK(_terminalType) void _terminalType##_t ::_pdo_input_check(){};
 
-#define DEFINE_DUMMY_OUTPUT_PDO_CHECK(_terminalType) \
-	void _terminalType##_t :: _pdo_output_check() {};
-
+#define DEFINE_DUMMY_OUTPUT_PDO_CHECK(_terminalType) void _terminalType##_t ::_pdo_output_check(){};
 
 /**
  * Determine size of an array
