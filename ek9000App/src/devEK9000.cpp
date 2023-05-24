@@ -45,7 +45,7 @@
 #include <modbusInterpose.h>
 
 #include "devEK9000.h"
-#include "terminals.h"
+#include "terminal_types.g.h"
 
 #define EK9000_SLAVE_ID 0
 
@@ -69,11 +69,11 @@ std::list<devEK9000*>& GlobalDeviceList() {
 bool devEK9000::debugEnabled = false;
 int devEK9000::pollDelay = 200;
 
-// This is a big hack for safety reasons. This will force you to use the define PDO macro for every terminal type at
-// least once, so we can catch size mismatches easily. If LTO removes this symbol, it's not the end of the world, it'll
-// still serve its purpose in non-optimized debug builds
+// This is a big hack for safety reasons! This will force you to use the DEFINE_XXX_PDO macro for every terminal type at
+// least once, so we can catch mismatches between terminals.json and the in-code PDO structs.
+// LTO may remove this symbol in release.
 void __PDOHack() {
-	__PDO_CheckHack();
+	__pdo_check();
 }
 
 #ifndef EK9000_MOTOR_SUPPORT
@@ -229,10 +229,10 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 }
 
 void devEK9000Terminal::GetTerminalInfo(int termid, int& inp_size, int& out_size) {
-	for (size_t i = 0; i < ArraySize(g_pTerminalInfos); i++) {
-		if (g_pTerminalInfos[i]->m_nID == (uint32_t)termid) {
-			inp_size = g_pTerminalInfos[i]->m_nInputSize;
-			out_size = g_pTerminalInfos[i]->m_nOutputSize;
+	for (size_t i = 0; i < ArraySize(s_terminalInfos); i++) {
+		if (s_terminalInfos[i].id == (uint32_t)termid) {
+			inp_size = s_terminalInfos[i].inputSize;
+			out_size = s_terminalInfos[i].outputSize;
 			return;
 		}
 	}
@@ -878,9 +878,9 @@ void ek9000ConfigureTerminal(const iocshArgBuf* args) {
 	}
 
 	uint32_t tid = 0;
-	for (size_t i = 0; i < ArraySize(g_pTerminalInfos); i++) {
-		if (strcmp(g_pTerminalInfos[i]->m_pString, type) == 0) {
-			tid = g_pTerminalInfos[i]->m_nID;
+	for (size_t i = 0; i < ArraySize(s_terminalInfos); i++) {
+		if (strcmp(s_terminalInfos[i].str, type) == 0) {
+			tid = s_terminalInfos[i].id;
 			break;
 		}
 	}

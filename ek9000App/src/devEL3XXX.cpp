@@ -28,6 +28,8 @@
 #include <stdint.h>
 #include "devEK9000.h"
 
+#include "terminal_types.g.h"
+
 //======================================================//
 //
 //	EL30XX Device support
