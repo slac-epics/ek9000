@@ -67,13 +67,15 @@ public:
 
 #define DEFINE_SINGLE_CHANNEL_INPUT_PDO(_pdoTypeName, _terminalType)                                                   \
 	STATIC_ASSERT(sizeof(_pdoTypeName) == (_terminalType##_INPUT_SIZE / _terminalType##_INPUTS) * 2);                  \
-	int __g_##_terminalType##_PDO_Check;
+	int __g_##_terminalType##_Input_PDO_Check;
 
 #define DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(_pdoTypeName, _terminalType)                                                  \
 	STATIC_ASSERT(sizeof(_pdoTypeName) == (_terminalType##_OUTPUT_SIZE / _terminalType##_OUTPUTS) * 2);                \
-	int __g_##_terminalType##_PDO_Check;
+	int __g_##_terminalType##_Output_PDO_Check;
 
-#define DEFINE_DUMMY_PDO_CHECK(_terminalType) int __g_##_terminalType##_PDO_Check;
+#define DEFINE_DUMMY_INPUT_PDO_CHECK(_terminalType) int __g_##_terminalType##_Input_PDO_Check;
+
+#define DEFINE_DUMMY_OUTPUT_PDO_CHECK(_terminalType) int __g_##_terminalType##_Output_PDO_Check;
 
 /**
  * Determine size of an array

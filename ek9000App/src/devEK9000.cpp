@@ -77,7 +77,8 @@ void __PDOHack() {
 }
 
 #ifndef EK9000_MOTOR_SUPPORT
-DEFINE_DUMMY_PDO_CHECK(EL7047)
+DEFINE_DUMMY_INPUT_PDO_CHECK(EL7047)
+DEFINE_DUMMY_OUTPUT_PDO_CHECK(EL7047)
 #endif
 
 //==========================================================//
