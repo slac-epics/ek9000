@@ -36,8 +36,10 @@ struct EL5001Input_t {
 		EL5001Status_t data;
 	};
 	uint32_t encoder_value;
-	// This is additional padding to keep EL5001Input_t a multiple of 2. The ek9000 rounds up when mapping terminals to input/holding register space
-	//  meaning, if a PDO is 3 bytes, it will be mapped as if it were 4 bytes (2 registers), 5 bytes as if it were 6 and so on.
+	// This is additional padding to keep EL5001Input_t a multiple of 2. The ek9000 rounds up when mapping terminals to
+	// input/holding register space
+	//  meaning, if a PDO is 3 bytes, it will be mapped as if it were 4 bytes (2 registers), 5 bytes as if it were 6 and
+	//  so on.
 	uint8_t _pad;
 };
 
@@ -163,7 +165,8 @@ static long el50xx_read_record(void* prec) {
 		EL5001Input_t el5001;
 		EL5002Input_t el5002;
 	} data;
-	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart, reinterpret_cast<uint16_t*>(&data), dpvt->terminal->m_inputSize);
+	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart,
+								reinterpret_cast<uint16_t*>(&data), dpvt->terminal->m_inputSize);
 
 	/* Handle individual terminal pdo types */
 	switch (dpvt->tid) {
