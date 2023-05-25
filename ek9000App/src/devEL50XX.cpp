@@ -11,21 +11,55 @@
 #include <longinRecord.h>
 
 #include "devEK9000.h"
-#include "devEL50XX.h"
 
 #include "terminal_types.g.h"
 
-/* NOTE: There doesn't seem to be any EL5001/EL5002 in the Db directory for this! */
+// PDO definitions
+#pragma pack(1)
+struct EL5001Status_t {
+	uint8_t data_error : 1;
+	uint8_t frame_error : 1;
+	uint8_t power_fail : 1;
+	uint8_t data_mismatch : 1;
+	uint8_t _r1 : 1;
+	uint8_t sync_err : 1;
+	uint8_t txpdo_state : 1;
+	uint8_t txpdo_toggle : 1;
+};
+
+STATIC_ASSERT(sizeof(EL5001Status_t) == sizeof(uint8_t));
+
+/* Input data from an el5001 terminal. el5001 from fw11 onwards also supports the EL5002Input_t PDO type  */
+struct EL5001Input_t {
+	union {
+		uint8_t status_byte;
+		EL5001Status_t data;
+	};
+	uint32_t encoder_value;
+	// This is additional padding to keep EL5001Input_t a multiple of 2. The ek9000 rounds up when mapping terminals to input/holding register space
+	//  meaning, if a PDO is 3 bytes, it will be mapped as if it were 4 bytes (2 registers), 5 bytes as if it were 6 and so on.
+	uint8_t _pad;
+};
+
+/* Input data from an el5002 slave, given it has the extended status byte enabled */
+struct EL5002Input_t {
+	uint8_t data_error : 1;
+	uint8_t frame_error : 1;
+	uint8_t power_fail : 1;
+	uint16_t _r1 : 10;
+	uint8_t _r2 : 3;
+	uint32_t encoder_value;
+};
+#pragma pack()
+
+DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5001Input_t, EL5001);
+DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5002Input_t, EL5002);
 
 struct EL50XXDpvt_t {
 	uint32_t tid;
 	devEK9000Terminal* terminal;
 	devEK9000* device;
 	longinRecord* precord;
-	union {
-		EL5001Output_t el5001_output;
-		EL5002Output_t el5002_output;
-	};
 };
 
 static long el50xx_dev_report(int lvl);
@@ -125,30 +159,32 @@ static long el50xx_read_record(void* prec) {
 	}
 
 	/* Read into a buffer that's plenty big enough for any terminal type */
-	uint16_t data[32];
-	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart, data,
-								STRUCT_SIZE_TO_MODBUS_SIZE(dpvt->terminal->m_inputSize));
+	union {
+		EL5001Input_t el5001;
+		EL5002Input_t el5002;
+	} data;
+	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart, reinterpret_cast<uint16_t*>(&data), dpvt->terminal->m_inputSize);
 
 	/* Handle individual terminal pdo types */
 	switch (dpvt->tid) {
 		case 5001:
 			{
-				EL5001Output_t* output = reinterpret_cast<EL5001Output_t*>(data);
-				if (output->data.data_error || output->data.sync_err)
+				EL5001Input_t& input = data.el5001;
+				if (input.data.data_error || input.data.sync_err)
 					recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-				if (output->data.frame_error)
+				if (input.data.frame_error)
 					recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
-				precord->val = output->encoder_value;
+				precord->val = input.encoder_value;
 				break;
 			}
 		case 5002:
 			{
-				EL5002Output_t* output = reinterpret_cast<EL5002Output_t*>(data);
-				if (output->data_error)
+				EL5002Input_t& input = data.el5002;
+				if (input.data_error)
 					recGblSetSevr(precord, READ_ALARM, INVALID_ALARM);
-				if (output->frame_error)
+				if (input.frame_error)
 					recGblSetSevr(precord, COMM_ALARM, MAJOR_ALARM);
-				precord->val = output->encoder_value;
+				precord->val = input.encoder_value;
 				break;
 			}
 		default:

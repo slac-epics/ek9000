@@ -897,6 +897,24 @@
 			"pdo_out_size": 2
 		},
 		{
+			"name": "EL5001",
+			"type": "PositionMeasurement",
+			"dtyp": "EL50XX",
+			"inputs": 1,
+			"outputs": 0,
+			"pdo_in_size": 3,
+			"pdo_out_size": 0
+		},
+		{
+			"name": "EL5002",
+			"type": "PositionMeasurement",
+			"dtyp": "EL50XX",
+			"inputs": 2,
+			"outputs": 0,
+			"pdo_in_size": 6,
+			"pdo_out_size": 0
+		},
+		{
 			"name": "EL5042",
 			"type": "PositionMeasurement",
 			"dtyp": "EL5042",
