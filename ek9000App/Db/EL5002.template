@@ -1,0 +1,14 @@
+record(longin,"$(TERMINAL):1")
+{
+	field(DTYP, "EL50XX")
+	field(EGU, "Counts")
+	field(SCAN, "I/O Intr")
+}
+
+record(longin,"$(TERMINAL):2")
+{
+	field(DTYP, "EL50XX")
+	field(EGU, "Counts")
+	field(SCAN, "I/O Intr")
+}
+

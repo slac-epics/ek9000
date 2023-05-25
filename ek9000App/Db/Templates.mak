@@ -457,6 +457,12 @@ DB += ../../Db/EL4132.template ../../Db/EL4132.substitutions
 # EL4122 
 DB += ../../Db/EL4122.template ../../Db/EL4122.substitutions
 
+# EL5001 
+DB += ../../Db/EL5001.template ../../Db/EL5001.substitutions
+
+# EL5002 
+DB += ../../Db/EL5002.template ../../Db/EL5002.substitutions
+
 # EL5042 
 DB += ../../Db/EL5042.template ../../Db/EL5042.substitutions
 
