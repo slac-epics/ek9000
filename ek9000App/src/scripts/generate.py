@@ -9,6 +9,7 @@
 
 import argparse
 import json
+from typing import TypedDict
 
 """
 
@@ -34,12 +35,22 @@ parser.add_argument("--verbose", dest="verbose", action='store_true', help='Run 
 args = parser.parse_args()
 
 
+class TerminalType(TypedDict):
+    name: str
+    type: str | list[str]
+    dtyp: str
+    inputs: int
+    outputs: int
+    pdo_in_size: int
+    pdo_out_size: int
+
+
 def is_digital(terminal: dict) -> bool:
     type = terminal['type']
     return 'DigIn' in type or 'DigOut' in type
 
 
-def load_terminals(file: str) -> dict:
+def load_terminals(file: str) -> list[TerminalType]:
     """
     Loads the terminals.json file, returning a dict
     If this fails, it throws
