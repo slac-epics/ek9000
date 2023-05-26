@@ -48,8 +48,7 @@ struct EL5002Input_t {
 	uint8_t data_error : 1;
 	uint8_t frame_error : 1;
 	uint8_t power_fail : 1;
-	uint16_t _r1 : 10;
-	uint8_t _r2 : 3;
+	uint16_t _r1 : 13;
 	uint32_t encoder_value;
 };
 #pragma pack()
