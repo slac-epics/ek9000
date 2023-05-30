@@ -38,8 +38,8 @@ struct EL5001Input_t {
 	uint32_t encoder_value;
 	// This is additional padding to keep EL5001Input_t a multiple of 2. The ek9000 rounds up when mapping terminals to
 	// input/holding register space
-	//  meaning, if a PDO is 3 bytes, it will be mapped as if it were 4 bytes (2 registers), 5 bytes as if it were 6 and
-	//  so on.
+	// meaning, if a PDO is 3 bytes, it will be mapped as if it were 4 bytes (2 registers), 5 bytes as if it were 6 and
+	// so on.
 	uint8_t _pad;
 };
 
@@ -48,7 +48,8 @@ struct EL5002Input_t {
 	uint8_t data_error : 1;
 	uint8_t frame_error : 1;
 	uint8_t power_fail : 1;
-	uint16_t _r1 : 13;
+	uint8_t _r1 : 5;
+	uint8_t _r2;
 	uint32_t encoder_value;
 };
 #pragma pack()
