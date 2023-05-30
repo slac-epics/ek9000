@@ -46,9 +46,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install Packages
+        run: python3 -m pip install -r ek9000App/src/scripts/requirements.txt
       - name: Check terminals.json and templates
-        run: |
-          python3 ek9000App/src/scripts/ci_check.py
+        run: python3 ek9000App/src/scripts/ci_check.py
   
   build-base:
     name: ${{ matrix.name }}
