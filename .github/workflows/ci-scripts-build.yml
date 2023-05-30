@@ -40,7 +40,16 @@ jobs:
           clang-format-version: '14'
           check-path: 'ek9000App'
           exclude-regex: 'terminals.h'
-
+  
+  scripts-check:
+    name: Scripts Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check terminals.json and templates
+        run: |
+          python3 ek9000App/src/scripts/ci_check.py
+  
   build-base:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
