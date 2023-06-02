@@ -3,6 +3,7 @@ record(ao,"$(TERMINAL):1")
 	field(DTYP, "EL40XX")
 	field(LINR, "LINEAR")
 	field(EGU, "Volts")
+	field(PREC, "3")
 }
 
 record(ao,"$(TERMINAL):2")
@@ -10,5 +11,6 @@ record(ao,"$(TERMINAL):2")
 	field(DTYP, "EL40XX")
 	field(LINR, "LINEAR")
 	field(EGU, "Volts")
+	field(PREC, "3")
 }
 
