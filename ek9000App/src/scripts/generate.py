@@ -202,6 +202,7 @@ class Terminal():
         self.vals['LINR'] = 'LINEAR'
         self.vals['EGU'] = 'Volts'
         self.vals['SCAN'] = 'I/O Intr'
+        self.vals['PREC'] = '3'
 
     def set_default_longin(self):
         self.vals['EGU'] = 'Counts'
@@ -210,6 +211,7 @@ class Terminal():
     def set_default_ao(self):
         self.vals['LINR'] = 'LINEAR'
         self.vals['EGU'] = 'Volts'
+        self.vals['PREC'] = '3'
 
 
 subs = \
