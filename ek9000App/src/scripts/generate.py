@@ -207,27 +207,24 @@ class Terminal():
         Tuple[int,int]:
             Range interval (min,max)
         """
-        # if min is < 0, raw ADC value will be signed. All AO and AI terminals sign extend to int16, but that only really matters
-        # when the range starts at <0
-        bits = spec['resolution'] if spec['min'] >= 0 else spec['resolution']-1
-        targetBits = 0
+        isSigned = False
         match spec['representation']:
             case 'int16':
-                targetBits = 16
+                isSigned = True
+            case 'uint16':
+                isSigned = False
             case other:
                 assert False
-        # Compute a shift for terminals where ADC resolution != representation
-        shift = 0 if bits == targetBits else targetBits-bits-1
-        max = (1<<bits<<shift)-1
-        min = -max if spec['min'] < 0 else (1<<shift) # TODO: Validate this for signed terminals.
+        max = 32767
+        min = -max if spec['min'] < 0 and isSigned else 0 # Unsigned terminals still have range 0-32767
         return (min, max)
 
 
     @staticmethod
     def _compute_deadbands(spec: SpecType) -> float:
         """
-        Compute deadband parameters ADEL and MDEL based on max raw value and error specified in datasheet
-        Most terminals are rated for measurement error of <0.3%
+        Compute deadband parameters ADEL and MDEL based on max EGU and error specified in datasheet
+        Most terminals are rated for measurement error of <=0.3%
         
         Returns
         -------

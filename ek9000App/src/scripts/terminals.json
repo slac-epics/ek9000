@@ -339,6 +339,14 @@
 		{
 			"name": "EL3001",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -348,6 +356,14 @@
 			"name": "EL3002",
 			"type": "AnalogIn",
 			"inputs": 2,
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.3
+			},
 			"outputs": 0,
 			"pdo_in_size": 4,
 			"pdo_out_size": 0
@@ -355,6 +371,14 @@
 		{
 			"name": "EL3004",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -363,6 +387,14 @@
 		{
 			"name": "EL3008",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 8,
 			"outputs": 0,
 			"pdo_in_size": 16,
@@ -371,6 +403,14 @@
 		{
 			"name": "EL3012",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -379,6 +419,14 @@
 		{
 			"name": "EL3014",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -387,6 +435,14 @@
 		{
 			"name": "EL3021",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -395,6 +451,14 @@
 		{
 			"name": "EL3022",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -403,6 +467,14 @@
 		{
 			"name": "EL3024",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -411,6 +483,14 @@
 		{
 			"name": "EL3041",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -419,6 +499,14 @@
 		{
 			"name": "EL3042",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -427,6 +515,14 @@
 		{
 			"name": "EL3044",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -435,6 +531,14 @@
 		{
 			"name": "EL3048",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 8,
 			"outputs": 0,
 			"pdo_in_size": 16,
@@ -443,6 +547,14 @@
 		{
 			"name": "EL3051",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -451,6 +563,14 @@
 		{
 			"name": "EL3052",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -459,6 +579,14 @@
 		{
 			"name": "EL3054",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -467,6 +595,14 @@
 		{
 			"name": "EL3058",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 8,
 			"outputs": 0,
 			"pdo_in_size": 16,
@@ -475,6 +611,14 @@
 		{
 			"name": "EL3061",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -483,6 +627,14 @@
 		{
 			"name": "EL3062",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -491,6 +643,14 @@
 		{
 			"name": "EL3064",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -499,6 +659,14 @@
 		{
 			"name": "EL3068",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 8,
 			"outputs": 0,
 			"pdo_in_size": 16,
@@ -507,6 +675,14 @@
 		{
 			"name": "EL3101",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -515,6 +691,14 @@
 		{
 			"name": "EL3102",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -523,6 +707,14 @@
 		{
 			"name": "EL3104",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -531,6 +723,14 @@
 		{
 			"name": "EL3111",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -539,6 +739,14 @@
 		{
 			"name": "EL3112",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -547,6 +755,14 @@
 		{
 			"name": "EL3114",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -555,6 +771,14 @@
 		{
 			"name": "EL3121",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -563,6 +787,14 @@
 		{
 			"name": "EL3122",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -571,6 +803,14 @@
 		{
 			"name": "EL3124",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -579,6 +819,14 @@
 		{
 			"name": "EL3141",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -587,6 +835,14 @@
 		{
 			"name": "EL3142",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -595,6 +851,14 @@
 		{
 			"name": "EL3144",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -603,6 +867,14 @@
 		{
 			"name": "EL3151",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -611,6 +883,14 @@
 		{
 			"name": "EL3152",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -619,6 +899,14 @@
 		{
 			"name": "EL3154",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -627,6 +915,14 @@
 		{
 			"name": "EL3161",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 1,
 			"outputs": 0,
 			"pdo_in_size": 2,
@@ -635,6 +931,14 @@
 		{
 			"name": "EL3162",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
@@ -643,6 +947,14 @@
 		{
 			"name": "EL3164",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -651,6 +963,14 @@
 		{
 			"name": "EL3174",
 			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.3
+			},
 			"inputs": 4,
 			"outputs": 0,
 			"pdo_in_size": 8,
@@ -662,7 +982,11 @@
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 4,
-			"pdo_out_size": 0
+			"pdo_out_size": 0,
+			"defaults": {
+				"EGU": "C",
+				"ESLO": "0.1"
+			}
 		},
 		{
 			"name": "EL3314",
@@ -673,7 +997,7 @@
 			"pdo_out_size": 0,
 			"dtyp": "EL331X",
 			"defaults": {
-				"ESLO": "1",
+				"ESLO": "0.1",
 				"EGU": "C"
 			}
 		},
@@ -686,7 +1010,7 @@
 			"pdo_out_size": 0,
 			"dtyp": "EL331X",
 			"defaults": {
-				"ESLO": "1",
+				"ESLO": "0.1",
 				"EGU": "C"
 			}
 		},
@@ -699,7 +1023,7 @@
 			"pdo_out_size": 0,
 			"dtyp": "EL331X",
 			"defaults": {
-				"ESLO": "1",
+				"ESLO": "0.1",
 				"EGU": "C"
 			}
 		},
@@ -715,6 +1039,14 @@
 		{
 			"name": "EL4001",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 1,
 			"pdo_in_size": 0,
@@ -723,6 +1055,14 @@
 		{
 			"name": "EL4002",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
@@ -731,6 +1071,14 @@
 		{
 			"name": "EL4004",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
@@ -739,6 +1087,14 @@
 		{
 			"name": "EL4008",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 8,
 			"pdo_in_size": 0,
@@ -747,6 +1103,14 @@
 		{
 			"name": "EL4011",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 1,
 			"pdo_in_size": 0,
@@ -755,6 +1119,14 @@
 		{
 			"name": "EL4012",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
@@ -763,6 +1135,14 @@
 		{
 			"name": "EL4014",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
@@ -771,6 +1151,14 @@
 		{
 			"name": "EL4018",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 0,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 8,
 			"pdo_in_size": 0,
@@ -779,6 +1167,14 @@
 		{
 			"name": "EL4021",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 1,
 			"pdo_in_size": 0,
@@ -787,6 +1183,14 @@
 		{
 			"name": "EL4022",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
@@ -795,6 +1199,14 @@
 		{
 			"name": "EL4024",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
@@ -803,6 +1215,14 @@
 		{
 			"name": "EL4028",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 8,
 			"pdo_in_size": 0,
@@ -811,6 +1231,14 @@
 		{
 			"name": "EL4031",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 1,
 			"pdo_in_size": 0,
@@ -819,6 +1247,14 @@
 		{
 			"name": "EL4032",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
@@ -827,6 +1263,14 @@
 		{
 			"name": "EL4034",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
@@ -835,6 +1279,14 @@
 		{
 			"name": "EL4038",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 12,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 8,
 			"pdo_in_size": 0,
@@ -843,6 +1295,14 @@
 		{
 			"name": "EL4102",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
@@ -851,6 +1311,14 @@
 		{
 			"name": "EL4104",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
@@ -859,6 +1327,14 @@
 		{
 			"name": "EL4114",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
@@ -867,6 +1343,14 @@
 		{
 			"name": "EL4112",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
@@ -875,6 +1359,14 @@
 		{
 			"name": "EL4134",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 4,
 			"pdo_in_size": 0,
@@ -883,6 +1375,14 @@
 		{
 			"name": "EL4132",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": -10,
+				"max": 10,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
@@ -891,6 +1391,14 @@
 		{
 			"name": "EL4122",
 			"type": "AnalogOut",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "mA",
+				"min": 4,
+				"max": 20,
+				"error": 0.1
+			},
 			"inputs": 0,
 			"outputs": 2,
 			"pdo_in_size": 0,
