@@ -51,6 +51,32 @@ SCHEMA = {
                     },
                     'dtyp': {
                         'type': 'string'
+                    },
+                    'specs': {
+                        'type': 'object',
+                        'required': ['min', 'max', 'egu', 'representation', 'resolution', 'error'],
+                        'properties': {
+                            'min': {
+                                'type': 'number'
+                            },
+                            'max': {
+                                'type': 'number'
+                            },
+                            'egu': {
+                                'type': 'string'
+                            },
+                            'representation': {
+                                'type': 'string',
+                                'enum': ['int16']
+                            },
+                            'resolution': {
+                                'type': 'number',
+                                'minimum': 0
+                            },
+                            'error': {
+                                'type': 'number'
+                            }
+                        }
                     }
                 }
             }

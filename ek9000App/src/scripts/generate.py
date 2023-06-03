@@ -9,7 +9,7 @@
 
 import argparse
 import json
-from typing import TypedDict
+from typing import TypedDict, Tuple
 
 """
 
@@ -35,6 +35,15 @@ parser.add_argument("--verbose", dest="verbose", action='store_true', help='Run 
 args = parser.parse_args()
 
 
+class SpecType(TypedDict):
+    resolution: int
+    representation: str
+    egu: str
+    min: float
+    max: float
+    error: float
+
+
 class TerminalType(TypedDict):
     name: str
     type: str | list[str]
@@ -43,6 +52,7 @@ class TerminalType(TypedDict):
     outputs: int
     pdo_in_size: int
     pdo_out_size: int
+    spec: SpecType
 
 
 def is_digital(terminal: dict) -> bool:
@@ -159,20 +169,23 @@ def write_supported_terminals(terms: dict) -> None:
 
 
 class Terminal():
-    def __init__(self, record: str, num: int, dtyp: str, typ: str):
+    def __init__(self, record: str, num: int, dtyp: str, typ: str, spec: SpecType|None = None):
         self.vals = dict()
         self.record = record
         self.num = num
         self.vals['DTYP'] = dtyp
         self.use_postfix = True
+        self.spec = spec
         if typ == 'DigInMulti' or typ == 'DigOutMulti':
             self.num = 1
             self.use_postfix = False
+
 
     # Adds a collection of values to the defaults list
     def add_values(self, _vals:dict):
         for v in _vals.items():
             self.vals[v[0]] = v[1]
+
 
     # Write this record out to fp
     def write(self, fp):
@@ -183,35 +196,113 @@ class Terminal():
                 fp.write(f'\tfield({i[0]}, "{i[1]}")\n')
             fp.write('}\n\n')
 
+
+    @staticmethod
+    def _get_raw_range(spec: SpecType) -> Tuple[int,int]:
+        """
+        Computes the raw range for the terminal
+        
+        Returns
+        -------
+        Tuple[int,int]:
+            Range interval (min,max)
+        """
+        # if min is < 0, raw ADC value will be signed. All AO and AI terminals sign extend to int16, but that only really matters
+        # when the range starts at <0
+        bits = spec['resolution'] if spec['min'] >= 0 else spec['resolution']-1
+        targetBits = 0
+        match spec['representation']:
+            case 'int16':
+                targetBits = 16
+            case other:
+                assert False
+        # Compute a shift for terminals where ADC resolution != representation
+        shift = 0 if bits == targetBits else targetBits-bits-1
+        max = (1<<bits<<shift)-1
+        min = -max if spec['min'] < 0 else (1<<shift) # TODO: Validate this for signed terminals.
+        return (min, max)
+
+
+    @staticmethod
+    def _compute_deadbands(spec: SpecType) -> float:
+        """
+        Compute deadband parameters ADEL and MDEL based on max raw value and error specified in datasheet
+        Most terminals are rated for measurement error of <0.3%
+        
+        Returns
+        -------
+        float:
+            The value ADEL and MDEL should be set to
+        """
+        error = spec['error'] / 100.0 # error is in %, convert that to float
+        return spec['max'] * error # Docs specify that error is relative to the full scale value
+
+
+    def _compute_analog_defaults(self) -> dict:
+        """
+        Compute ESLO, EOFF, EGUF and EGUL for the analog I/O terminal
+        
+        Returns
+        -------
+        dict:
+            Mapping of PV -> values
+        """
+
+        if self.spec is None:
+            return {}
+
+        rawMin, rawMax = self._get_raw_range(self.spec)
+        range = self.spec['max'] - self.spec['min']
+        deadband = self._compute_deadbands(self.spec)
+        return {
+            'ESLO': (range / (rawMax-rawMin)),
+            'EOFF': (rawMax * self.spec['min'] - rawMin * self.spec['max']) / (rawMax-rawMin),
+            'EGUF': self.spec['max'],
+            'EGUL': self.spec['min'],
+            'EGU': self.spec['egu'],
+            'LINR': 'LINEAR',
+            'ADEL': deadband,
+            'MDEL': deadband
+        }
+
+
     def set_default_bi(self):
         self.vals['ZNAM'] = 'low'
         self.vals['ONAM'] = 'high'
         self.vals['SCAN'] = 'I/O Intr'
 
+
     def set_default_mbbi(self):
         self.vals['SCAN'] = 'I/O Intr'
-        
+
+
     def set_default_mbbo(self):
         pass
+
 
     def set_default_bo(self):
         self.vals['ZNAM'] = 'low'
         self.vals['ONAM'] = 'high'
 
+
     def set_default_ai(self):
         self.vals['LINR'] = 'LINEAR'
-        self.vals['EGU'] = 'Volts'
+        self.vals['EGU'] = 'V'
         self.vals['SCAN'] = 'I/O Intr'
         self.vals['PREC'] = '3'
+        self.vals.update(self._compute_analog_defaults())
+
 
     def set_default_longin(self):
         self.vals['EGU'] = 'Counts'
         self.vals['SCAN'] = 'I/O Intr'
 
+
     def set_default_ao(self):
         self.vals['LINR'] = 'LINEAR'
-        self.vals['EGU'] = 'Volts'
+        self.vals['EGU'] = 'V'
         self.vals['PREC'] = '3'
+        self.vals.update(self._compute_analog_defaults())
 
 
 subs = \
@@ -263,6 +354,7 @@ def emit_terminal(terminal: dict, fp, type: str, extras: dict):
     name = terminal["name"]
     inputs = terminal["inputs"]
     outputs = terminal["outputs"]
+    spec: SpecType = terminal["specs"] if "specs" in terminal else None
     
     dtyp = get_dtyp(terminal, type)
     
@@ -275,10 +367,10 @@ def emit_terminal(terminal: dict, fp, type: str, extras: dict):
         t = Terminal('bo', outputs, dtyp, type)
         t.set_default_bo()
     elif type == "AnalogIn":
-        t = Terminal('ai', inputs, dtyp, type)
+        t = Terminal('ai', inputs, dtyp, type, spec)
         t.set_default_ai()
     elif type == "AnalogOut":
-        t = Terminal('ao', outputs, dtyp, type)
+        t = Terminal('ao', outputs, dtyp, type, spec)
         t.set_default_ao()
     elif type == "PositionMeasurement":
         t = Terminal('longin', inputs, dtyp, type)
