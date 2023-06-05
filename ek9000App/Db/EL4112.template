@@ -1,16 +1,28 @@
 record(ao,"$(TERMINAL):1")
 {
 	field(DTYP, "EL40XX")
-	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "V")
 	field(PREC, "3")
+	field(ESLO, "0.0003051850947599719")
+	field(EOFF, "0")
+	field(EGUF, "10")
+	field(EGUL, "0")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.01")
+	field(MDEL, "0.01")
 }
 
 record(ao,"$(TERMINAL):2")
 {
 	field(DTYP, "EL40XX")
-	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "V")
 	field(PREC, "3")
+	field(ESLO, "0.0003051850947599719")
+	field(EOFF, "0")
+	field(EGUF, "10")
+	field(EGUL, "0")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.01")
+	field(MDEL, "0.01")
 }
 
