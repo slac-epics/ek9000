@@ -1,36 +1,60 @@
 record(ai,"$(TERMINAL):1")
 {
 	field(DTYP, "EL30XX")
-	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "V")
 	field(SCAN, "I/O Intr")
 	field(PREC, "3")
+	field(ESLO, "0.0003051850947599719")
+	field(EOFF, "0")
+	field(EGUF, "10")
+	field(EGUL, "0")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.03")
+	field(MDEL, "0.03")
 }
 
 record(ai,"$(TERMINAL):2")
 {
 	field(DTYP, "EL30XX")
-	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "V")
 	field(SCAN, "I/O Intr")
 	field(PREC, "3")
+	field(ESLO, "0.0003051850947599719")
+	field(EOFF, "0")
+	field(EGUF, "10")
+	field(EGUL, "0")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.03")
+	field(MDEL, "0.03")
 }
 
 record(ai,"$(TERMINAL):3")
 {
 	field(DTYP, "EL30XX")
-	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "V")
 	field(SCAN, "I/O Intr")
 	field(PREC, "3")
+	field(ESLO, "0.0003051850947599719")
+	field(EOFF, "0")
+	field(EGUF, "10")
+	field(EGUL, "0")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.03")
+	field(MDEL, "0.03")
 }
 
 record(ai,"$(TERMINAL):4")
 {
 	field(DTYP, "EL30XX")
-	field(LINR, "LINEAR")
-	field(EGU, "Volts")
+	field(EGU, "V")
 	field(SCAN, "I/O Intr")
 	field(PREC, "3")
+	field(ESLO, "0.0003051850947599719")
+	field(EOFF, "0")
+	field(EGUF, "10")
+	field(EGUL, "0")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.03")
+	field(MDEL, "0.03")
 }
 
