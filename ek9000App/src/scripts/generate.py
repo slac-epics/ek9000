@@ -216,7 +216,7 @@ class Terminal():
             case other:
                 assert False
         max = 32767
-        min = -max if spec['min'] < 0 and isSigned else 0 # Unsigned terminals still have range 0-32767
+        min = -32768 if spec['min'] < 0 and isSigned else 0 # Unsigned terminals still have range 0-32767
         return (min, max)
 
 
@@ -253,11 +253,11 @@ class Terminal():
         deadband = self._compute_deadbands(self.spec)
         return {
             'ESLO': (range / (rawMax-rawMin)),
-            'EOFF': (rawMax * self.spec['min'] - rawMin * self.spec['max']) / (rawMax-rawMin),
+            'EOFF': 0 if rawMin < 0 else self.spec['min'],
             'EGUF': self.spec['max'],
             'EGUL': self.spec['min'],
             'EGU': self.spec['egu'],
-            'LINR': 'LINEAR',
+            'LINR': 'SLOPE',
             'ADEL': deadband,
             'MDEL': deadband
         }
@@ -283,7 +283,6 @@ class Terminal():
 
 
     def set_default_ai(self):
-        self.vals['LINR'] = 'LINEAR'
         self.vals['EGU'] = 'V'
         self.vals['SCAN'] = 'I/O Intr'
         self.vals['PREC'] = '3'
@@ -296,7 +295,6 @@ class Terminal():
 
 
     def set_default_ao(self):
-        self.vals['LINR'] = 'LINEAR'
         self.vals['EGU'] = 'V'
         self.vals['PREC'] = '3'
         self.vals.update(self._compute_analog_defaults())
