@@ -20,10 +20,14 @@
 #include <epicsSpin.h>
 #include <epicsMutex.h>
 #include <epicsAtomic.h>
+#include <mbboDirectRecord.h>
 
 /* STL includes */
 #include <string>
 #include <list>
+#include <vector>
+#include <cstring>
+#include <type_traits>
 
 #include "terminal.h"
 
@@ -68,6 +72,18 @@ public:
 
 #define AUTO_LOCK(x) CAutoLockWrapper<epicsMutex> __auto_lock(x)
 
+typedef std::vector<std::pair<std::string, std::string>> LinkSpec_t;
+
+struct TerminalDpvt_t {
+	class devEK9000* pdrv;			// Pointer to the coupler itself
+	int pos;						// Position in the rail (first=1)
+	class devEK9000Terminal* pterm;	// Pointer to the terminal, which contains mappings
+	int channel;					// Channel number within the terminal
+	LinkSpec_t linkSpec;			// All link parameters
+	int terminalType;				// Terminal type ID (i.e. 3064 from EL3064)
+};
+
+
 // The following macros are for validating terminal_types.g.h against any PDO structs defined in code
 
 #define DEFINE_SINGLE_CHANNEL_INPUT_PDO(_pdoTypeName, _terminalType)                                                   \
@@ -107,12 +123,43 @@ template <class T> struct is_same<T, T> { static bool value; };
 template <class T> bool is_same<T, T>::value = true;
 #endif
 
-template <class T> bool DpvtValid(void* dpvt) {
-	T* pdpvt = static_cast<T*>(dpvt);
-	if (!dpvt || !pdpvt->device)
-		return false;
-	return true;
+#if __cplusplus >= 202002L
+
+namespace detail {
+
+template<typename T>
+concept BASE_RECORD = requires(T a) { { a.name } -> std::convertible_to<const char*>; };
+
+template<typename T>
+concept OUTPUT_RECORD = requires(T a) { { a.out } -> std::same_as<link&>; };
+
+template<typename T>
+concept INPUT_RECORD = requires(T a) { { a.inp } -> std::same_as<link&>; };
+
 }
+
+template<typename T>
+concept RECORD_TYPE = detail::BASE_RECORD<T> && (detail::INPUT_RECORD<T> || detail::OUTPUT_RECORD<T>);
+
+#else
+
+#define RECORD_TYPE typename
+
+#endif
+
+inline bool DpvtValid(TerminalDpvt_t* dpvt) {
+	return dpvt && dpvt->pdrv;
+}
+
+
+/**
+ * @brief Parse a INP string
+ * @param link string from INP PV
+ * @param linkType Type of link. INST_IO is the only supported type right now.
+ * @param outSpec
+ * @returns true if the link was parsed successfully
+ */
+bool ParseLinkSpecification(const char* link, int linkType, LinkSpec_t& outSpec);
 
 /**
  * Look up a terminal by ID and return a structure containing info about it
@@ -131,4 +178,40 @@ void Error(const char* fmt, ...);
  */
 long setupCallback(void* rec, void (*pCallback)(CALLBACK*));
 
+inline TerminalDpvt_t* allocDpvt() { return (TerminalDpvt_t*)calloc(1,sizeof(TerminalDpvt_t)); }
+
+bool setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t& dpvt);
+
+/** The below template code is kinda ugly. I'd like to use if constexpr or concepts for overload resolution (so we don't need to specialize for all output records), 
+  * but we're bound to C++03 unfortunately! */
+
+/**
+ * @brief Setup device private info
+ * @tparam RecordT Record type (e.g. aiRecord)
+ * @param prec Pointer to the record
+ * @param dpvt Where we put the dpvt
+ * @returns true if success
+ */
+template <RECORD_TYPE RecordT>
+inline bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
+	return setupCommonDpvt(prec->name, prec->inp.text, dpvt);
+}
+
+template<>
+inline bool setupCommonDpvt<boRecord>(boRecord* prec, TerminalDpvt_t& dpvt) {
+	return setupCommonDpvt(prec->name, prec->out.text, dpvt);
+}
+template<>
+inline bool setupCommonDpvt<mbboDirectRecord>(mbboDirectRecord* prec, TerminalDpvt_t& dpvt) {
+	return setupCommonDpvt(prec->name, prec->out.text, dpvt);
+}
+template<>
+inline bool setupCommonDpvt<aoRecord>(aoRecord* prec, TerminalDpvt_t& dpvt) {
+	return setupCommonDpvt(prec->name, prec->out.text, dpvt);
+}
+
+
 } // namespace util
+
+// Clear pre-C++20 concept hacks
+#undef RECORD_TYPE

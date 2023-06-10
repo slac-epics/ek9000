@@ -193,9 +193,10 @@ devEK9000Terminal* devEK9000Terminal::Create(devEK9000* device, uint32_t termid,
 
 // If multi is true, we do not expect a channel selector at the end of the record name
 // In that case, outindex is not set
+// This is LEGACY code, to maintain compatibility with older setups
 devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int* outindex) {
 	char ret[512];
-	strncpy(ret, recname, sizeof(ret));
+	strncpy(ret, recname, sizeof(ret)-1);
 	ret[sizeof(ret) - 1] = 0;
 
 	size_t len = strlen(ret);
@@ -1631,94 +1632,4 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 		return 1;
 	}
 	return 0;
-}
-
-/**
- * Right now only the INST_IO link type is supported.
- * INST_IO links cannot have any spaces in them, so @1,2,3,5 is valid
- *
- * To keep backwards compatibility, parameters will be named and are not ordered in any particilar way
- * Example of our instio syntax:
- * @Something=A,OtherParam=B,Thing=C
- *
- */
-
-bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t& outSpec) {
-	if (!link)
-		return false;
-
-	switch (linkType) {
-		case LINK_INST_IO:
-			{
-				size_t linkLen = strlen(link);
-				if (linkLen <= 1)
-					return false;
-				if (link[0] != '@')
-					return false;
-
-				/* Count the number of commas, which correspond to params */
-				int paramCount = 0;
-				for (size_t i = 0; i < linkLen; i++)
-					if (link[i] == ',')
-						paramCount++;
-				// LinkParameter_t* linkParams = nullptr;
-				LinkParameter_t* linkParams = NULL;
-
-				/* Nothing to parse? */
-				if (paramCount == 0)
-					return true;
-
-				/* Tokenize the string */
-				link++;
-				char buf[1024];
-				snprintf(buf, sizeof(buf), "%s", link);
-				char *param = NULL, *value = NULL;
-				int paramIndex = 0;
-				for (char* tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
-					param = tok;
-					/* Search for the = to break the thing up */
-					for (int i = 0; tok[i]; i++) {
-						if (tok[i] == '=')
-							value = &tok[i + 1];
-					}
-					/* If NULL, it's the end of the string and the param is malformed */
-					if (*value == 0) {
-						if (linkParams)
-							free(linkParams);
-						return false;
-					}
-
-					/* Probably should just use stack allocation here (alloca), but that's not really portable
-					 * (technically is, but still) to non-POSIX platforms (e.g. windows) */
-					if (!linkParams)
-						linkParams = (LinkParameter_t*)malloc(sizeof(LinkParameter_t) * paramCount);
-
-					/* Add new param to the list */
-					outSpec.params[paramIndex].key = epicsStrDup(param);
-					outSpec.params[paramIndex].value = epicsStrDup(value);
-					paramIndex++;
-				}
-
-				outSpec.numParams = paramCount;
-				outSpec.params = linkParams;
-
-				return true;
-			}
-		default:
-			break;
-	}
-
-	return false;
-}
-
-void devEK9000::DestroyLinkSpecification(LinkSpecification_t& spec) {
-	for (int i = 0; spec.params && i < spec.numParams; i++) {
-		free(spec.params[i].key);
-		free(spec.params[i].value);
-	}
-	if (spec.params)
-		free(spec.params);
-	// spec.params = nullptr;
-	spec.params = NULL;
-	spec.numParams = 0;
 }

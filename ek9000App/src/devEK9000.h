@@ -50,6 +50,7 @@
 #include <string.h>
 #include <functional>
 #include <list>
+#include <vector>
 
 #include "ekUtil.h"
 #include "ekDiag.h"
@@ -103,30 +104,6 @@ std::list<devEK9000*>& GlobalDeviceList();
 		util::Error(fmt, __VA_ARGS__);                                                                                 \
 	}
 
-struct LinkParameter_t {
-	char* key;
-	char* value;
-};
-
-struct LinkSpecification_t {
-	LinkParameter_t* params;
-	int numParams;
-};
-
-typedef struct {
-	class devEK9000* pdrv;
-	int slave, terminal, channel;
-	int baseaddr, len;
-	LinkSpecification_t linkSpec;
-	char* terminalType;
-	char* mapping;
-	char* representation;
-} TerminalDpvt_t;
-
-enum ELinkType {
-	BAD = 0,
-	LINK_INST_IO
-};
 
 class devEK9000Terminal {
 public:
@@ -147,10 +124,6 @@ public:
 
 	/* Same calling convention as above, but use the buffered data! */
 	int getEK9000IO(int type, int startaddr, uint16_t* buf, int len);
-
-	template <class T> bool CoEWriteParameter(coe::param_t param, T value);
-
-	template <class T> bool CoEReadParameter(coe::param_t param, T& outval);
 
 public:
 	/* Name of record */
@@ -340,6 +313,10 @@ public:
 	/* Try connect to terminal with CoE */
 	/* Returns 1 for connection, 0 for not */
 	int CoEVerifyConnection(uint16_t termid);
+	
+	devEK9000Terminal* TerminalByIndex( int idx ) const {
+		return &m_terms[idx-1];
+	}
 
 public:
 	/* Statics! */
@@ -352,99 +329,4 @@ public:
 	bool operator==(const devEK9000& other) const {
 		return (strcmp(this->m_name.data(), other.m_name.data()) == 0);
 	}
-
-	/* Couple utility functions */
-	template <class RecordT> static bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
-
-	template <class RecordT> static void destroyDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
-
-	static TerminalDpvt_t emptyDpvt() {
-		TerminalDpvt_t dpvt;
-		memset(&dpvt, 0, sizeof(TerminalDpvt_t));
-		return dpvt;
-	}
-
-	static void DestroyLinkSpecification(LinkSpecification_t& spec);
-	static bool ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t& outSpec);
 };
-
-/**
- * We also handle some backwards compatibility here.
- */
-template <class RecordT> bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
-	const char* function = "util::setupCommonDpvt<RecordT>()";
-
-	if (!devEK9000::ParseLinkSpecification(prec->inp.text, LINK_INST_IO, dpvt.linkSpec)) {
-		/* Try to work with legacy stuff */
-		// TODO: STUB
-		return false;
-	}
-
-	/* Parse the params passed via INST_IO stuff */
-	for (int i = 0; i < dpvt.linkSpec.numParams; i++) {
-		LinkParameter_t param = dpvt.linkSpec.params[i];
-
-		/* Device name */
-		if (strcmp(param.key, "device") == 0) {
-			bool found = false;
-			std::list<devEK9000*>& devList = GlobalDeviceList();
-			for (std::list<devEK9000*>::iterator x = devList.begin(); x != devList.end(); ++x) {
-				// for (const auto& x : GlobalDeviceList()) {
-				if (strcmp((*x)->m_name.data(), param.value) == 0) {
-					dpvt.pdrv = *x;
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				epicsPrintf("%s (when parsing %s): invalid device name: %s\n", function, prec->name, param.value);
-				return false;
-			}
-		}
-		/* Terminal position in rail (1 based) */
-		else if (strcmp(param.key, "terminal") == 0) {
-			int term = atoi(param.value);
-			/* Max supported devices by the EK9K is 255 */
-			if (term < 0 || term > 255) {
-				epicsPrintf("%s (when parsing %s): invalid slave number: %i\n", function, prec->name, term);
-				return false;
-			}
-			dpvt.slave = term;
-		}
-		/* Channel number */
-		else if (strcmp(param.key, "channel") == 0) {
-			int channel = atoi(param.value);
-			/* No real max here, but I think it's good to limit this to 8k as nothing has this many channels */
-			if (channel < 0 || channel > 8192) {
-				epicsPrintf("%s (when parsing %s): invalid channel: %i\n", function, prec->name, channel);
-				return false;
-			}
-			dpvt.channel = channel;
-		}
-		/* Terminal type string e.g. EL3064 */
-		else if (strcmp(param.key, "type") == 0) {
-			dpvt.terminalType = epicsStrDup(param.value);
-		}
-		/* Representation. Generally used for analog termianls */
-		else if (strcmp(param.key, "repres") == 0) {
-			dpvt.representation = epicsStrDup(param.value);
-		}
-		/* Mapping type. Terminals generally have different mapping types. */
-		/* Ex: compact, compact w/status, standard, standard w/status */
-		/* Can be changed by iocsh */
-		else if (strcmp(param.key, "mapping") == 0) {
-			dpvt.mapping = epicsStrDup(param.value);
-		}
-		else {
-			epicsPrintf("%s (when parsing %s): ignored unknown param %s\n", function, prec->name, param.key);
-		}
-	}
-
-	if (!dpvt.mapping)
-		dpvt.mapping = epicsStrDup("");
-	if (!dpvt.terminalType)
-		dpvt.terminalType = epicsStrDup("");
-	if (!dpvt.representation)
-		dpvt.representation = epicsStrDup("");
-	return true;
-}

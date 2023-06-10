@@ -87,3 +87,137 @@ long util::setupCallback(void* rec, void (*pCallback)(CALLBACK*)) {
 	callbackRequest(callback);
 	return 0;
 }
+
+/**
+ * We also handle some backwards compatibility here.
+ */
+bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t& dpvt) {
+	static const char* function = "util::setupCommonDpvt<RecordT>()";
+
+	if (!inp || !util::ParseLinkSpecification(inp, INST_IO, dpvt.linkSpec)) {
+		// This is likely a legacy setup, fallback to old logic
+		devEK9000Terminal* term = NULL;
+		if (!(term = devEK9000Terminal::ProcessRecordName(recName, &dpvt.channel)))
+			return false;
+		dpvt.pdrv = term->m_device;
+		dpvt.pterm = term;
+		dpvt.terminalType = term->m_terminalId;
+		return true;
+	}
+
+	/* Parse the params passed via INST_IO stuff */
+	const int paramCount = dpvt.linkSpec.size();
+	for (int i = 0; i < paramCount; ++i) {
+		std::pair<std::string, std::string>& param = dpvt.linkSpec.at(i);
+
+		/* Device name */
+		if (strcmp(param.first.c_str(), "device") == 0) {
+			bool found = false;
+			std::list<devEK9000*>& devList = GlobalDeviceList();
+			for (std::list<devEK9000*>::iterator x = devList.begin(); x != devList.end(); ++x) {
+				// for (const auto& x : GlobalDeviceList()) {
+				if (strcmp((*x)->m_name.data(), param.second.c_str()) == 0) {
+					dpvt.pdrv = *x;
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				epicsPrintf("%s (when parsing %s): invalid device name: %s\n", function, recName, param.second.c_str());
+				return false;
+			}
+		}
+		/* Terminal position in rail (1=first) */
+		else if (strcmp(param.first.c_str(), "terminal") == 0) {
+			int term = atoi(param.second.c_str());
+			/* Max supported devices by the EK9K is 255 */
+			if (term < 0 || term > 255) {
+				epicsPrintf("%s (when parsing %s): invalid slave number: %i\n", function, recName, term);
+				return false;
+			}
+			dpvt.pos = term;
+		}
+		/* Channel number */
+		else if (strcmp(param.first.c_str(), "channel") == 0) {
+			int channel = atoi(param.second.c_str());
+			/* No real max here, but I think it's good to limit this to 8k as nothing has this many channels */
+			if (channel < 0 || channel > 8192) {
+				epicsPrintf("%s (when parsing %s): invalid channel: %i\n", function, recName, channel);
+				return false;
+			}
+			dpvt.channel = channel;
+		}
+		/* Terminal type string e.g. EL3064 */
+		else if (strcmp(param.first.c_str(), "type") == 0) {
+			const char* tid = param.second.c_str();
+			if (!strncmp(tid, "EL", 2))
+				tid += 2;
+			if (epicsParseInt32(tid, &dpvt.terminalType, 10, NULL) != 0) {
+				epicsPrintf("%s (when parsing %s): unable to parse terminal ID from string '%s'\n", function, recName, param.second.c_str());
+				return false;
+			}
+		}
+		else {
+			epicsPrintf("%s (when parsing %s): ignored unknown param %s\n", function, recName, param.first.c_str());
+		}
+	}
+	
+	if (!dpvt.pdrv) {
+		epicsPrintf("%s (when parsing %s): no device specified\n", function, recName);
+		memset(&dpvt, 0, sizeof(dpvt));
+		return false;
+	}
+	
+	/* Resolve terminal */
+	dpvt.pterm = dpvt.pdrv->TerminalByIndex(dpvt.pos);
+	if (dpvt.pterm == NULL) {
+		epicsPrintf("%s (when parsing %s): unable to find terminal\n", function, recName);
+		memset(&dpvt, 0, sizeof(dpvt));
+		return false;
+	}
+	
+	return true;
+}
+
+
+/**
+ * Right now only the INST_IO link type is supported.
+ * INST_IO links cannot have any spaces in them, so @1,2,3,5 is valid
+ *
+ * To keep backwards compatibility, parameters will be named and are not ordered in any particilar way
+ * Example of our instio syntax:
+ * @Something=A,OtherParam=B,Thing=C
+ *
+ */
+
+bool util::ParseLinkSpecification(const char* link, int linkType, LinkSpec_t& outSpec) {
+	if (!link || link[0] != '@' || link[1] == '\0')
+		return false;
+
+	switch (linkType) {
+		case INST_IO:
+			{
+				char buf[2048];
+				strncpy(buf, link+1, sizeof(buf));
+				buf[sizeof(buf)-1] = 0;
+				
+				// Tokenize by commas
+				for (char* tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
+					// Split based on equals
+					char* s = strpbrk(tok, "=");
+					if (!s) {
+						outSpec.clear();
+						return false;
+					}
+					*s = 0; s++;
+					outSpec.push_back(std::make_pair(std::string(tok), std::string(s)));
+				}
+				
+				return true;
+			}
+		default:
+			break;
+	}
+
+	return false;
+}

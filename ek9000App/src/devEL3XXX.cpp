@@ -120,14 +120,6 @@ DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3164);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3174);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3202);
 
-/* Passed to device private */
-struct EL30XXDPVT_t {
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-	int channel;
-	TerminalDpvt_t newDpvt;
-};
-
 static long EL30XX_dev_report(int) {
 	return 0;
 }
@@ -138,36 +130,30 @@ static long EL30XX_init(int) {
 
 static long EL30XX_init_record(void* precord) {
 	aiRecord* pRecord = static_cast<aiRecord*>(precord);
-	pRecord->dpvt = calloc(1, sizeof(EL30XXDPVT_t));
-	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
+	pRecord->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
-	dpvt->newDpvt = devEK9000::emptyDpvt();
-	devEK9000::setupCommonDpvt<aiRecord>(pRecord, dpvt->newDpvt);
-
-	/* Get the terminal */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, &dpvt->channel);
-	if (!dpvt->terminal) {
-		util::Error("EL30XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
+		util::Error("EL30XX_init_record(): Unable to setup dpvt for record %s\n", pRecord->name);
 		return 1;
 	}
 
-	dpvt->device = dpvt->terminal->m_device;
-	dpvt->device->Lock();
+	dpvt->pdrv->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->terminal->m_device->VerifyConnection()) {
+	if (!dpvt->pterm->m_device->VerifyConnection()) {
 		util::Error("EL30XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->device->Unlock();
+		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
-	dpvt->device->Unlock();
+	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	dpvt->pdrv->Unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
+	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		util::Error("EL30XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
@@ -179,11 +165,11 @@ static long EL30XX_init_record(void* precord) {
 static long EL30XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
-	if (!util::DpvtValid<EL30XXDPVT_t>(dpvt))
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
+	if (!util::DpvtValid(dpvt))
 		return 1;
 
-	*iopvt = dpvt->device->m_analog_io;
+	*iopvt = dpvt->pdrv->m_analog_io;
 	return 0;
 }
 
@@ -194,16 +180,16 @@ static long EL30XX_read_record(void* prec) {
 	/*static_assert(sizeof(buf) <= sizeof(EL30XXStandardInputPDO_t),
 				  "SEL30XXStandardInputPDO is greater than 4 bytes in size, contact the author about this error!");
 		*/
-	EL30XXDPVT_t* dpvt = static_cast<EL30XXDPVT_t*>(pRecord->dpvt);
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Check for invalid */
-	if (!dpvt->terminal)
+	if (!dpvt->pterm)
 		return 0;
 
 	int status;
 
-	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-										 dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	status = dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
+										 dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
 	pRecord->rval = spdo->value;
 
@@ -264,12 +250,6 @@ struct devEL36XX_t {
 };
 epicsExportAddress(dset, devEL36XX);
 
-struct EL36XXDpvt_t {
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-	int channel;
-};
-
 #pragma pack(1)
 struct EL36XXInputPDO_t {
 	uint16_t status;
@@ -293,33 +273,31 @@ static long EL36XX_init(int) {
 
 static long EL36XX_init_record(void* precord) {
 	aiRecord* pRecord = static_cast<aiRecord*>(precord);
-	pRecord->dpvt = calloc(1, sizeof(EL36XXDpvt_t));
-	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
+	pRecord->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Get the terminal */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, &dpvt->channel);
-	if (!dpvt->terminal) {
+	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
 		util::Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 
-	dpvt->device = dpvt->terminal->m_device;
-	dpvt->device->Lock();
+	dpvt->pdrv->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->terminal->m_device->VerifyConnection()) {
+	if (!dpvt->pterm->m_device->VerifyConnection()) {
 		util::Error("EL36XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->device->Unlock();
+		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
-	dpvt->device->Unlock();
+	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	dpvt->pdrv->Unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
+	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		util::Error("EL36XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
@@ -331,11 +309,11 @@ static long EL36XX_init_record(void* precord) {
 static long EL36XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
-	if (!util::DpvtValid<EL36XXDpvt_t>(dpvt))
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
+	if (!util::DpvtValid(dpvt))
 		return 1;
 
-	*iopvt = dpvt->device->m_analog_io;
+	*iopvt = dpvt->pdrv->m_analog_io;
 	return 0;
 }
 
@@ -346,17 +324,17 @@ static long EL36XX_read_record(void* prec) {
 	/*static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
 				  "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
 		*/
-	EL36XXDpvt_t* dpvt = static_cast<EL36XXDpvt_t*>(pRecord->dpvt);
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Check for invalid */
-	if (!dpvt->terminal)
+	if (!dpvt->pterm)
 		return 0;
 
 	/* Lock mutex */
 	int status;
 
-	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-										 dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	status = dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
+										 dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
 	pRecord->rval = pdo->inp;
 
@@ -417,12 +395,6 @@ struct devEL331X_t {
 };
 epicsExportAddress(dset, devEL331X);
 
-struct EL331XDpvt_t {
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-	int channel;
-};
-
 #pragma pack(1)
 struct EL331XInputPDO_t {
 	uint8_t underrange : 1;
@@ -462,33 +434,31 @@ static long EL331X_init(int) {
 
 static long EL331X_init_record(void* precord) {
 	aiRecord* pRecord = static_cast<aiRecord*>(precord);
-	pRecord->dpvt = calloc(1, sizeof(EL331XDpvt_t));
-	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
+	pRecord->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Get the terminal */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, &dpvt->channel);
-	if (!dpvt->terminal) {
+	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
 		util::Error("EL331X_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 
-	dpvt->device = dpvt->terminal->m_device;
-	dpvt->device->Lock();
+	dpvt->pdrv->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->terminal->m_device->VerifyConnection()) {
+	if (!dpvt->pterm->m_device->VerifyConnection()) {
 		util::Error("EL331X_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->device->Unlock();
+		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
-	dpvt->device->Unlock();
+	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	dpvt->pdrv->Unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
+	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		util::Error("EL331X_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
@@ -500,11 +470,11 @@ static long EL331X_init_record(void* precord) {
 static long EL331X_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
-	if (!util::DpvtValid<EL331XDpvt_t>(dpvt))
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
+	if (!util::DpvtValid(dpvt))
 		return 1;
 
-	*iopvt = dpvt->device->m_analog_io;
+	*iopvt = dpvt->pdrv->m_analog_io;
 	return 0;
 }
 
@@ -516,16 +486,16 @@ static long EL331X_read_record(void* prec) {
 	/*static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf),
 				  "SEL331XInput is greater than 2 registers in size! Contact the author regarding this error.");
 		*/
-	EL331XDpvt_t* dpvt = static_cast<EL331XDpvt_t*>(pRecord->dpvt);
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Check for invalid */
-	if (!dpvt->terminal)
+	if (!dpvt->pterm)
 		return 0;
 
 	int status;
 
-	int loc = dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 2);
-	status = dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf, 2);
+	int loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2);
+	status = dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf, 2);
 
 	pdo = reinterpret_cast<EL331XInputPDO_t*>(buf);
 	pRecord->rval = pdo->value;
