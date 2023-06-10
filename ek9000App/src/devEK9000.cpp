@@ -44,6 +44,8 @@
 #include <drvAsynIPPort.h>
 #include <modbusInterpose.h>
 
+#include "epicsTest.h"
+
 #include "devEK9000.h"
 #include "terminal_types.g.h"
 
@@ -1033,6 +1035,8 @@ void ek9000SetPollTime(const iocshArgBuf* args) {
 }
 
 int ek9000RegisterFunctions() {
+	unit::registerCommands();
+	
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
 		static const iocshArg arg1 = {"Name", iocshArgString};
@@ -1643,65 +1647,29 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
  *
  */
 
-bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t& outSpec) {
-	if (!link)
+bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpec_t& outSpec) {
+	if (!link || link[0] != '@')
 		return false;
 
 	switch (linkType) {
 		case LINK_INST_IO:
 			{
-				size_t linkLen = strlen(link);
-				if (linkLen <= 1)
-					return false;
-				if (link[0] != '@')
-					return false;
-
-				/* Count the number of commas, which correspond to params */
-				int paramCount = 0;
-				for (size_t i = 0; i < linkLen; i++)
-					if (link[i] == ',')
-						paramCount++;
-				// LinkParameter_t* linkParams = nullptr;
-				LinkParameter_t* linkParams = NULL;
-
-				/* Nothing to parse? */
-				if (paramCount == 0)
-					return true;
-
-				/* Tokenize the string */
-				link++;
-				char buf[1024];
-				snprintf(buf, sizeof(buf), "%s", link);
-				char *param = NULL, *value = NULL;
-				int paramIndex = 0;
+				char buf[2048];
+				strncpy(buf, link+1, sizeof(buf));
+				buf[sizeof(buf)-1] = 0;
+				
+				// Tokenize by commas
 				for (char* tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
-					param = tok;
-					/* Search for the = to break the thing up */
-					for (int i = 0; tok[i]; i++) {
-						if (tok[i] == '=')
-							value = &tok[i + 1];
-					}
-					/* If NULL, it's the end of the string and the param is malformed */
-					if (*value == 0) {
-						if (linkParams)
-							free(linkParams);
+					// Split based on equals
+					char* s = strpbrk(tok, "=");
+					if (!s) {
+						outSpec.clear();
 						return false;
 					}
-
-					/* Probably should just use stack allocation here (alloca), but that's not really portable
-					 * (technically is, but still) to non-POSIX platforms (e.g. windows) */
-					if (!linkParams)
-						linkParams = (LinkParameter_t*)malloc(sizeof(LinkParameter_t) * paramCount);
-
-					/* Add new param to the list */
-					outSpec.params[paramIndex].key = epicsStrDup(param);
-					outSpec.params[paramIndex].value = epicsStrDup(value);
-					paramIndex++;
+					*s = 0; s++;
+					outSpec.push_back(std::make_pair(std::string(tok), std::string(s)));
 				}
-
-				outSpec.numParams = paramCount;
-				outSpec.params = linkParams;
-
+				
 				return true;
 			}
 		default:
@@ -1711,14 +1679,41 @@ bool devEK9000::ParseLinkSpecification(const char* link, ELinkType linkType, Lin
 	return false;
 }
 
-void devEK9000::DestroyLinkSpecification(LinkSpecification_t& spec) {
-	for (int i = 0; spec.params && i < spec.numParams; i++) {
-		free(spec.params[i].key);
-		free(spec.params[i].value);
+#ifdef BUILD_TESTS
+
+#include <algorithm>
+
+EPICS_TEST(InstIOParse, "StringParseTests")
+{
+	const char* test1 = "@MyParam=32,Other=69,Something=1000";
+	LinkSpec_t spec;
+	ASSERT_TRUE(devEK9000::ParseLinkSpecification(test1, LINK_INST_IO, spec));
+	
+	// Check that all required params exist
+	EXPECT_TRUE(std::all_of(spec.begin(), spec.end(), [](const std::pair<std::string, std::string>& p) {
+		return (p.first == "MyParam" || p.first == "Other" || p.first == "Something");
+	}));
+	EXPECT_EQ(spec.size(), 3);
+	
+	for (auto& e : spec) {
+		if (e.first == "MyParam") {
+			EXPECT_EQ(e.second, "32");
+		}
+		else if (e.first == "Other") {
+			EXPECT_EQ(e.second, "69");
+		}
+		else if (e.first == "Something") {
+			EXPECT_EQ(e.second, "1000");
+		}
 	}
-	if (spec.params)
-		free(spec.params);
-	// spec.params = nullptr;
-	spec.params = NULL;
-	spec.numParams = 0;
 }
+
+EPICS_TEST(InstIOParseBad, "StringParseTests")
+{
+	const char* test1 = "@";
+	LinkSpec_t spec;
+	ASSERT_FALSE(devEK9000::ParseLinkSpecification(test1, LINK_INST_IO, spec));
+	EXPECT_EQ(spec.size(), 0);
+}
+
+#endif

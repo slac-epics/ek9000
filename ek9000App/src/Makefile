@@ -26,6 +26,10 @@ USR_CXXFLAGS += -fsanitize=address
 USR_LDFLAGS += -fsanitize=address -static-libasan
 endif
 
+ifeq ($(ENABLE_TESTS),1)
+USR_CXXFLAGS += -DBUILD_TESTS
+endif
+
 # Unfortunately EPICS and some of the motor record headers cause warnings (well, and one of our generated headers)
 # So just disable those couple warnings to avoid spam (and so PEDANTIC=1 actually builds with -Werror
 USR_CXXFLAGS += -Wno-deprecated-declarations -Wno-unused-variable
@@ -39,6 +43,7 @@ ek9000Support_SRCS += devEL3XXX.cpp
 ek9000Support_SRCS += devEL4XXX.cpp
 ek9000Support_SRCS += devEL50XX.cpp
 ek9000Support_SRCS += ekUtil.cpp
+ek9000Support_SRCS += epicsTest.cpp
 
 ek9000Support_LIBS += $(EPICS_BASE_IOC_LIBS)
 ek9000Support_LIBS += modbus

@@ -19,3 +19,6 @@ cd "${TOP}/iocBoot/${IOC}"
 $RECORDS$
 
 iocInit
+
+epicsTestExitOnError 1
+epicsTestRunAll
