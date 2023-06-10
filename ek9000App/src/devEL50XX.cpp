@@ -57,13 +57,6 @@ struct EL5002Input_t {
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5001Input_t, EL5001);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5002Input_t, EL5002);
 
-struct EL50XXDpvt_t {
-	uint32_t tid;
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-	longinRecord* precord;
-};
-
 static long el50xx_dev_report(int lvl);
 static long el50xx_init(int after);
 static long el50xx_init_record(void* precord);
@@ -101,34 +94,30 @@ static long el50xx_init(int) {
 
 static long el50xx_init_record(void* precord) {
 	longinRecord* record = static_cast<longinRecord*>(precord);
-	record->dpvt = calloc(1, sizeof(EL50XXDpvt_t));
-	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(record->dpvt);
+	record->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(record->dpvt);
 
 	/* Get the terminal */
-	int channel = 0;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(record->name, &channel);
-	if (!dpvt->terminal) {
+	if (!util::setupCommonDpvt(record, *dpvt)) {
 		util::Error("EL50XX_init_record(): Unable to find terminal for record %s\n", record->name);
 		return 1;
 	}
 
-	dpvt->device = dpvt->terminal->m_device;
-	dpvt->device->Lock();
+	dpvt->pdrv->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->device->VerifyConnection()) {
+	if (!dpvt->pdrv->VerifyConnection()) {
 		util::Error("EL50XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->device->Unlock();
+		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
-	dpvt->device->Unlock();
-	dpvt->tid = termid;
+	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	dpvt->pdrv->Unlock();
 
-	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
+	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		util::Error("EL50XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
 					termid);
 		return 1;
@@ -140,23 +129,23 @@ static long el50xx_init_record(void* precord) {
 static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(pRecord->dpvt);
-	if (!util::DpvtValid<EL50XXDpvt_t>(dpvt))
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
+	if (!util::DpvtValid(dpvt))
 		return 1;
 
-	*iopvt = dpvt->device->m_analog_io;
+	*iopvt = dpvt->pdrv->m_analog_io;
 	return 0;
 }
 
 static long el50xx_read_record(void* prec) {
 	longinRecord* precord = static_cast<longinRecord*>(prec);
-	EL50XXDpvt_t* dpvt = static_cast<EL50XXDpvt_t*>(precord->dpvt);
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(precord->dpvt);
 
-	if (!dpvt || !dpvt->terminal || !dpvt->device)
+	if (!dpvt || !dpvt->pterm || !dpvt->pdrv)
 		return 0;
 
-	if (!dpvt->device->VerifyConnection()) {
-		recGblSetSevr((longinRecord*)dpvt->precord, COMM_ALARM, INVALID_ALARM);
+	if (!dpvt->pdrv->VerifyConnection()) {
+		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
 		return 0;
 	}
 
@@ -165,11 +154,11 @@ static long el50xx_read_record(void* prec) {
 		EL5001Input_t el5001;
 		EL5002Input_t el5002;
 	} data;
-	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->terminal->m_inputStart,
-								reinterpret_cast<uint16_t*>(&data), dpvt->terminal->m_inputSize);
+	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->pterm->m_inputStart,
+								reinterpret_cast<uint16_t*>(&data), dpvt->pterm->m_inputSize);
 
 	/* Handle individual terminal pdo types */
-	switch (dpvt->tid) {
+	switch (dpvt->terminalType) {
 		case 5001:
 			{
 				EL5001Input_t& input = data.el5001;
@@ -227,13 +216,6 @@ extern "C"
 	epicsExportAddress(dset, devEL5042);
 }
 
-struct EL5042Dpvt_t {
-	int channel;
-	longinRecord* prec;
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-};
-
 #pragma pack(1)
 struct EL5042InputPDO_t {
 	uint8_t warning : 1;
@@ -266,34 +248,28 @@ Initialize the specified record
 */
 static long el5042_init_record(void* prec) {
 	longinRecord* record = static_cast<longinRecord*>(prec);
-	record->dpvt = calloc(1, sizeof(EL50XXDpvt_t));
-	EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(record->dpvt);
+	record->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(record->dpvt);
 
-	/* Get the terminal */
-	int channel = 0;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(record->name, &channel);
-	dpvt->channel = channel;
-	if (!dpvt->terminal) {
+	if (!util::setupCommonDpvt(record, *dpvt)) {
 		util::Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
 		return 1;
 	}
 
-	dpvt->device = dpvt->terminal->m_device;
-	dpvt->device->Lock();
+	dpvt->pdrv->Lock();
 
 	/* Check connection to terminal */
-	if (!dpvt->device->VerifyConnection()) {
+	if (!dpvt->pdrv->VerifyConnection()) {
 		util::Error("EL5042_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->device->Unlock();
+		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
-	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
-	dpvt->device->Unlock();
-	dpvt->prec = static_cast<longinRecord*>(prec);
-	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
+	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	dpvt->pdrv->Unlock();
+	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		util::Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
 					termid);
 		return 1;
@@ -318,11 +294,11 @@ Called to update the I/O interrupt data
 static long el5042_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	EL5042Dpvt_t* dpvt = static_cast<EL5042Dpvt_t*>(pRecord->dpvt);
-	if (!util::DpvtValid<EL5042Dpvt_t>(dpvt))
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
+	if (!util::DpvtValid(dpvt))
 		return 1;
 
-	*iopvt = dpvt->device->m_analog_io;
+	*iopvt = dpvt->pdrv->m_analog_io;
 	return 0;
 }
 
@@ -333,18 +309,18 @@ Called to read the specified record
 */
 static long el5042_read_record(void* prec) {
 	longinRecord* precord = static_cast<longinRecord*>(prec);
-	EL5042Dpvt_t* dpvt;
+	TerminalDpvt_t* dpvt;
 	EL5042InputPDO_t* pdo;
 
-	dpvt = static_cast<EL5042Dpvt_t*>(precord->dpvt);
+	dpvt = static_cast<TerminalDpvt_t*>(precord->dpvt);
 	if (!dpvt) {
 		return 0;
 	}
 
 	/* Read the stuff */
 	uint16_t buf[32];
-	uint16_t loc = dpvt->terminal->m_inputStart + ((dpvt->channel - 1) * 3);
-	dpvt->terminal->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf,
+	uint16_t loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 3);
+	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf,
 								STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
 
 	/* Cast it to our pdo type */

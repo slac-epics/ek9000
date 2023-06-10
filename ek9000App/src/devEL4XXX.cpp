@@ -33,12 +33,6 @@
 
 #include "terminal_types.g.h"
 
-struct EL40XXDpvt_t {
-	int channel;
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-};
-
 static long EL40XX_dev_report(int after);
 static long EL40XX_init(int after);
 static long EL40XX_init_record(void* record);
@@ -88,17 +82,17 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	void* record = NULL;
 	callbackGetUser(record, callback);
 	aoRecord* pRecord = (aoRecord*)record;
-	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
+	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 	free(callback);
 
 	/* Check for invalid */
-	if (!dpvt->terminal) {
+	if (!dpvt->pterm) {
 		pRecord->pact = FALSE;
 		return;
 	}
 
 	/* Verify connection */
-	if (!dpvt->terminal->m_device->VerifyConnection()) {
+	if (!dpvt->pterm->m_device->VerifyConnection()) {
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		pRecord->pact = FALSE;
@@ -106,15 +100,15 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	}
 
 	/* Lock the mutex */
-	dpvt->terminal->m_device->Lock();
+	dpvt->pterm->m_device->Lock();
 
 	/* Set buffer & do write */
 	uint16_t buf = (int16_t)pRecord->rval;
-	int status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
-											dpvt->terminal->m_outputStart + (dpvt->channel - 1), &buf, 1);
+	int status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
+											dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
 
 	/* Unlock mutex */
-	dpvt->terminal->m_device->Unlock();
+	dpvt->pterm->m_device->Unlock();
 
 	pRecord->udf = FALSE;
 
@@ -151,22 +145,17 @@ static long EL40XX_init(int) {
 
 static long EL40XX_init_record(void* record) {
 	aoRecord* pRecord = (aoRecord*)record;
-	pRecord->dpvt = calloc(1, sizeof(EL40XXDpvt_t));
-	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
-
-	/* Find record name */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, &dpvt->channel);
+	pRecord->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 
 	/* Verify terminal */
-	if (!dpvt->terminal) {
+	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
 		util::Error("EL40XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 
-	dpvt->device = dpvt->terminal->m_device;
-
 	/* Lock mutex for IO */
-	int status = dpvt->terminal->m_device->Lock();
+	int status = dpvt->pterm->m_device->Lock();
 	/* Verify it's error free */
 	if (status) {
 		util::Error("EL40XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
@@ -175,12 +164,12 @@ static long EL40XX_init_record(void* record) {
 
 	/* Read terminal ID */
 	uint16_t termid = 0;
-	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
+	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 
-	dpvt->device->Unlock();
+	dpvt->pdrv->Unlock();
 
 	/* Verify terminal ID */
-	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
+	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		util::Error("EL40XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;

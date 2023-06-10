@@ -30,12 +30,6 @@
 
 #include "devEK9000.h"
 
-struct EL10XXDpvt_t {
-	int channel;
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-};
-
 static long EL10XX_dev_report(int) {
 	return 0;
 }
@@ -54,24 +48,20 @@ static inline void type_specific_setup(mbbiDirectRecord* record, uint16_t numbit
 
 template <class RecordT> static long EL10XX_init_record(void* precord) {
 	RecordT* pRecord = (RecordT*)precord;
-	pRecord->dpvt = calloc(1, sizeof(EL10XXDpvt_t));
-	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
+	pRecord->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 
 	/* Get terminal */
 	const bool mbbi = util::is_same<RecordT, mbbiDirectRecord>::value;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, mbbi ? NULL : &dpvt->channel);
-
-	/* Verify terminal */
-	if (!dpvt->terminal) {
-		util::Error("EL10XX_init_record(): Unable to terminal for record %s\n", pRecord->name);
+	if (!util::setupCommonDpvt<RecordT>(pRecord, *dpvt)) {
+		util::Error("EL10XX_init_record(): Unable to setup dpvt for record %s\n", pRecord->name);
 		return 1;
 	}
 
-	type_specific_setup(pRecord, dpvt->terminal->m_inputSize);
+	type_specific_setup(pRecord, dpvt->pterm->m_inputSize);
 
-	dpvt->device = dpvt->terminal->m_device;
 	/* Lock mutex for modbus io */
-	int status = dpvt->device->Lock();
+	int status = dpvt->pdrv->Lock();
 
 	/* Verify lock OK */
 	if (status != epicsMutexLockOK) {
@@ -81,14 +71,14 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 
 	/* Read termid */
 	uint16_t termid = 0;
-	dpvt->device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
+	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 
-	dpvt->device->Unlock();
+	dpvt->pdrv->Unlock();
 
 	pRecord->udf = FALSE;
 
 	/* Invalid term id */
-	if (termid == 0 || termid != dpvt->terminal->m_terminalId) {
+	if (termid == 0 || termid != dpvt->pterm->m_terminalId) {
 		util::Error("EL10XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
@@ -99,11 +89,11 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 static long EL10XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	EL10XXDpvt_t* dpvt = static_cast<EL10XXDpvt_t*>(pRecord->dpvt);
-	if (!util::DpvtValid<EL10XXDpvt_t>(dpvt))
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
+	if (!util::DpvtValid(dpvt))
 		return 1;
 
-	*iopvt = dpvt->device->m_digital_io;
+	*iopvt = dpvt->pdrv->m_digital_io;
 	return 0;
 }
 
@@ -115,10 +105,10 @@ static inline void set_mbbi_rval(mbbiDirectRecord* record, uint32_t val) {
 
 template <class RecordT> static long EL10XX_read_record(void* prec) {
 	RecordT* pRecord = (RecordT*)prec;
-	EL10XXDpvt_t* dpvt = (EL10XXDpvt_t*)pRecord->dpvt;
+	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 
 	/* Check for invalid */
-	if (!dpvt->terminal)
+	if (!util::DpvtValid(dpvt))
 		return 0;
 
 	/* Lock for modbus io */
@@ -128,14 +118,14 @@ template <class RecordT> static long EL10XX_read_record(void* prec) {
 
 	/* Do the actual IO */
 	uint16_t buf[32];
-	const uint16_t num = mbbi ? dpvt->terminal->m_inputSize : 1;
-	uint16_t addr = mbbi ? dpvt->terminal->m_inputStart - 1
-						 : dpvt->terminal->m_inputStart +
+	const uint16_t num = mbbi ? dpvt->pterm->m_inputSize : 1;
+	uint16_t addr = mbbi ? dpvt->pterm->m_inputStart - 1
+						 : dpvt->pterm->m_inputStart +
 							   (dpvt->channel - 2); // For non-mbbi records compute the coil offset.
 													// channel is 1-based index, m_inputStart is also 1-based, but
 													// modbus coils are 0-based, hence the -2
 	assert(num <= sizeof(buf));
-	status = dpvt->terminal->getEK9000IO(MODBUS_READ_DISCRETE_INPUTS, addr, buf, num);
+	status = dpvt->pterm->getEK9000IO(MODBUS_READ_DISCRETE_INPUTS, addr, buf, num);
 
 	/* Error states */
 	if (status) {

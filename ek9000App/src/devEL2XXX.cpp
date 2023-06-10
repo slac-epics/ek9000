@@ -35,12 +35,6 @@
 //
 //======================================================//
 
-struct EL20XXDpvt_t {
-	int channel;
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-};
-
 static inline uint16_t get_nobt(boRecord* record) {
 	return 1;
 }
@@ -53,17 +47,17 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 	void* record;
 	callbackGetUser(record, callback);
 	pRecord = (RecordT*)record;
-	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
+	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 	free(callback);
 
 	/* Check for invalid */
-	if (!dpvt->terminal) {
+	if (!dpvt->pterm) {
 		pRecord->pact = FALSE;
 		return;
 	}
 
 	/* Lock & verify mutex */
-	int status = dpvt->device->Lock();
+	int status = dpvt->pdrv->Lock();
 
 	if (status) {
 		DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
@@ -87,14 +81,14 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 	}
 
 	const uint16_t addr =
-		mbbo ? dpvt->terminal->m_outputStart - 1 : dpvt->terminal->m_outputStart + (dpvt->channel - 2);
+		mbbo ? dpvt->pterm->m_outputStart - 1 : dpvt->pterm->m_outputStart + (dpvt->channel - 2);
 
 	/* Write to buffer */
 	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and
 	 * inputStart is 1-based **/
-	status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, addr, buf, length);
+	status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, addr, buf, length);
 
-	dpvt->device->Unlock();
+	dpvt->pdrv->Unlock();
 
 	/* check for errors... */
 	if (status) {
@@ -135,33 +129,27 @@ static inline void type_specific_setup(mbboDirectRecord* record, int16_t numbits
 
 template <class RecordT> static long EL20XX_init_record(void* precord) {
 	RecordT* pRecord = (RecordT*)precord;
-	pRecord->dpvt = calloc(1, sizeof(EL20XXDpvt_t));
-	EL20XXDpvt_t* dpvt = (EL20XXDpvt_t*)pRecord->dpvt;
+	pRecord->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 
 	const bool mbbo = util::is_same<RecordT, mbboDirectRecord>::value;
 
 	/* Grab terminal info */
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, mbbo ? NULL : &dpvt->channel);
-
-	/* Verify terminal */
-	if (dpvt->terminal == NULL) {
-		util::Error("EL20XX_init_record(): Unable to find terminal for %s\n", pRecord->name);
+	if (!util::setupCommonDpvt<RecordT>(pRecord, *dpvt)) {
+		util::Error("EL20XX_init_record(): Unable to setup dpvt for %s\n", pRecord->name);
 		return 1;
 	}
 
-	type_specific_setup(pRecord, dpvt->terminal->m_outputSize);
-
-	/* Just another param reference */
-	dpvt->device = dpvt->terminal->m_device;
+	type_specific_setup(pRecord, dpvt->pterm->m_outputSize);
 
 	/* Verify the connection */
-	if (!dpvt->device->VerifyConnection()) {
+	if (!dpvt->pdrv->VerifyConnection()) {
 		util::Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
 	/* Lock mutex for modbus */
-	int status = dpvt->terminal->m_device->Lock();
+	int status = dpvt->pterm->m_device->Lock();
 
 	/* Check mutex status */
 	if (status != epicsMutexLockOK) {
@@ -171,17 +159,17 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 
 	/* Read terminal ID */
 	uint16_t termid = 0;
-	dpvt->device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
+	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 
 	/* Verify terminal ID */
-	if (termid == 0 || termid != dpvt->terminal->m_terminalId) {
+	if (termid == 0 || termid != dpvt->pterm->m_terminalId) {
 		util::Error("EL20XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
-		dpvt->device->Unlock();
+		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
-	dpvt->device->Unlock();
+	dpvt->pdrv->Unlock();
 	return 0;
 }
 
