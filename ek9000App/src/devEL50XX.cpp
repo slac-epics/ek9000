@@ -103,19 +103,23 @@ static long el50xx_init_record(void* precord) {
 		return 1;
 	}
 
-	dpvt->pdrv->Lock();
+	DeviceLock lock(dpvt->pdrv);
+
+	if (!lock.valid()) {
+		util::Error("EL50XX_init_record(): unable to obtain device lock\n");
+		return 1;
+	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pdrv->VerifyConnection()) {
 		util::Error("EL50XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
 	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	dpvt->pdrv->Unlock();
+	lock.unlock();
 
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		util::Error("EL50XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
@@ -256,19 +260,24 @@ static long el5042_init_record(void* prec) {
 		return 1;
 	}
 
-	dpvt->pdrv->Lock();
+	DeviceLock lock(dpvt->pdrv);
+
+	if (!lock.valid()) {
+		util::Error("EL5042_init_record(): unable to obtain device lock\n");
+		return 1;
+	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pdrv->VerifyConnection()) {
 		util::Error("EL5042_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
 	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	dpvt->pdrv->Unlock();
+	lock.unlock();
+	
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		util::Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
 					termid);

@@ -57,10 +57,10 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 	}
 
 	/* Lock & verify mutex */
-	int status = dpvt->pdrv->Lock();
+	DeviceLock lock(dpvt->pdrv);
 
-	if (status) {
-		DevError("EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
+	if (!lock.valid()) {
+		DevError("EL20XX_WriteCallback(): failed to obtain device lock\n");
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		pRecord->pact = FALSE;
 		return;
@@ -86,9 +86,9 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 	/* Write to buffer */
 	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and
 	 * inputStart is 1-based **/
-	status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, addr, buf, length);
+	int status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, addr, buf, length);
 
-	dpvt->pdrv->Unlock();
+	lock.unlock();
 
 	/* check for errors... */
 	if (status) {
@@ -149,11 +149,11 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 	}
 
 	/* Lock mutex for modbus */
-	int status = dpvt->pterm->m_device->Lock();
+	DeviceLock lock(dpvt->pdrv);
 
 	/* Check mutex status */
-	if (status != epicsMutexLockOK) {
-		util::Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
+	if (!lock.valid()) {
+		util::Error("EL20XX_init_record(): unable to obtain device lock\n");
 		return 1;
 	}
 
@@ -165,11 +165,8 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 	if (termid == 0 || termid != dpvt->pterm->m_terminalId) {
 		util::Error("EL20XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
-		dpvt->pdrv->Unlock();
 		return 1;
 	}
-
-	dpvt->pdrv->Unlock();
 	return 0;
 }
 

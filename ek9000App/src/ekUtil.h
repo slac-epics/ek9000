@@ -21,6 +21,7 @@
 #include <epicsMutex.h>
 #include <epicsAtomic.h>
 #include <mbboDirectRecord.h>
+#include <asynDriver.h>
 
 /* STL includes */
 #include <string>
@@ -57,20 +58,10 @@ typedef struct {
 	uint16_t m_inputSize;
 } terminal_info_t;
 
-template <class MutexT> class CAutoLockWrapper {
-	MutexT* m_mutex;
+#define AUTO_LOCK(x) AutoLockWrapper<epicsMutex> __auto_lock(x)
 
-public:
-	explicit CAutoLockWrapper(MutexT* mutex) : m_mutex(mutex) {
-		m_mutex->lock();
-	}
-
-	~CAutoLockWrapper() {
-		m_mutex->unlock();
-	}
-};
-
-#define AUTO_LOCK(x) CAutoLockWrapper<epicsMutex> __auto_lock(x)
+// Release the lock early instead of waiting until destruction
+#define AUTO_UNLOCK(x) __auto_lock.unlock()
 
 typedef std::vector<std::pair<std::string, std::string>> LinkSpec_t;
 
