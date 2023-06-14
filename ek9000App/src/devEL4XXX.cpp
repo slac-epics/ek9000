@@ -100,7 +100,12 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	}
 
 	/* Lock the mutex */
-	dpvt->pterm->m_device->Lock();
+	DeviceLock lock(dpvt->pdrv);
+
+	if (!lock.valid()) {
+		DevError("EL40XX_WriteCallback(): unable to obtain device lock\n");
+		return;
+	}
 
 	/* Set buffer & do write */
 	uint16_t buf = (int16_t)pRecord->rval;
@@ -108,7 +113,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 											dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
 
 	/* Unlock mutex */
-	dpvt->pterm->m_device->Unlock();
+	lock.unlock();
 
 	pRecord->udf = FALSE;
 
@@ -155,10 +160,11 @@ static long EL40XX_init_record(void* record) {
 	}
 
 	/* Lock mutex for IO */
-	int status = dpvt->pterm->m_device->Lock();
+	DeviceLock lock(dpvt->pdrv);
+	
 	/* Verify it's error free */
-	if (status) {
-		util::Error("EL40XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
+	if (!lock.valid()) {
+		util::Error("EL40XX_init_record(): unable to obtain device lock\n");
 		return 1;
 	}
 
@@ -166,7 +172,7 @@ static long EL40XX_init_record(void* record) {
 	uint16_t termid = 0;
 	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 
-	dpvt->pdrv->Unlock();
+	lock.unlock();
 
 	/* Verify terminal ID */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {

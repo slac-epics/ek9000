@@ -103,8 +103,8 @@ void PollThreadFunc(void*) {
 		// for (auto device : GlobalDeviceList()) {
 		for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 			devEK9000* device = *it;
-			int status = device->Lock();
-			if (status)
+			DeviceLock lock(device);
+			if (!lock.valid())
 				continue;
 			if (!cnt) {
 				/* check connection every other loop */
@@ -133,7 +133,7 @@ void PollThreadFunc(void*) {
 																	   device->m_analog_buf, device->m_analog_cnt);
 				scanIoRequest(device->m_analog_io);
 			}
-			device->Unlock();
+			lock.unlock();
 		}
 		cnt = (cnt + 1) % 2;
 		gettimeofday(&finish, NULL);
@@ -254,7 +254,8 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, int l
 	if (!this->m_device || !this->m_device->m_driver) {
 		return EK_EBADTERM;
 	}
-	int status = this->m_device->Lock();
+	int status = 0;
+	DeviceLock lock(this->m_device);
 	if (type == MODBUS_READ_DISCRETE_INPUTS) { /* digital */
 		if (startaddr < 0 || startaddr + len > this->m_device->m_digital_cnt)
 			status = EK_EBADPARAM + 0x100;
@@ -277,7 +278,6 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, int l
 	}
 	else
 		status = EK_EBADPARAM + 0x100;
-	this->m_device->Unlock();
 	return status;
 }
 
@@ -917,8 +917,9 @@ void ek9000Stat(const iocshArgBuf* args) {
 		return;
 	}
 
-	if (dev->Lock()) {
-		util::Error("ek9000Stat(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
+	DeviceLock lock(dev);
+	if (!lock.valid()) {
+		util::Error("ek9000Stat(): unable to obtain device lock");
 		return;
 	}
 
@@ -966,8 +967,6 @@ void ek9000Stat(const iocshArgBuf* args) {
 		epicsPrintf("\t\tInput Size: %u\n", dev->m_terms[i].m_inputSize);
 		epicsPrintf("\t\tInput Start: %u\n", dev->m_terms[i].m_inputStart);
 	}
-
-	dev->Unlock();
 }
 
 void ek9000EnableDebug(const iocshArgBuf*) {
@@ -1259,7 +1258,7 @@ static long ek9k_confli_read_record(void* prec) {
 	if (!dpvt || !dpvt->param.ek9k)
 		return -1;
 
-	dpvt->param.ek9k->Lock();
+	DeviceLock lock(dpvt->param.ek9k);
 
 	switch (dpvt->param.type) {
 		case ek9k_coe_param_t::COE_TYPE_BOOL:
@@ -1305,8 +1304,6 @@ static long ek9k_confli_read_record(void* prec) {
 		default:
 			break;
 	}
-
-	dpvt->param.ek9k->Unlock();
 	return 0;
 }
 
@@ -1357,7 +1354,7 @@ static long ek9k_conflo_write_record(void* prec) {
 	if (!dpvt || !dpvt->param.ek9k)
 		return -1;
 
-	dpvt->param.ek9k->Lock();
+	DeviceLock lock(dpvt->param.ek9k);
 
 	switch (dpvt->param.type) {
 		case ek9k_coe_param_t::COE_TYPE_BOOL:
@@ -1403,7 +1400,6 @@ static long ek9k_conflo_write_record(void* prec) {
 		util::Error("ek9k_conflo_write_record(): Error writing data to record.\n");
 	}
 
-	dpvt->param.ek9k->Unlock();
 	return 0;
 }
 
@@ -1531,12 +1527,10 @@ static long ek9k_ro_read_record(void* prec) {
 	if (!dev)
 		return -1;
 
-	dev->Lock();
+	DeviceLock lock(dev);
 
 	dev->doEK9000IO(0, dpvt->reg, 1, &buf);
 	precord->val = buf;
-
-	dev->Unlock();
 	return 0;
 }
 
@@ -1589,11 +1583,9 @@ static long ek9k_rw_write_record(void* prec) {
 	if (!dev)
 		return -1;
 
-	dev->Lock();
 
+	DeviceLock lock(dev);
 	dev->doEK9000IO(1, dpvt->reg, 1, &buf);
-
-	dev->Unlock();
 	return 0;
 }
 

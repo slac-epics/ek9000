@@ -61,11 +61,11 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 	type_specific_setup(pRecord, dpvt->pterm->m_inputSize);
 
 	/* Lock mutex for modbus io */
-	int status = dpvt->pdrv->Lock();
+	DeviceLock lock(dpvt->pdrv);
 
 	/* Verify lock OK */
-	if (status != epicsMutexLockOK) {
-		util::Error("EL10XX_init_record(): %s\n", devEK9000::ErrorToString(status));
+	if (!lock.valid()) {
+		util::Error("EL10XX_init_record(): failed to obtain device lock\n");
 		return 1;
 	}
 
@@ -73,7 +73,7 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 	uint16_t termid = 0;
 	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 
-	dpvt->pdrv->Unlock();
+	lock.unlock();
 
 	pRecord->udf = FALSE;
 

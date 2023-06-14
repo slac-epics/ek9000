@@ -91,17 +91,17 @@ std::list<devEK9000*>& GlobalDeviceList();
 #define TERMINAL_FAMILY_ANALOG 0x1
 #define TERMINAL_FAMILY_DIGITAL 0x2
 
-#define DevInfo(fmt, ...)                                                                                              \
+#define DevInfo(...)                                                                                              \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		util::Log(fmt, __VA_ARGS__);                                                                                   \
+		util::Log(__VA_ARGS__);                                                                                   \
 	}
-#define DevWarn(fmt, ...)                                                                                              \
+#define DevWarn(...)                                                                                              \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		util::Warn(fmt, __VA_ARGS__);                                                                                  \
+		util::Warn(__VA_ARGS__);                                                                                  \
 	}
-#define DevError(fmt, ...)                                                                                             \
+#define DevError(...)                                                                                             \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		util::Error(fmt, __VA_ARGS__);                                                                                 \
+		util::Error(__VA_ARGS__);                                                                                 \
 	}
 
 
@@ -219,6 +219,10 @@ public:
 	/* Called to set proper image start addresses and such */
 	int InitTerminals();
 
+private:
+
+	friend class DeviceLock;
+
 	/* Grab mutex */
 	int Lock();
 	/* Unlock it */
@@ -328,5 +332,31 @@ public:
 	/* Needed for the list impl */
 	bool operator==(const devEK9000& other) const {
 		return (strcmp(this->m_name.data(), other.m_name.data()) == 0);
+	}
+};
+
+class DeviceLock FINAL {
+	devEK9000& m_mutex;
+	bool m_unlocked;
+	int m_status;
+public:
+	DeviceLock() = delete;
+	explicit DeviceLock(devEK9000* mutex) :
+		m_mutex(*mutex), m_unlocked(false) {
+		m_status = m_mutex.Lock();
+	}
+
+	~DeviceLock() {
+		if (!m_unlocked)
+			m_mutex.Unlock();
+	}
+	
+	inline int status() const { return m_status; }
+	inline bool valid() const { return m_status == asynSuccess; }
+	
+	inline void unlock() {
+		if (!m_unlocked)
+			m_mutex.Unlock();
+		m_unlocked = true;
 	}
 };

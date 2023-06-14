@@ -138,19 +138,23 @@ static long EL30XX_init_record(void* precord) {
 		return 1;
 	}
 
-	dpvt->pdrv->Lock();
+	DeviceLock lock(dpvt->pdrv);
+
+	if (!lock.valid()) {
+		util::Error("EL30XX_init_record(): unable to obtain device lock\n");
+		return 1;
+	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pterm->m_device->VerifyConnection()) {
 		util::Error("EL30XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
 	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	dpvt->pdrv->Unlock();
+	lock.unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
@@ -282,19 +286,23 @@ static long EL36XX_init_record(void* precord) {
 		return 1;
 	}
 
-	dpvt->pdrv->Lock();
+	DeviceLock lock(dpvt->pdrv);
+
+	if (!lock.valid()) {
+		util::Error("EL36XX_init_record(): failed to obtain device lock");
+		return 1;
+	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pterm->m_device->VerifyConnection()) {
 		util::Error("EL36XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
 	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	dpvt->pdrv->Unlock();
+	lock.unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
@@ -443,19 +451,18 @@ static long EL331X_init_record(void* precord) {
 		return 1;
 	}
 
-	dpvt->pdrv->Lock();
+	DeviceLock lock(dpvt->pdrv);
 
 	/* Check connection to terminal */
 	if (!dpvt->pterm->m_device->VerifyConnection()) {
 		util::Error("EL331X_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		dpvt->pdrv->Unlock();
 		return 1;
 	}
 
 	/* Check that slave # is OK */
 	uint16_t termid = 0;
 	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	dpvt->pdrv->Unlock();
+	lock.unlock();
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
