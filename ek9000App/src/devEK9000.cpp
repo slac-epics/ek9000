@@ -1033,6 +1033,7 @@ void ek9000SetPollTime(const iocshArgBuf* args) {
 }
 
 int ek9000RegisterFunctions() {
+
 	/* ek9000SetWatchdogTime(ek9k, time[int]) */
 	{
 		static const iocshArg arg1 = {"Name", iocshArgString};

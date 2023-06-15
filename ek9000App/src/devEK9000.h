@@ -340,7 +340,8 @@ class DeviceLock FINAL {
 	bool m_unlocked;
 	int m_status;
 public:
-	DeviceLock() = delete;
+	DELETE_CTOR(DeviceLock);
+	
 	explicit DeviceLock(devEK9000* mutex) :
 		m_mutex(*mutex), m_unlocked(false) {
 		m_status = m_mutex.Lock();
