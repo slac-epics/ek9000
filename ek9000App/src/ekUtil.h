@@ -28,7 +28,10 @@
 #include <list>
 #include <vector>
 #include <cstring>
+
+#if __cplusplus >= 201103L
 #include <type_traits>
+#endif
 
 #include "terminal.h"
 
@@ -38,11 +41,13 @@
 #define OVERRIDE override
 #define FINAL final
 #define MAYBE_UNUSED [[maybe_unused]]
+#define DELETE_CTOR(x) x() = delete		/* Sucks! Mainly to prevent misuse of classes, if you need a deleted ctor for other reasons, just make it private. */
 #else
 #define CONSTEXPR static const
 #define OVERRIDE
 #define FINAL
 #define MAYBE_UNUSED
+#define DELETE_CTOR(x)
 #endif
 
 #undef UNUSED
@@ -63,7 +68,7 @@ typedef struct {
 // Release the lock early instead of waiting until destruction
 #define AUTO_UNLOCK(x) __auto_lock.unlock()
 
-typedef std::vector<std::pair<std::string, std::string>> LinkSpec_t;
+typedef std::vector< std::pair<std::string, std::string> > LinkSpec_t;
 
 struct TerminalDpvt_t {
 	class devEK9000* pdrv;			// Pointer to the coupler itself
