@@ -60,7 +60,7 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 	DeviceLock lock(dpvt->pdrv);
 
 	if (!lock.valid()) {
-		DevError("EL20XX_WriteCallback(): failed to obtain device lock\n");
+		LOG_ERROR("failed to obtain device lock\n");
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		pRecord->pact = FALSE;
 		return;
@@ -136,7 +136,7 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 
 	/* Grab terminal info */
 	if (!util::setupCommonDpvt<RecordT>(pRecord, *dpvt)) {
-		util::Error("EL20XX_init_record(): Unable to setup dpvt for %s\n", pRecord->name);
+		LOG_ERROR("Unable to setup dpvt for %s\n", pRecord->name);
 		return 1;
 	}
 
@@ -144,7 +144,7 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 
 	/* Verify the connection */
 	if (!dpvt->pdrv->VerifyConnection()) {
-		util::Error("EL20XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		LOG_ERROR("%s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
@@ -153,7 +153,7 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 
 	/* Check mutex status */
 	if (!lock.valid()) {
-		util::Error("EL20XX_init_record(): unable to obtain device lock\n");
+		LOG_ERROR("unable to obtain device lock\n");
 		return 1;
 	}
 
@@ -163,7 +163,7 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 
 	/* Verify terminal ID */
 	if (termid == 0 || termid != dpvt->pterm->m_terminalId) {
-		util::Error("EL20XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+		LOG_ERROR("%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
 	}

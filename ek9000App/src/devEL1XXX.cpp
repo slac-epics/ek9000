@@ -54,7 +54,7 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 	/* Get terminal */
 	const bool mbbi = util::is_same<RecordT, mbbiDirectRecord>::value;
 	if (!util::setupCommonDpvt<RecordT>(pRecord, *dpvt)) {
-		util::Error("EL10XX_init_record(): Unable to setup dpvt for record %s\n", pRecord->name);
+		LOG_ERROR("Unable to setup dpvt for record %s\n", pRecord->name);
 		return 1;
 	}
 
@@ -65,7 +65,7 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 
 	/* Verify lock OK */
 	if (!lock.valid()) {
-		util::Error("EL10XX_init_record(): failed to obtain device lock\n");
+		LOG_ERROR("failed to obtain device lock\n");
 		return 1;
 	}
 
@@ -79,8 +79,7 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 
 	/* Invalid term id */
 	if (termid == 0 || termid != dpvt->pterm->m_terminalId) {
-		util::Error("EL10XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
-					termid);
+		LOG_ERROR("%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 	return 0;

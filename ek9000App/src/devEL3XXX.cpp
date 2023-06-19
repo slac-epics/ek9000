@@ -452,6 +452,11 @@ static long EL331X_init_record(void* precord) {
 	}
 
 	DeviceLock lock(dpvt->pdrv);
+	
+	if (!lock.valid()) {
+		util::Error("EL331X_init_record(): unable to obtain device lock.\n");
+		return 1;
+	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pterm->m_device->VerifyConnection()) {
@@ -490,9 +495,6 @@ static long EL331X_read_record(void* prec) {
 
 	uint16_t buf[2];
 	EL331XInputPDO_t* pdo = NULL;
-	/*static_assert(sizeof(EL331XInputPDO_t) <= sizeof(buf),
-				  "SEL331XInput is greater than 2 registers in size! Contact the author regarding this error.");
-		*/
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Check for invalid */
