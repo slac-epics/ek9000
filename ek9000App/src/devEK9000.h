@@ -88,8 +88,10 @@ class devEK9000Terminal;
 
 std::list<devEK9000*>& GlobalDeviceList();
 
-#define TERMINAL_FAMILY_ANALOG 0x1
-#define TERMINAL_FAMILY_DIGITAL 0x2
+enum {
+	TERMINAL_FAMILY_ANALOG = 0x1,
+	TERMINAL_FAMILY_DIGITAL = 0x2
+};
 
 #define DevInfo(...)                                                                                              \
 	if (devEK9000::debugEnabled) {                                                                                     \
@@ -153,7 +155,7 @@ public:
 //==========================================================//
 
 /* This holds various useful info about each ek9000 coupler */
-class devEK9000 {
+class devEK9000 : public drvModbusAsyn {
 private:
 	friend class CDeviceMgr;
 	friend class CTerminal;
@@ -162,15 +164,16 @@ private:
 	epicsMutexId m_Mutex;
 
 public:
+	DELETE_CTOR(devEK9000());
+	devEK9000(const char *portName, const char *octetPortName, int termCount);
+	~devEK9000();
+
 	/* List of attached terminals */
 	/* TODO: Redefine terminal struct */
 	devEK9000Terminal* m_terms;
 
 	/* Number of attached terminals */
 	int m_numTerms;
-
-	/* The driver */
-	drvModbusAsyn* m_driver;
 
 	std::string m_name;
 	std::string m_portName;
@@ -199,12 +202,6 @@ public:
 	uint16_t m_digital_cnt;
 
 public:
-	devEK9000();
-
-	/* Make  sure to free everything */
-	~devEK9000();
-
-public:
 	static devEK9000* FindDevice(const char* name);
 
 public:
@@ -218,15 +215,6 @@ public:
 
 	/* Called to set proper image start addresses and such */
 	int InitTerminals();
-
-private:
-
-	friend class DeviceLock;
-
-	/* Grab mutex */
-	int Lock();
-	/* Unlock it */
-	void Unlock();
 
 public:
 	/* Error handling functions */
@@ -340,16 +328,16 @@ class DeviceLock FINAL {
 	bool m_unlocked;
 	int m_status;
 public:
-	DELETE_CTOR(DeviceLock);
+	DELETE_CTOR(DeviceLock());
 	
 	explicit DeviceLock(devEK9000* mutex) :
 		m_mutex(*mutex), m_unlocked(false) {
-		m_status = m_mutex.Lock();
+		m_status = m_mutex.lock();
 	}
 
 	~DeviceLock() {
 		if (!m_unlocked)
-			m_mutex.Unlock();
+			m_mutex.unlock();
 	}
 	
 	inline int status() const { return m_status; }
@@ -357,7 +345,7 @@ public:
 	
 	inline void unlock() {
 		if (!m_unlocked)
-			m_mutex.Unlock();
+			m_mutex.unlock();
 		m_unlocked = true;
 	}
 };

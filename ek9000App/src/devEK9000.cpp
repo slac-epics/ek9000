@@ -118,18 +118,18 @@ void PollThreadFunc(void*) {
 					device->m_connected = true;
 				}
 				uint16_t buf = 1;
-				if (device->m_driver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1)) {
+				if (device->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1)) {
 					util::Error("%s: FAILED TO RESET WATCHDOG!\n", device->m_name.data());
 				}
 			}
 			/* read EL1xxx/EL3xxx/EL5xxx data */
 			if (device->m_digital_cnt) {
-				device->m_digital_status = device->m_driver->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0,
+				device->m_digital_status = device->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0,
 																		device->m_digital_buf, device->m_digital_cnt);
 				scanIoRequest(device->m_digital_io);
 			}
 			if (device->m_analog_cnt) {
-				device->m_analog_status = device->m_driver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0,
+				device->m_analog_status = device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0,
 																	   device->m_analog_buf, device->m_analog_cnt);
 				scanIoRequest(device->m_analog_io);
 			}
@@ -240,10 +240,10 @@ void devEK9000Terminal::GetTerminalInfo(int termid, int& inp_size, int& out_size
 }
 
 int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, int len) {
-	if (!this->m_device || !this->m_device->m_driver) {
+	if (!this->m_device) {
 		return EK_EBADTERM;
 	}
-	int status = this->m_device->m_driver->doModbusIO(0, type, startaddr, buf, len);
+	int status = this->m_device->doModbusIO(0, type, startaddr, buf, len);
 	if (status) {
 		return (status + 0x100);
 	}
@@ -251,7 +251,7 @@ int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, int le
 }
 
 int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, int len) {
-	if (!this->m_device || !this->m_device->m_driver) {
+	if (!this->m_device) {
 		return EK_EBADTERM;
 	}
 	int status = 0;
@@ -286,22 +286,19 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, int l
 //		Holds useful vars for interacting with EK9000/EL****
 //		hardware
 //==========================================================//
-devEK9000::devEK9000() {
+devEK9000::devEK9000(const char *portName, const char *octetPortName, int termCount) :
+	drvModbusAsyn(portName, octetPortName, 0, 2, -1, 256, dataTypeUInt16, 150, "") {
 	/* Initialize members*/
-	m_terms = NULL;
+	m_terms = new devEK9000Terminal[termCount];
 	m_numTerms = 0;
-	m_driver = NULL;
 	m_connected = false;
 	m_init = false;
 	m_debug = false;
 	m_error = EK_EOK;
 	LastADSErr = 0;
+	m_name = portName;
+	m_portName = octetPortName;
 
-	/* Lets make sure there are no nullptr issues */
-	m_name = (char*)malloc(1);
-	m_name[0] = '\0';
-	m_portName = (char*)malloc(1);
-	m_portName[0] = '\0';
 	this->m_Mutex = epicsMutexCreate();
 	m_analog_status = EK_EERR + 0x100; /* No data yet!! */
 	m_digital_status = EK_EERR + 0x100;
@@ -327,29 +324,17 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	if (terminal_count < 0 || !name || !ip)
 		return NULL;
 
-	devEK9000* pek = new devEK9000();
-	pek->m_numTerms = terminal_count;
+	std::string portName = PORT_PREFIX;
+	portName.append(name);
 
-	/* Allocate space for terminals */
-	pek->m_terms = new devEK9000Terminal[terminal_count];
-
-	/* Copy name */
-	pek->m_name = strdup(name);
-
-	pek->m_portName = PORT_PREFIX;
-	pek->m_portName.append(name);
-
-	/* Copy IP */
-	pek->m_ip = ip;
-
-	int status = drvAsynIPPortConfigure(pek->m_portName.data(), ip, 0, 0, 0);
+	int status = drvAsynIPPortConfigure(portName.data(), ip, 0, 0, 0);
 
 	if (status) {
 		util::Error("devEK9000::Create(): Unable to configure drvAsynIPPort.");
 		return NULL;
 	}
 
-	status = modbusInterposeConfig(pek->m_portName.data(), modbusLinkTCP, 5000, 0);
+	status = modbusInterposeConfig(portName.data(), modbusLinkTCP, 5000, 0);
 
 	if (status) {
 		util::Error("devEK9000::Create(): Unable to configure modbus driver.");
@@ -358,7 +343,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 
 	/* check connection */
 	asynUser* usr = pasynManager->createAsynUser(NULL, NULL);
-	pasynManager->connectDevice(usr, pek->m_portName.data(), 0);
+	pasynManager->connectDevice(usr, portName.data(), 0);
 	int conn = 0;
 	pasynManager->isConnected(usr, &conn);
 	pasynManager->disconnect(usr);
@@ -369,12 +354,18 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 		return NULL;
 	}
 
-	pek->m_driver =
-		new drvModbusAsyn(pek->m_name.data(), pek->m_portName.data(), 0, 2, -1, 256, dataTypeUInt16, 150, "");
+	devEK9000* pek = new devEK9000(name, portName.c_str(), terminal_count);
+	pek->m_numTerms = terminal_count;
+
+	/* Allocate space for terminals */
+	pek->m_terms = new devEK9000Terminal[terminal_count];
+
+	/* Copy IP */
+	pek->m_ip = ip;
 
 	/* wdt =  */
 	uint16_t buf = 1;
-	pek->m_driver->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
+	pek->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
 
 	GlobalDeviceList().push_back(pek);
 	return pek;
@@ -391,14 +382,6 @@ int devEK9000::AddTerminal(const char* name, uint32_t type, int position) {
 		return EK_EOK;
 	}
 	return EK_EERR;
-}
-
-int devEK9000::Lock() {
-	return this->m_driver->lock();
-}
-
-void devEK9000::Unlock() {
-	this->m_driver->unlock();
 }
 
 /* Verifies that terminals have the correct ID */
@@ -513,9 +496,9 @@ int devEK9000::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint
 		};
 
 		memcpy(tmp_data + 6, data, len * sizeof(uint16_t));
-		this->m_driver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, len + 7);
+		this->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, len + 7);
 		if (!this->Poll(0.005, TIMEOUT_COUNT)) {
-			this->m_driver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, tmp_data, 6);
+			this->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1400, tmp_data, 6);
 			/* Write tmp data */
 			if ((tmp_data[0] & 0x400) != 0x400) {
 				LastADSErr = tmp_data[5];
@@ -538,12 +521,12 @@ int devEK9000::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint
 		};
 
 		/* tell it what to do */
-		this->m_driver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, 9);
+		this->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1400, tmp_data, 9);
 
 		/* poll */
 		if (this->Poll(0.005, TIMEOUT_COUNT)) {
 			uint16_t dat = 0;
-			this->m_driver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1405, &dat, 1);
+			this->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1405, &dat, 1);
 			if (dat != 0) {
 				data[0] = dat;
 				return EK_EADSERR;
@@ -552,7 +535,7 @@ int devEK9000::doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint
 		}
 		epicsThreadSleep(0.05);
 		/* read result */
-		int res = this->m_driver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1406, data, len);
+		int res = this->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x1406, data, len);
 		if (res)
 			return EK_EERR;
 		return EK_EOK;
@@ -563,7 +546,7 @@ int devEK9000::doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t* data) {
 	int status = 0;
 	/* write */
 	if (rw) {
-		status = this->m_driver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, addr, data, len);
+		status = this->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, addr, data, len);
 		if (status) {
 			return status + 0x100;
 		}
@@ -571,7 +554,7 @@ int devEK9000::doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t* data) {
 	}
 	/* read */
 	else {
-		status = this->m_driver->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, addr, data, len);
+		status = this->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, addr, data, len);
 		if (status) {
 			return status + 0x100;
 		}
@@ -722,7 +705,7 @@ int devEK9000::WriteWatchdogTime(uint16_t time) {
 int devEK9000::WriteWatchdogReset() {
 	uint16_t data = 1;
 	// return this->doEK9000IO(1, 0, 1, 0x1121, &data);
-	this->m_driver->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1121, &data, 1);
+	this->doModbusIO(0, MODBUS_WRITE_MULTIPLE_REGISTERS, 0x1121, &data, 1);
 	return EK_EOK;
 }
 
@@ -744,7 +727,7 @@ int devEK9000::WriteWritelockMode(uint16_t mode) {
 /* Read terminal ID */
 int devEK9000::ReadTerminalID(uint16_t termid, uint16_t& out) {
 	uint16_t tmp = 0;
-	this->m_driver->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0x6000 + (termid), &tmp, 1);
+	this->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0x6000 + (termid), &tmp, 1);
 	if (tmp == 0)
 		return EK_ENOCONN;
 	out = tmp;
@@ -753,11 +736,11 @@ int devEK9000::ReadTerminalID(uint16_t termid, uint16_t& out) {
 
 int devEK9000::Poll(float duration, int timeout) {
 	uint16_t dat = 0;
-	this->m_driver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
+	this->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
 	while ((dat | 0x200) == 0x200 && timeout > 0) {
 		epicsThreadSleep(duration);
 		timeout--;
-		this->m_driver->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
+		this->doModbusIO(EK9000_SLAVE_ID, MODBUS_READ_HOLDING_REGISTERS, 0x1400, &dat, 1);
 	}
 
 	return timeout <= 0 ? 1 : 0;
@@ -899,7 +882,7 @@ void ek9000ConfigureTerminal(const iocshArgBuf* args) {
 	int status = dev->AddTerminal(name, tid, id);
 
 	if (status) {
-		util::Error("ek9000ConfigureTerminal(): Failed to create terminal.");
+		epicsPrintf("ek9000ConfigureTerminal(): Failed to create terminal.");
 		return;
 	}
 }
