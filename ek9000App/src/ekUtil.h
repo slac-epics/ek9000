@@ -22,6 +22,7 @@
 #include <epicsAtomic.h>
 #include <mbboDirectRecord.h>
 #include <asynDriver.h>
+#include <compilerSpecific.h>
 
 /* STL includes */
 #include <string>
@@ -35,13 +36,14 @@
 
 #include "terminal.h"
 
-// C++11 interop - mainly utils for catching problems in code
+// C++11 interop - these are utils for catching problems in code. Anything from C++11 or newer that affects compilation (e.g. concepts/constraints for template overload resolution) 
+// are forbidden in this codebase. Hopefully one day we'll be able to upgrade to C++11, or even C++14!
 #if __cplusplus >= 201103L
 #define CONSTEXPR constexpr
 #define OVERRIDE override
 #define FINAL final
 #define MAYBE_UNUSED [[maybe_unused]]
-#define DELETE_CTOR(x) x() = delete		/* Sucks! Mainly to prevent misuse of classes, if you need a deleted ctor for other reasons, just make it private. */
+#define DELETE_CTOR(x) x = delete		/* Sucks! Mainly to prevent misuse of classes, if you need a deleted ctor for other reasons, just make it private. */
 #else
 #define CONSTEXPR static const
 #define OVERRIDE
@@ -62,11 +64,6 @@ typedef struct {
 	uint16_t m_outputSize;
 	uint16_t m_inputSize;
 } terminal_info_t;
-
-#define AUTO_LOCK(x) AutoLockWrapper<epicsMutex> __auto_lock(x)
-
-// Release the lock early instead of waiting until destruction
-#define AUTO_UNLOCK(x) __auto_lock.unlock()
 
 typedef std::vector< std::pair<std::string, std::string> > LinkSpec_t;
 
@@ -104,9 +101,45 @@ template <class T, size_t N> size_t ArraySize(T (&arr)[N]) {
 	return N;
 }
 
+namespace util {
+
+/**
+ * Simple format string 
+ * TODO: When we upgrade to C++11, make this templated with a constant for string length
+ */
+class FmtStr {
+public:
+	DELETE_CTOR(FmtStr());
+	FmtStr(const char* fmt, ...) EPICS_PRINTF_STYLE(2,3) {
+		va_list va;
+		va_start(va, fmt);
+		vsnprintf(str_, sizeof(str_), fmt, va);
+		va_end(va);
+	}
+
+	const char* c_str() const { return str_; }
+	operator const char*() const { return str_; }
+
+private:
+	char str_[2048];
+};
+
+}
+
+/**
+ * Logging helpers
+ */
+#define LOG_ERROR(...) util::Error("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str())
+#define LOG_WARNING(...) util::Warn("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str())
+#define LOG_INFO(...) util::Log("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str())
+
+
 namespace util
 {
 
+/**
+ * C++03 doesn't have is_same, so implement that ourselves
+ */
 #if __cplusplus >= 201103L
 using std::is_same;
 #else
