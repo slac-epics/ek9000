@@ -223,20 +223,20 @@ bool setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t& dpvt)
  */
 template <RECORD_TYPE RecordT>
 inline bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
-	return setupCommonDpvt(prec->name, prec->inp.text, dpvt);
+	return setupCommonDpvt(prec->name, prec->inp.value.instio.string, dpvt);
 }
 
 template<>
 inline bool setupCommonDpvt<boRecord>(boRecord* prec, TerminalDpvt_t& dpvt) {
-	return setupCommonDpvt(prec->name, prec->out.text, dpvt);
+	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
 }
 template<>
 inline bool setupCommonDpvt<mbboDirectRecord>(mbboDirectRecord* prec, TerminalDpvt_t& dpvt) {
-	return setupCommonDpvt(prec->name, prec->out.text, dpvt);
+	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
 }
 template<>
 inline bool setupCommonDpvt<aoRecord>(aoRecord* prec, TerminalDpvt_t& dpvt) {
-	return setupCommonDpvt(prec->name, prec->out.text, dpvt);
+	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
 }
 
 

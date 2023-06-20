@@ -21,6 +21,7 @@ parser.add_argument('--ip', type=str, required=True, help='IP address and port t
 parser.add_argument('--out', type=str, default='st.cmd', help='File to output to')
 parser.add_argument('--terminals', type=str, help='Comma separated list of terminals')
 parser.add_argument('--port', type=int, default=502, help='Port to use')
+parser.add_argument('--legacy', action='store_true', help='Generate a legacy rail configuration')
 args = parser.parse_args()
 
 os.chdir(os.path.dirname(__file__))
@@ -54,15 +55,16 @@ with open('st.tpl', 'r') as fp:
 	data = fp.read()
 
 data = data.replace('$ARCH$', arch).replace('$IP$', args.ip).replace('$NUM_TERMS$', str(len(terms))).replace('$PORT$', str(args.port))
-	
+
 conf = ''
-for index, term in enumerate(terms, start=1):
-	conf += f'ek9000ConfigureTerminal("EK9K1", "t{index}", "{term}", {index})\n'
+if args.legacy:
+    for index, term in enumerate(terms, start=1):
+    	conf += f'ek9000ConfigureTerminal("EK9K1", "t{index}", "{term}", {index})\n'
 data = data.replace('$CONFIGURE$', conf)
 
 rec = ''
 for index, term in enumerate(terms, start=1):
-	rec += f'dbLoadRecords("../../db/{term}.template", "TERMINAL=t{index}")\n'
+	rec += f'dbLoadRecords("../../db/{term}.template", "TERMINAL=t{index},DEVICE=EK9K1,POS={index}")\n'
 data = data.replace('$RECORDS$', rec)
 
 with open(args.out, 'w') as outfp:

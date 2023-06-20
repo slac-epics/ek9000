@@ -148,13 +148,13 @@ void PollThreadFunc(void*) {
 //		Holds important info about the terminals
 //==========================================================//
 
-devEK9000Terminal::devEK9000Terminal() {
+devEK9000Terminal::devEK9000Terminal(devEK9000* device) {
 	/* Terminal family */
 	m_terminalFamily = 0;
 	/* Zero-based index of the terminal */
 	m_terminalIndex = 0;
 	/* the device */
-	m_device = NULL;
+	m_device = device;
 	/* Terminal id, aka the 1124 in EL1124 */
 	m_terminalId = 0;
 	/* Size of inputs */
@@ -167,28 +167,22 @@ devEK9000Terminal::devEK9000Terminal() {
 	m_outputStart = 0;
 }
 
-devEK9000Terminal* devEK9000Terminal::Create(devEK9000* device, uint32_t termid, int termindex,
-											 const char* recordname) {
-	devEK9000Terminal* term = new devEK9000Terminal();
-	term->m_device = device;
+void devEK9000Terminal::Init(uint32_t termid, int termindex) {
 	int outp = 0, inp = 0;
 
 	/* Create IO areas and set things like record name */
-	term->m_recordName = strdup(recordname);
-	term->m_terminalIndex = termindex;
-	term->m_terminalId = termid;
+	this->m_terminalIndex = termindex;
+	this->m_terminalId = termid;
 
 	if (termid >= 1000 && termid < 3000)
-		term->m_terminalFamily = TERMINAL_FAMILY_DIGITAL;
+		this->m_terminalFamily = TERMINAL_FAMILY_DIGITAL;
 	else if (termid >= 3000 && termid < 8000)
-		term->m_terminalFamily = TERMINAL_FAMILY_ANALOG;
+		this->m_terminalFamily = TERMINAL_FAMILY_ANALOG;
 
 	/* Get the process image size for this terminal */
 	devEK9000Terminal::GetTerminalInfo((int)termid, inp, outp);
-	term->m_inputSize = inp;
-	term->m_outputSize = outp;
-
-	return term;
+	this->m_inputSize = inp;
+	this->m_outputSize = outp;
 }
 
 // If multi is true, we do not expect a channel selector at the end of the record name
@@ -286,11 +280,16 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, int l
 //		Holds useful vars for interacting with EK9000/EL****
 //		hardware
 //==========================================================//
-devEK9000::devEK9000(const char *portName, const char *octetPortName, int termCount) :
+devEK9000::devEK9000(const char *portName, const char *octetPortName, int termCount, const char* ip) :
 	drvModbusAsyn(portName, octetPortName, 0, 2, -1, 256, dataTypeUInt16, 150, "") {
-	/* Initialize members*/
-	m_terms = new devEK9000Terminal[termCount];
-	m_numTerms = 0;
+
+	/* Initialize members */
+	m_terms = static_cast<devEK9000Terminal*>(malloc(sizeof(devEK9000Terminal) * termCount));
+	for (int i = 0; i < termCount; i++)
+		new (&m_terms[i]) devEK9000Terminal(this);
+
+	m_numTerms = termCount;
+	m_ip = ip;
 	m_connected = false;
 	m_init = false;
 	m_debug = false;
@@ -306,7 +305,7 @@ devEK9000::devEK9000(const char *portName, const char *octetPortName, int termCo
 
 devEK9000::~devEK9000() {
 	epicsMutexDestroy(this->m_Mutex);
-	delete[] m_terms;
+	free(m_terms);
 }
 
 devEK9000* devEK9000::FindDevice(const char* name) {
@@ -354,11 +353,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 		return NULL;
 	}
 
-	devEK9000* pek = new devEK9000(name, portName.c_str(), terminal_count);
-	pek->m_numTerms = terminal_count;
-
-	/* Allocate space for terminals */
-	pek->m_terms = new devEK9000Terminal[terminal_count];
+	devEK9000* pek = new devEK9000(name, portName.c_str(), terminal_count, ip);
 
 	/* Copy IP */
 	pek->m_ip = ip;
@@ -366,6 +361,12 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	/* wdt =  */
 	uint16_t buf = 1;
 	pek->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
+	
+	if (!pek->ComputeTerminalMapping()) {
+		util::Error("devEK9000::Create(): Unable to compute terminal mapping\n", name);
+		delete pek;
+		return NULL;
+	}
 
 	GlobalDeviceList().push_back(pek);
 	return pek;
@@ -375,13 +376,9 @@ int devEK9000::AddTerminal(const char* name, uint32_t type, int position) {
 	if (position > m_numTerms || !name)
 		return EK_EBADPARAM;
 
-	devEK9000Terminal* term = devEK9000Terminal::Create(this, type, position, name);
-
-	if (term) {
-		this->m_terms[position - 1] = *term;
-		return EK_EOK;
-	}
-	return EK_EERR;
+	m_terms[position-1].Init(type, position);
+	m_terms[position-1].SetRecordName(name);
+	return EK_EOK;
 }
 
 /* Verifies that terminals have the correct ID */
@@ -406,12 +403,24 @@ int devEK9000::InitTerminal(int term) {
 /* This will configure process image locations in each terminal */
 /* It will also verify that terminals have the correct type (reads terminal type from the device then yells if its not
 the same as the user specified.) */
-int devEK9000::InitTerminals() {
+bool devEK9000::ComputeTerminalMapping() {
 	if (m_init) {
 		epicsPrintf("devEK9000: Already initialized.\n");
-		return 1;
+		return false;
 	}
 	m_init = true;
+
+	/* Gather a buffer of connected terminals */
+	uint16_t railLayout[0xFF];
+	memset(railLayout, 0, sizeof(railLayout));
+	for (int i = 0; i < 0xFF; i += 64) {
+		if (this->doModbusIO(0, MODBUS_READ_HOLDING_REGISTERS, 0x6001 + i, railLayout + i, 64) != asynSuccess) {
+			epicsPrintf("%s: Failed to read rail layout from the device\n", __FUNCTION__);
+			return false;
+		}
+	}
+	
+	assert(m_numTerms <= ArraySize(railLayout));
 
 	/* Figure out the register map */
 	int coil_in = 1, coil_out = 1;
@@ -422,6 +431,7 @@ int devEK9000::InitTerminals() {
 	/* holding registers can have bit offsets */
 	for (int i = 0; i < this->m_numTerms; i++) {
 		devEK9000Terminal* term = &m_terms[i];
+		term->Init(railLayout[i], i);
 		if (term->m_terminalFamily == TERMINAL_FAMILY_ANALOG) {
 			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
 					reg_in, reg_out, term->m_inputSize, term->m_outputSize);
@@ -453,7 +463,7 @@ int devEK9000::InitTerminals() {
 		m_digital_buf = (uint16_t*)calloc(m_digital_cnt, sizeof(uint16_t));
 	else
 		m_digital_buf = NULL;
-	return EK_EOK;
+	return true;
 }
 
 int devEK9000::VerifyConnection() const {
@@ -565,7 +575,7 @@ int devEK9000::doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t* data) {
 
 /* Read terminal type */
 int devEK9000::ReadTerminalType(uint16_t termid, int& id) {
-	(void)termid;
+	UNUSED(termid);
 	uint16_t dat = 0;
 	this->doEK9000IO(0, 0x6000, 1, &dat);
 	id = dat;
@@ -1153,8 +1163,10 @@ static long ek9000_init(int after) {
 		for (std::list<class devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end();
 			 ++it) {
 			class devEK9000* dev = (*it);
-			if (!dev->m_init)
-				dev->InitTerminals();
+			if (!dev->m_init && !dev->ComputeTerminalMapping()) {
+				epicsPrintf("Unable to compute terminal mapping\n");
+				return 1;
+			}
 		}
 		epicsPrintf("Initialization Complete.\n");
 		Utl_InitThread();
