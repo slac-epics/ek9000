@@ -169,16 +169,22 @@ def write_supported_terminals(terms: dict) -> None:
 
 
 class Terminal():
-    def __init__(self, record: str, num: int, dtyp: str, typ: str, spec: SpecType|None = None):
+    def __init__(self, record: str, num: int, dtyp: str, typ: str, terminal_class: str, spec: SpecType|None = None):
         self.vals = dict()
         self.record = record
         self.num = num
         self.vals['DTYP'] = dtyp
         self.use_postfix = True
         self.spec = spec
+        self.terminal_class = terminal_class
+        self.type = typ
         if typ == 'DigInMulti' or typ == 'DigOutMulti':
             self.num = 1
             self.use_postfix = False
+
+
+    def is_input(self) -> bool:
+        return self.type == 'DigInMulti' or self.type == 'DigIn' or self.type == 'AnalogIn' or self.type == 'PositionMeasurement'
 
 
     # Adds a collection of values to the defaults list
@@ -192,8 +198,10 @@ class Terminal():
         for i in range(self.num):
             postfix = f':{i+1}' if self.use_postfix else ''
             fp.write(f'record({self.record},"$(TERMINAL){postfix}")\n{{\n')
-            for i in self.vals.items():
-                fp.write(f'\tfield({i[0]}, "{i[1]}")\n')
+            for field in self.vals.items():
+                fp.write(f'\tfield({field[0]}, "{field[1]}")\n')
+            link = "INP" if self.is_input() else "OUT"
+            fp.write(f'\tfield({link}, "{self._get_link_str(i+1)}")\n')
             fp.write('}\n\n')
 
 
@@ -233,6 +241,10 @@ class Terminal():
         """
         error = spec['error'] / 100.0 # error is in %, convert that to float
         return spec['max'] * error # Docs specify that error is relative to the full scale value
+
+
+    def _get_link_str(self, channel: int) -> str:
+        return f'@device=$(DEVICE),pos=$(POS),channel={channel},type={self.terminal_class}'
 
 
     def _compute_analog_defaults(self) -> dict:
@@ -356,25 +368,25 @@ def emit_terminal(terminal: dict, fp, type: str, extras: dict):
     tfp = open(template_filename, "w")
     sfp = open(subs_filename, "w")
     if type == "DigIn":
-        t = Terminal('bi', inputs, dtyp, type)
+        t = Terminal('bi', inputs, dtyp, type, name)
         t.set_default_bi()
     elif type == "DigOut":
-        t = Terminal('bo', outputs, dtyp, type)
+        t = Terminal('bo', outputs, dtyp, type, name)
         t.set_default_bo()
     elif type == "AnalogIn":
-        t = Terminal('ai', inputs, dtyp, type, spec)
+        t = Terminal('ai', inputs, dtyp, type, name, spec)
         t.set_default_ai()
     elif type == "AnalogOut":
-        t = Terminal('ao', outputs, dtyp, type, spec)
+        t = Terminal('ao', outputs, dtyp, type, name, spec)
         t.set_default_ao()
     elif type == "PositionMeasurement":
-        t = Terminal('longin', inputs, dtyp, type)
+        t = Terminal('longin', inputs, dtyp, type, name)
         t.set_default_longin()
     elif type == "DigInMulti":
-        t = Terminal('mbbiDirect', inputs, dtyp, type)
+        t = Terminal('mbbiDirect', inputs, dtyp, type, name)
         t.set_default_mbbi()
     elif type == "DigOutMulti":
-        t = Terminal('mbboDirect', outputs, dtyp, type)
+        t = Terminal('mbboDirect', outputs, dtyp, type, name)
         t.set_default_mbbo()
     else:
         raise RuntimeError(f"Unexpected terminal type: {terminal}")

@@ -110,10 +110,9 @@ enum {
 class devEK9000Terminal {
 public:
 	/* Copy constructor */
-	devEK9000Terminal();
-
-	/* device is parent device, termid is 3064 in el3064 */
-	static devEK9000Terminal* Create(devEK9000* device, uint32_t termid, int termindex, const char* record);
+	devEK9000Terminal(devEK9000* device);
+	
+	void Init(uint32_t termid, int termindex);
 
 	/* Process a record name. if outindex is nullptr, we are not expecting a channel selector at the end of the record
 	 * name */
@@ -126,6 +125,8 @@ public:
 
 	/* Same calling convention as above, but use the buffered data! */
 	int getEK9000IO(int type, int startaddr, uint16_t* buf, int len);
+
+	void SetRecordName(const char* rec) { m_recordName = rec; }
 
 public:
 	/* Name of record */
@@ -165,7 +166,7 @@ private:
 
 public:
 	DELETE_CTOR(devEK9000());
-	devEK9000(const char *portName, const char *octetPortName, int termCount);
+	devEK9000(const char *portName, const char *octetPortName, int termCount, const char* ip);
 	~devEK9000();
 
 	/* List of attached terminals */
@@ -214,7 +215,7 @@ public:
 	int InitTerminal(int termindex);
 
 	/* Called to set proper image start addresses and such */
-	int InitTerminals();
+	bool ComputeTerminalMapping();
 
 public:
 	/* Error handling functions */

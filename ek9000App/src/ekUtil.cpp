@@ -128,11 +128,11 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 			}
 		}
 		/* Terminal position in rail (1=first) */
-		else if (strcmp(param.first.c_str(), "terminal") == 0) {
+		else if (strcmp(param.first.c_str(), "pos") == 0) {
 			int term = atoi(param.second.c_str());
 			/* Max supported devices by the EK9K is 255 */
 			if (term < 0 || term > 255) {
-				epicsPrintf("%s (when parsing %s): invalid slave number: %i\n", function, recName, term);
+				epicsPrintf("%s (when parsing %s): invalid rail position: %i\n", function, recName, term);
 				return false;
 			}
 			dpvt.pos = term;
@@ -167,9 +167,14 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 		memset(&dpvt, 0, sizeof(dpvt));
 		return false;
 	}
+
+	// TODO: It is likely that we'll need to recompute the coupler's mapping in here if we ever add
+	//  support for alternative PDO mapping types that affect PDO mapping on the device.
 	
 	/* Resolve terminal */
 	dpvt.pterm = dpvt.pdrv->TerminalByIndex(dpvt.pos);
+	dpvt.pterm->SetRecordName(recName);
+	dpvt.pterm->Init(dpvt.terminalType, dpvt.pos);
 	if (dpvt.pterm == NULL) {
 		epicsPrintf("%s (when parsing %s): unable to find terminal\n", function, recName);
 		memset(&dpvt, 0, sizeof(dpvt));
@@ -191,14 +196,14 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
  */
 
 bool util::ParseLinkSpecification(const char* link, int linkType, LinkSpec_t& outSpec) {
-	if (!link || link[0] != '@' || link[1] == '\0')
+	if (!link || link[0] == '\0')
 		return false;
 
 	switch (linkType) {
 		case INST_IO:
 			{
 				char buf[2048];
-				strncpy(buf, link+1, sizeof(buf));
+				strncpy(buf, link, sizeof(buf));
 				buf[sizeof(buf)-1] = 0;
 				
 				// Tokenize by commas
