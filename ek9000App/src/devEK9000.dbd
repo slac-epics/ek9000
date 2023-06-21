@@ -35,5 +35,5 @@ device(longin, INST_IO, devEL5042, "EL5042")
 
 device(int64in, INST_IO, devEK9KCoERO, "devEK9KCoERO")
 device(int64out, INST_IO, devEK9KCoERW, "devEK9KCoERW")
-device(longin, INST_IO, devEK9000ConfigRO, "devEK9000ConfigRO")
-device(longout, INST_IO, devEK9000ConfigRW, "devEK9000ConfigRW")
+device(longin, INST_IO, devEK9000ConfigRO, "EK9000ConfigRO")
+device(longout, INST_IO, devEK9000ConfigRW, "EK9000ConfigRW")
