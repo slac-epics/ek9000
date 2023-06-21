@@ -1211,8 +1211,8 @@ struct ek9k_conf_pvt_t {
 	ek9k_coe_param_t param;
 };
 
-int CoE_ParseString(const char* str, ek9k_coe_param_t* param);
-int EK9K_ParseString(const char* str, ek9k_param_t* param);
+bool CoE_ParseString(const char* str, ek9k_coe_param_t* param);
+bool EK9K_ParseString(const char* str, ek9k_param_t* param);
 //======================================================//
 
 //-----------------------------------------------------------------//
@@ -1244,7 +1244,7 @@ static long ek9k_confli_init_record(void* prec) {
 	precord->dpvt = calloc(1, sizeof(ek9k_conf_pvt_t));
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 
-	if (CoE_ParseString(precord->inp.value.instio.string, &param)) {
+	if (!CoE_ParseString(precord->inp.value.instio.string, &param)) {
 		epicsPrintf("ek9k_confli_init_record: Malformed input link string for record %s\n", precord->name);
 		return 1;
 	}
@@ -1257,7 +1257,7 @@ static long ek9k_confli_read_record(void* prec) {
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 
 	if (!dpvt || !dpvt->param.ek9k)
-		return -1;
+		return 1;
 
 	DeviceLock lock(dpvt->param.ek9k);
 
@@ -1339,7 +1339,7 @@ static long ek9k_conflo_init_record(void* prec) {
 	precord->dpvt = calloc(1, sizeof(ek9k_conf_pvt_t));
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 
-	if (CoE_ParseString(precord->out.value.instio.string, &param)) {
+	if (!CoE_ParseString(precord->out.value.instio.string, &param)) {
 		epicsPrintf("ek9k_conflo_init_record: Malformed input link string for record %s\n", precord->name);
 		return 1;
 	}
@@ -1353,7 +1353,7 @@ static long ek9k_conflo_write_record(void* prec) {
 	int ret = EK_EOK;
 
 	if (!dpvt || !dpvt->param.ek9k)
-		return -1;
+		return 1;
 
 	DeviceLock lock(dpvt->param.ek9k);
 
@@ -1406,7 +1406,7 @@ static long ek9k_conflo_write_record(void* prec) {
 
 //-----------------------------------------------------------------//
 
-int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
+bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	class devEK9000* pcoupler = 0;
 	devEK9000Terminal* pterm = 0;
 	int termid;
@@ -1415,7 +1415,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	char* buffers[5];
 
 	if (str[0] == 0)
-		return 1;
+		return false;
 
 	memset(buf, 0, sizeof(buf));
 	strncpy(buf, str, sizeof(buf) - 1);
@@ -1443,11 +1443,11 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 
 	if (!pcoupler) {
 		epicsPrintf("Coupler not found.\n");
-		return 1;
+		return false;
 	}
 
 	if (bufcnt < 4)
-		return 1;
+		return false;
 
 	/* Determine the CoE type */
 	if (epicsStrnCaseCmp(buffers[4], "bool", 4) == 0)
@@ -1461,24 +1461,24 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	else if (epicsStrnCaseCmp(buffers[4], "int8", 4) == 0 || epicsStrnCaseCmp(buffers[4], "uint8", 5) == 0)
 		param->type = ek9k_coe_param_t::COE_TYPE_INT8;
 	else
-		return 1;
+		return false;
 
 	termid = atoi(buffers[1]);
 	if (errno != 0)
-		return 1;
+		return false;
 	pterm = pcoupler->m_terms[termid - 1];
 
 	param->pterm = pterm;
 	param->ek9k = pcoupler;
 	param->index = (int)strtol(buffers[2], 0, 16);
 	if (errno != 0)
-		return 1;
+		return false;
 
 	param->subindex = (int)strtol(buffers[3], 0, 16);
 	if (errno != 0)
-		return 1;
+		return false;
 
-	return 0;
+	return true;
 }
 
 //-----------------------------------------------------------------//
@@ -1491,9 +1491,9 @@ struct devEK9000ConfigRO_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
-	DEVSUPFUN init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN init_record;
 	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN write_longout; /*(-1,0)=>(failure,success*/
+	DEVSUPFUN write_longout;
 } devEK9000ConfigRO = {
 	5, NULL, (DEVSUPFUN)ek9k_ro_init, ek9k_ro_init_record, NULL, ek9k_ro_read_record,
 };
@@ -1511,7 +1511,7 @@ static long ek9k_ro_init_record(void* prec) {
 	ek9k_param_t param;
 
 	/* parse the string to obtain various info */
-	if (EK9K_ParseString(precord->inp.value.instio.string, &param)) {
+	if (!EK9K_ParseString(precord->inp.value.instio.string, &param)) {
 		epicsPrintf("Malformed modbus string in record %s\n", precord->name);
 		return 1;
 	}
@@ -1526,7 +1526,7 @@ static long ek9k_ro_read_record(void* prec) {
 	uint16_t buf;
 
 	if (!dev)
-		return -1;
+		return 1;
 
 	DeviceLock lock(dev);
 
@@ -1547,9 +1547,9 @@ struct devEK9000ConfigRW_t {
 	long number;
 	DEVSUPFUN dev_report;
 	DEVSUPFUN init;
-	DEVSUPFUN init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN init_record;
 	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN write_longout; /*(-1,0)=>(failure,success*/
+	DEVSUPFUN write_longout;
 } devEK9000ConfigRW = {
 	5, NULL, (DEVSUPFUN)ek9k_rw_init, ek9k_rw_init_record, NULL, ek9k_rw_write_record,
 };
@@ -1567,12 +1567,23 @@ static long ek9k_rw_init_record(void* prec) {
 	ek9k_param_t param;
 
 	/* parse the string to obtain various info */
-	if (EK9K_ParseString(precord->out.value.instio.string, &param)) {
+	if (!EK9K_ParseString(precord->out.value.instio.string, &param)) {
 		epicsPrintf("Malformed modbus string in record %s\n", precord->name);
 		return 1;
 	}
 	*dpvt = param;
-	return 0;
+	
+	/* Init with the current coupler state */
+	if (dpvt->ek9k) {
+		DeviceLock lock(dpvt->ek9k);
+		uint16_t buf;
+		if (dpvt->ek9k->doEK9000IO(0, dpvt->reg, 1, &buf) == EK_EOK)
+			precord->val = buf;
+		else
+			return 1;
+	}
+
+	return dpvt->ek9k ? 0 : 1;
 }
 
 static long ek9k_rw_write_record(void* prec) {
@@ -1582,17 +1593,19 @@ static long ek9k_rw_write_record(void* prec) {
 	uint16_t buf = precord->val;
 
 	if (!dev)
-		return -1;
+		return 1;
 
 	DeviceLock lock(dev);
-	dev->doEK9000IO(1, dpvt->reg, 1, &buf);
+	if (dev->doEK9000IO(1, dpvt->reg, 1, &buf) != EK_EOK)
+		return 1;
+	precord->val = buf;
 	return 0;
 }
 
 //-----------------------------------------------------------------//
 
 /* The string will be in the format EK9K,0x1002 */
-int EK9K_ParseString(const char* str, ek9k_param_t* param) {
+bool EK9K_ParseString(const char* str, ek9k_param_t* param) {
 	char buf[512];
 	const char *pek9k = 0, *preg = 0;
 
@@ -1600,7 +1613,7 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 	strncpy(buf, str, sizeof(buf) - 1);
 
 	if (!buf[0])
-		return 1;
+		return false;
 	pek9k = buf;
 
 	/* Read until we hit a comma, then replace */
@@ -1613,7 +1626,7 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 		}
 	}
 	if (!preg)
-		return 1;
+		return false;
 
 	/* Find the coupler */
 	param->ek9k = devEK9000::FindDevice(pek9k);
@@ -1621,7 +1634,7 @@ int EK9K_ParseString(const char* str, ek9k_param_t* param) {
 
 	if (!param->ek9k) {
 		printf("Unable to find the specified coupler\n");
-		return 1;
+		return false;
 	}
-	return 0;
+	return true;
 }
