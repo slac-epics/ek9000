@@ -99,20 +99,20 @@ static long el50xx_init_record(void* precord) {
 
 	/* Get the terminal */
 	if (!util::setupCommonDpvt(record, *dpvt)) {
-		util::Error("EL50XX_init_record(): Unable to find terminal for record %s\n", record->name);
+		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for %s\n", record->name);
 		return 1;
 	}
 
 	DeviceLock lock(dpvt->pdrv);
 
 	if (!lock.valid()) {
-		util::Error("EL50XX_init_record(): unable to obtain device lock\n");
+		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
 		return 1;
 	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pdrv->VerifyConnection()) {
-		util::Error("EL50XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
@@ -122,7 +122,7 @@ static long el50xx_init_record(void* precord) {
 	lock.unlock();
 
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		util::Error("EL50XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
 					termid);
 		return 1;
 	}
@@ -256,20 +256,20 @@ static long el5042_init_record(void* prec) {
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(record->dpvt);
 
 	if (!util::setupCommonDpvt(record, *dpvt)) {
-		util::Error("EL5042_init_record(): Unable to find terminal for record %s\n", record->name);
+		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for %s\n", record->name);
 		return 1;
 	}
 
 	DeviceLock lock(dpvt->pdrv);
 
 	if (!lock.valid()) {
-		util::Error("EL5042_init_record(): unable to obtain device lock\n");
+		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
 		return 1;
 	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pdrv->VerifyConnection()) {
-		util::Error("EL5042_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
@@ -279,7 +279,7 @@ static long el5042_init_record(void* prec) {
 	lock.unlock();
 	
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		util::Error("EL5042_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
 					termid);
 		return 1;
 	}

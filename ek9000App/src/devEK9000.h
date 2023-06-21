@@ -95,15 +95,15 @@ enum {
 
 #define DevInfo(...)                                                                                              \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		util::Log(__VA_ARGS__);                                                                                   \
+		epicsPrintf(__VA_ARGS__);                                                                                   \
 	}
 #define DevWarn(...)                                                                                              \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		util::Warn(__VA_ARGS__);                                                                                  \
+		epicsPrintf(__VA_ARGS__);                                                                                  \
 	}
 #define DevError(...)                                                                                             \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		util::Error(__VA_ARGS__);                                                                                 \
+		epicsPrintf(__VA_ARGS__);                                                                                 \
 	}
 
 
@@ -309,6 +309,10 @@ public:
 	
 	devEK9000Terminal* TerminalByIndex( int idx ) const {
 		return &m_terms[idx-1];
+	}
+	
+	asynUser* GetAsynUser() {
+		return pasynUserSelf;
 	}
 
 public:

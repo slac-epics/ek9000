@@ -37,47 +37,6 @@ const terminal_t* util::FindTerminal(unsigned int id) {
 	return NULL;
 }
 
-void util::Log(const char* fmt, ...) {
-	time_t clk = time(0);
-	tm _tm;
-
-	epicsTime_localtime(&clk, &_tm);
-	epicsPrintf("%i:%i ", _tm.tm_hour, _tm.tm_min);
-
-	va_list list;
-	va_start(list, fmt);
-	epicsVprintf(fmt, list);
-	va_end(list);
-}
-
-void util::Warn(const char* fmt, ...) {
-	epicsTimeStamp stmp;
-	epicsTimeGetCurrent(&stmp);
-
-	char txt[40];
-	epicsTimeToStrftime(txt, 40, "%Y/%m/%d %H:%M:%S.%03f ", &stmp);
-	epicsPrintf("%s", txt);
-
-	va_list list;
-	va_start(list, fmt);
-	epicsVprintf(fmt, list);
-	va_end(list);
-}
-
-void util::Error(const char* fmt, ...) {
-	epicsTimeStamp stmp;
-	epicsTimeGetCurrent(&stmp);
-
-	char txt[40];
-	epicsTimeToStrftime(txt, 40, "%Y/%m/%d %H:%M:%S.%03f ", &stmp);
-	epicsPrintf("%s", txt);
-
-	va_list list;
-	va_start(list, fmt);
-	epicsVprintf(fmt, list);
-	va_end(list);
-}
-
 long util::setupCallback(void* rec, void (*pCallback)(CALLBACK*)) {
 	CALLBACK* callback = (CALLBACK*)calloc(1, sizeof(CALLBACK));
 	*callback = *(CALLBACK*)pCallback;
