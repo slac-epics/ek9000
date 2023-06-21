@@ -134,20 +134,20 @@ static long EL30XX_init_record(void* precord) {
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
-		util::Error("EL30XX_init_record(): Unable to setup dpvt for record %s\n", pRecord->name);
+		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for record %s\n", pRecord->name);
 		return 1;
 	}
 
 	DeviceLock lock(dpvt->pdrv);
 
 	if (!lock.valid()) {
-		util::Error("EL30XX_init_record(): unable to obtain device lock\n");
+		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
 		return 1;
 	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pterm->m_device->VerifyConnection()) {
-		util::Error("EL30XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
@@ -158,7 +158,7 @@ static long EL30XX_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		util::Error("EL30XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
 	}
@@ -207,10 +207,10 @@ static long EL30XX_read_record(void* prec) {
 	if (status) {
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		if (status > 0x100) {
-			DevError("EL30XX_read_record(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return 0;
 		}
-		DevError("EL30XX_read_record(): %s\n", devEK9000::ErrorToString(status));
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
 		return 0;
 	}
 
@@ -282,20 +282,20 @@ static long EL36XX_init_record(void* precord) {
 
 	/* Get the terminal */
 	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
-		util::Error("EL36XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for %s\n", pRecord->name);
 		return 1;
 	}
 
 	DeviceLock lock(dpvt->pdrv);
 
 	if (!lock.valid()) {
-		util::Error("EL36XX_init_record(): failed to obtain device lock");
+		LOG_ERROR(dpvt->pdrv, "failed to obtain device lock");
 		return 1;
 	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pterm->m_device->VerifyConnection()) {
-		util::Error("EL36XX_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
@@ -306,7 +306,7 @@ static long EL36XX_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		util::Error("EL36XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
 	}
@@ -359,10 +359,10 @@ static long EL36XX_read_record(void* prec) {
 	if (status) {
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		if (status > 0x100) {
-			DevError("EL36XX_read_record(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return 0;
 		}
-		DevError("EL36XX_read_record(): %s\n", devEK9000::ErrorToString(status));
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
 		return 0;
 	}
 	return 0;
@@ -447,20 +447,20 @@ static long EL331X_init_record(void* precord) {
 
 	/* Get the terminal */
 	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
-		util::Error("EL331X_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for %s\n", pRecord->name);
 		return 1;
 	}
 
 	DeviceLock lock(dpvt->pdrv);
 	
 	if (!lock.valid()) {
-		util::Error("EL331X_init_record(): unable to obtain device lock.\n");
+		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock.\n");
 		return 1;
 	}
 
 	/* Check connection to terminal */
 	if (!dpvt->pterm->m_device->VerifyConnection()) {
-		util::Error("EL331X_init_record(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		return 1;
 	}
 
@@ -471,7 +471,7 @@ static long EL331X_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		util::Error("EL331X_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
 	}
@@ -523,10 +523,10 @@ static long EL331X_read_record(void* prec) {
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		if (status > 0x100) {
 
-			util::Warn("EL331X_read_record(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			LOG_WARNING(dpvt->pdrv, "EL331X_read_record(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			return 0;
 		}
-		util::Warn("EL331X_read_record(): %s\n", devEK9000::ErrorToString(status));
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
 		return 0;
 	}
 	recGblSetSevr(pRecord, READ_ALARM, NO_ALARM);

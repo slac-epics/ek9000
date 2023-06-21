@@ -94,7 +94,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	/* Verify connection */
 	if (!dpvt->pterm->m_device->VerifyConnection()) {
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
 		pRecord->pact = FALSE;
 		return;
 	}
@@ -103,7 +103,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	DeviceLock lock(dpvt->pdrv);
 
 	if (!lock.valid()) {
-		DevError("EL40XX_WriteCallback(): unable to obtain device lock\n");
+		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
 		return;
 	}
 
@@ -121,12 +121,12 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	if (status) {
 		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
 		if (status > 0x100) {
-			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
+			LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
 			pRecord->pact = FALSE;
 			return;
 		}
 		else {
-			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
+			LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
 		}
 		pRecord->pact = FALSE;
 		return;
@@ -155,7 +155,7 @@ static long EL40XX_init_record(void* record) {
 
 	/* Verify terminal */
 	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
-		util::Error("EL40XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
+		LOG_ERROR(dpvt->pdrv, "Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 
@@ -164,7 +164,7 @@ static long EL40XX_init_record(void* record) {
 	
 	/* Verify it's error free */
 	if (!lock.valid()) {
-		util::Error("EL40XX_init_record(): unable to obtain device lock\n");
+		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
 		return 1;
 	}
 
@@ -176,7 +176,7 @@ static long EL40XX_init_record(void* record) {
 
 	/* Verify terminal ID */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		util::Error("EL40XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
 					termid);
 		return 1;
 	}

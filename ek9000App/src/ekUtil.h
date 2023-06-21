@@ -129,10 +129,14 @@ private:
 /**
  * Logging helpers
  */
-#define LOG_ERROR(...) util::Error("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str())
-#define LOG_WARNING(...) util::Warn("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str())
-#define LOG_INFO(...) util::Log("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str())
+#define _LOG_ASYN(_traceType, _device, ...) do { if(_device) \
+		asynPrint(_device->GetAsynUser(), _traceType, "%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str()); \
+	else \
+		epicsPrintf("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str()); } while(0)
 
+#define LOG_ERROR(_device, ...) _LOG_ASYN(ASYN_TRACE_ERROR, _device, __VA_ARGS__)
+#define LOG_WARNING(_device, ...) _LOG_ASYN(ASYN_TRACE_WARNING, _device, __VA_ARGS__)
+#define LOG_INFO(_device, ...) _LOG_ASYN(ASYN_TRACE_FLOW, _device, __VA_ARGS__)
 
 namespace util
 {
@@ -194,13 +198,6 @@ bool ParseLinkSpecification(const char* link, int linkType, LinkSpec_t& outSpec)
  * Look up a terminal by ID and return a structure containing info about it
  */
 const terminal_t* FindTerminal(unsigned int id);
-
-/**
- * Logging routines
- */
-void Log(const char* fmt, ...);
-void Warn(const char* fmt, ...);
-void Error(const char* fmt, ...);
 
 /**
  * Call this to setup a callback. Can be used in-place of the read or write functions in the dpvt struct
