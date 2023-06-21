@@ -18,4 +18,6 @@ cd "${TOP}/iocBoot/${IOC}"
 
 $RECORDS$
 
+dbLoadRecords("../../db/ek9000_status.db", "EK9K=EK9K1")
+
 iocInit
