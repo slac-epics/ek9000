@@ -80,8 +80,7 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 		buf[0] = pRecord->val;
 	}
 
-	const uint16_t addr =
-		mbbo ? dpvt->pterm->m_outputStart - 1 : dpvt->pterm->m_outputStart + (dpvt->channel - 2);
+	const uint16_t addr = mbbo ? dpvt->pterm->m_outputStart - 1 : dpvt->pterm->m_outputStart + (dpvt->channel - 2);
 
 	/* Write to buffer */
 	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and
@@ -163,8 +162,7 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 
 	/* Verify terminal ID */
 	if (termid == 0 || termid != dpvt->pterm->m_terminalId) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
-					termid);
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 	return 0;

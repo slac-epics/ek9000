@@ -36,14 +36,17 @@
 
 #include "terminal.h"
 
-// C++11 interop - these are utils for catching problems in code. Anything from C++11 or newer that affects compilation (e.g. concepts/constraints for template overload resolution) 
-// are forbidden in this codebase. Hopefully one day we'll be able to upgrade to C++11, or even C++14!
+// C++11 interop - these are utils for catching problems in code. Anything from C++11 or newer that affects compilation
+// (e.g. concepts/constraints for template overload resolution) are forbidden in this codebase. Hopefully one day we'll
+// be able to upgrade to C++11, or even C++14!
 #if __cplusplus >= 201103L
 #define CONSTEXPR constexpr
 #define OVERRIDE override
 #define FINAL final
 #define MAYBE_UNUSED [[maybe_unused]]
-#define DELETE_CTOR(x) x = delete		/* Sucks! Mainly to prevent misuse of classes, if you need a deleted ctor for other reasons, just make it private. */
+#define DELETE_CTOR(x)                                                                                                 \
+	x = delete /* Sucks! Mainly to prevent misuse of classes, if you need a deleted ctor for other reasons, just make  \
+				  it private. */
 #else
 #define CONSTEXPR static const
 #define OVERRIDE
@@ -65,17 +68,17 @@ typedef struct {
 	uint16_t m_inputSize;
 } terminal_info_t;
 
-typedef std::vector< std::pair<std::string, std::string> > LinkSpec_t;
+typedef std::pair<std::string, std::string> LinkSpecPair_t;
+typedef std::vector<LinkSpecPair_t> LinkSpec_t;
 
 struct TerminalDpvt_t {
 	class devEK9000* pdrv;			// Pointer to the coupler itself
 	int pos;						// Position in the rail (first=1)
-	class devEK9000Terminal* pterm;	// Pointer to the terminal, which contains mappings
+	class devEK9000Terminal* pterm; // Pointer to the terminal, which contains mappings
 	int channel;					// Channel number within the terminal
 	LinkSpec_t linkSpec;			// All link parameters
 	int terminalType;				// Terminal type ID (i.e. 3064 from EL3064)
 };
-
 
 // The following macros are for validating terminal_types.g.h against any PDO structs defined in code
 
@@ -101,38 +104,46 @@ template <class T, size_t N> size_t ArraySize(T (&arr)[N]) {
 	return N;
 }
 
-namespace util {
+namespace util
+{
 
 /**
- * Simple format string 
+ * Simple format string
  * TODO: When we upgrade to C++11, make this templated with a constant for string length
  */
 class FmtStr {
 public:
 	DELETE_CTOR(FmtStr());
-	FmtStr(const char* fmt, ...) EPICS_PRINTF_STYLE(2,3) {
+	FmtStr(const char* fmt, ...) EPICS_PRINTF_STYLE(2, 3) {
 		va_list va;
 		va_start(va, fmt);
 		vsnprintf(str_, sizeof(str_), fmt, va);
 		va_end(va);
 	}
 
-	const char* c_str() const { return str_; }
-	operator const char*() const { return str_; }
+	const char* c_str() const {
+		return str_;
+	}
+	operator const char*() const {
+		return str_;
+	}
 
 private:
 	char str_[2048];
 };
 
-}
+} // namespace util
 
 /**
  * Logging helpers
  */
-#define _LOG_ASYN(_traceType, _device, ...) do { if(_device) \
-		asynPrint(_device->GetAsynUser(), _traceType, "%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str()); \
-	else \
-		epicsPrintf("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str()); } while(0)
+#define _LOG_ASYN(_traceType, _device, ...)                                                                            \
+	do {                                                                                                               \
+		if (_device)                                                                                                   \
+			asynPrint(_device->GetAsynUser(), _traceType, "%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str());  \
+		else                                                                                                           \
+			epicsPrintf("%s: %s", __FUNCTION__, util::FmtStr(__VA_ARGS__).c_str());                                    \
+	} while (0)
 
 #define LOG_ERROR(_device, ...) _LOG_ASYN(ASYN_TRACE_ERROR, _device, __VA_ARGS__)
 #define LOG_WARNING(_device, ...) _LOG_ASYN(ASYN_TRACE_WARNING, _device, __VA_ARGS__)
@@ -158,21 +169,28 @@ template <class T> bool is_same<T, T>::value = true;
 
 #if __cplusplus >= 202002L
 
-namespace detail {
+namespace detail
+{
 
-template<typename T>
-concept BASE_RECORD = requires(T a) { { a.name } -> std::convertible_to<const char*>; };
+template <typename T>
+concept BASE_RECORD = requires(T a) {
+	{ a.name } -> std::convertible_to<const char*>;
+};
 
-template<typename T>
-concept OUTPUT_RECORD = requires(T a) { { a.out } -> std::same_as<link&>; };
+template <typename T>
+concept OUTPUT_RECORD = requires(T a) {
+	{ a.out } -> std::same_as<link&>;
+};
 
-template<typename T>
-concept INPUT_RECORD = requires(T a) { { a.inp } -> std::same_as<link&>; };
+template <typename T>
+concept INPUT_RECORD = requires(T a) {
+	{ a.inp } -> std::same_as<link&>;
+};
 
-}
+} // namespace detail
 
-template<typename T>
-concept RECORD_TYPE = detail::BASE_RECORD<T> && (detail::INPUT_RECORD<T> || detail::OUTPUT_RECORD<T>);
+template <typename T>
+concept RECORD_TYPE = detail::BASE_RECORD<T> &&(detail::INPUT_RECORD<T> || detail::OUTPUT_RECORD<T>);
 
 #else
 
@@ -183,7 +201,6 @@ concept RECORD_TYPE = detail::BASE_RECORD<T> && (detail::INPUT_RECORD<T> || deta
 inline bool DpvtValid(TerminalDpvt_t* dpvt) {
 	return dpvt && dpvt->pdrv;
 }
-
 
 /**
  * @brief Parse a INP string
@@ -204,12 +221,14 @@ const terminal_t* FindTerminal(unsigned int id);
  */
 long setupCallback(void* rec, void (*pCallback)(CALLBACK*));
 
-inline TerminalDpvt_t* allocDpvt() { return (TerminalDpvt_t*)calloc(1,sizeof(TerminalDpvt_t)); }
+inline TerminalDpvt_t* allocDpvt() {
+	return (TerminalDpvt_t*)calloc(1, sizeof(TerminalDpvt_t));
+}
 
 bool setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t& dpvt);
 
-/** The below template code is kinda ugly. I'd like to use if constexpr or concepts for overload resolution (so we don't need to specialize for all output records), 
-  * but we're bound to C++03 unfortunately! */
+/** The below template code is kinda ugly. I'd like to use if constexpr or concepts for overload resolution (so we don't
+ * need to specialize for all output records), but we're bound to C++03 unfortunately! */
 
 /**
  * @brief Setup device private info
@@ -218,24 +237,19 @@ bool setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t& dpvt)
  * @param dpvt Where we put the dpvt
  * @returns true if success
  */
-template <RECORD_TYPE RecordT>
-inline bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
+template <RECORD_TYPE RecordT> inline bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
 	return setupCommonDpvt(prec->name, prec->inp.value.instio.string, dpvt);
 }
 
-template<>
-inline bool setupCommonDpvt<boRecord>(boRecord* prec, TerminalDpvt_t& dpvt) {
+template <> inline bool setupCommonDpvt<boRecord>(boRecord* prec, TerminalDpvt_t& dpvt) {
 	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
 }
-template<>
-inline bool setupCommonDpvt<mbboDirectRecord>(mbboDirectRecord* prec, TerminalDpvt_t& dpvt) {
+template <> inline bool setupCommonDpvt<mbboDirectRecord>(mbboDirectRecord* prec, TerminalDpvt_t& dpvt) {
 	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
 }
-template<>
-inline bool setupCommonDpvt<aoRecord>(aoRecord* prec, TerminalDpvt_t& dpvt) {
+template <> inline bool setupCommonDpvt<aoRecord>(aoRecord* prec, TerminalDpvt_t& dpvt) {
 	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
 }
-
 
 } // namespace util
 

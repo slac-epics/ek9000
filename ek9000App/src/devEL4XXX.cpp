@@ -110,7 +110,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	/* Set buffer & do write */
 	uint16_t buf = (int16_t)pRecord->rval;
 	int status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
-											dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
+										 dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
 
 	/* Unlock mutex */
 	lock.unlock();
@@ -161,7 +161,7 @@ static long EL40XX_init_record(void* record) {
 
 	/* Lock mutex for IO */
 	DeviceLock lock(dpvt->pdrv);
-	
+
 	/* Verify it's error free */
 	if (!lock.valid()) {
 		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
@@ -176,8 +176,7 @@ static long EL40XX_init_record(void* record) {
 
 	/* Verify terminal ID */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
-					termid);
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 

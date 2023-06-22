@@ -118,11 +118,11 @@ template <class RecordT> static long EL10XX_read_record(void* prec) {
 	/* Do the actual IO */
 	uint16_t buf[32];
 	const uint16_t num = mbbi ? dpvt->pterm->m_inputSize : 1;
-	uint16_t addr = mbbi ? dpvt->pterm->m_inputStart - 1
-						 : dpvt->pterm->m_inputStart +
-							   (dpvt->channel - 2); // For non-mbbi records compute the coil offset.
-													// channel is 1-based index, m_inputStart is also 1-based, but
-													// modbus coils are 0-based, hence the -2
+	uint16_t addr =
+		mbbi ? dpvt->pterm->m_inputStart - 1
+			 : dpvt->pterm->m_inputStart + (dpvt->channel - 2); // For non-mbbi records compute the coil offset.
+																// channel is 1-based index, m_inputStart is also
+																// 1-based, but modbus coils are 0-based, hence the -2
 	assert(num <= sizeof(buf));
 	status = dpvt->pterm->getEK9000IO(MODBUS_READ_DISCRETE_INPUTS, addr, buf, num);
 
@@ -131,7 +131,8 @@ template <class RecordT> static long EL10XX_read_record(void* prec) {
 		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
 		/* Check type of err */
 		if (status > 0x100) {
-			LOG_WARNING(dpvt->pdrv, "EL10XX_read_record() for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));
+			LOG_WARNING(dpvt->pdrv, "EL10XX_read_record() for %s: %s\n", pRecord->name,
+						devEK9000::ErrorToString(status));
 			return 0;
 		}
 		LOG_WARNING(dpvt->pdrv, "EL10XX_read_record() for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));

@@ -158,8 +158,7 @@ static long EL30XX_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
-					termid);
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 
@@ -193,7 +192,7 @@ static long EL30XX_read_record(void* prec) {
 	int status;
 
 	status = dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-										 dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+									  dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
 	pRecord->rval = spdo->value;
 
@@ -306,8 +305,7 @@ static long EL36XX_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
-					termid);
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 
@@ -342,7 +340,7 @@ static long EL36XX_read_record(void* prec) {
 	int status;
 
 	status = dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
-										 dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+									  dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
 	pRecord->rval = pdo->inp;
 
@@ -452,7 +450,7 @@ static long EL331X_init_record(void* precord) {
 	}
 
 	DeviceLock lock(dpvt->pdrv);
-	
+
 	if (!lock.valid()) {
 		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock.\n");
 		return 1;
@@ -471,8 +469,7 @@ static long EL331X_init_record(void* precord) {
 
 	/* This is important; if the terminal id is different than what we want, report an error */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
-					termid);
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 

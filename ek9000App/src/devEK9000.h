@@ -93,25 +93,24 @@ enum {
 	TERMINAL_FAMILY_DIGITAL = 0x2
 };
 
-#define DevInfo(...)                                                                                              \
+#define DevInfo(...)                                                                                                   \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		epicsPrintf(__VA_ARGS__);                                                                                   \
+		epicsPrintf(__VA_ARGS__);                                                                                      \
 	}
-#define DevWarn(...)                                                                                              \
+#define DevWarn(...)                                                                                                   \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		epicsPrintf(__VA_ARGS__);                                                                                  \
+		epicsPrintf(__VA_ARGS__);                                                                                      \
 	}
-#define DevError(...)                                                                                             \
+#define DevError(...)                                                                                                  \
 	if (devEK9000::debugEnabled) {                                                                                     \
-		epicsPrintf(__VA_ARGS__);                                                                                 \
+		epicsPrintf(__VA_ARGS__);                                                                                      \
 	}
-
 
 class devEK9000Terminal {
 public:
 	/* Copy constructor */
 	devEK9000Terminal(devEK9000* device);
-	
+
 	void Init(uint32_t termid, int termindex);
 
 	/* Process a record name. if outindex is nullptr, we are not expecting a channel selector at the end of the record
@@ -126,7 +125,9 @@ public:
 	/* Same calling convention as above, but use the buffered data! */
 	int getEK9000IO(int type, int startaddr, uint16_t* buf, int len);
 
-	void SetRecordName(const char* rec) { m_recordName = rec; }
+	void SetRecordName(const char* rec) {
+		m_recordName = rec;
+	}
 
 public:
 	/* Name of record */
@@ -166,7 +167,7 @@ private:
 
 public:
 	DELETE_CTOR(devEK9000());
-	devEK9000(const char *portName, const char *octetPortName, int termCount, const char* ip);
+	devEK9000(const char* portName, const char* octetPortName, int termCount, const char* ip);
 	~devEK9000();
 
 	/* List of attached terminals */
@@ -306,11 +307,11 @@ public:
 	/* Try connect to terminal with CoE */
 	/* Returns 1 for connection, 0 for not */
 	int CoEVerifyConnection(uint16_t termid);
-	
-	devEK9000Terminal* TerminalByIndex( int idx ) const {
-		return &m_terms[idx-1];
+
+	devEK9000Terminal* TerminalByIndex(int idx) const {
+		return &m_terms[idx - 1];
 	}
-	
+
 	asynUser* GetAsynUser() {
 		return pasynUserSelf;
 	}
@@ -332,11 +333,11 @@ class DeviceLock FINAL {
 	devEK9000& m_mutex;
 	bool m_unlocked;
 	int m_status;
+
 public:
 	DELETE_CTOR(DeviceLock());
-	
-	explicit DeviceLock(devEK9000* mutex) :
-		m_mutex(*mutex), m_unlocked(false) {
+
+	explicit DeviceLock(devEK9000* mutex) : m_mutex(*mutex), m_unlocked(false) {
 		m_status = m_mutex.lock();
 	}
 
@@ -344,10 +345,14 @@ public:
 		if (!m_unlocked)
 			m_mutex.unlock();
 	}
-	
-	inline int status() const { return m_status; }
-	inline bool valid() const { return m_status == asynSuccess; }
-	
+
+	inline int status() const {
+		return m_status;
+	}
+	inline bool valid() const {
+		return m_status == asynSuccess;
+	}
+
 	inline void unlock() {
 		if (!m_unlocked)
 			m_mutex.unlock();
