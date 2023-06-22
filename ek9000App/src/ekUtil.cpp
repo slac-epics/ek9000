@@ -112,7 +112,8 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 			if (!strncmp(tid, "EL", 2))
 				tid += 2;
 			if (epicsParseInt32(tid, &dpvt.terminalType, 10, NULL) != 0) {
-				epicsPrintf("%s (when parsing %s): unable to parse terminal ID from string '%s'\n", function, recName, param.second.c_str());
+				epicsPrintf("%s (when parsing %s): unable to parse terminal ID from string '%s'\n", function, recName,
+							param.second.c_str());
 				return false;
 			}
 		}
@@ -120,7 +121,7 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 			epicsPrintf("%s (when parsing %s): ignored unknown param %s\n", function, recName, param.first.c_str());
 		}
 	}
-	
+
 	if (!dpvt.pdrv) {
 		epicsPrintf("%s (when parsing %s): no device specified\n", function, recName);
 		memset(&dpvt, 0, sizeof(dpvt));
@@ -129,7 +130,7 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 
 	// TODO: It is likely that we'll need to recompute the coupler's mapping in here if we ever add
 	//  support for alternative PDO mapping types that affect PDO mapping on the device.
-	
+
 	/* Resolve terminal */
 	dpvt.pterm = dpvt.pdrv->TerminalByIndex(dpvt.pos);
 	dpvt.pterm->SetRecordName(recName);
@@ -139,10 +140,9 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 		memset(&dpvt, 0, sizeof(dpvt));
 		return false;
 	}
-	
+
 	return true;
 }
-
 
 /**
  * Right now only the INST_IO link type is supported.
@@ -163,8 +163,8 @@ bool util::ParseLinkSpecification(const char* link, int linkType, LinkSpec_t& ou
 			{
 				char buf[2048];
 				strncpy(buf, link, sizeof(buf));
-				buf[sizeof(buf)-1] = 0;
-				
+				buf[sizeof(buf) - 1] = 0;
+
 				// Tokenize by commas
 				for (char* tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
 					// Split based on equals
@@ -173,10 +173,11 @@ bool util::ParseLinkSpecification(const char* link, int linkType, LinkSpec_t& ou
 						outSpec.clear();
 						return false;
 					}
-					*s = 0; s++;
+					*s = 0;
+					s++;
 					outSpec.push_back(std::make_pair(std::string(tok), std::string(s)));
 				}
-				
+
 				return true;
 			}
 		default:

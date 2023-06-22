@@ -122,8 +122,7 @@ static long el50xx_init_record(void* precord) {
 	lock.unlock();
 
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
-					termid);
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
 		return 1;
 	}
 
@@ -158,8 +157,8 @@ static long el50xx_read_record(void* prec) {
 		EL5001Input_t el5001;
 		EL5002Input_t el5002;
 	} data;
-	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->pterm->m_inputStart,
-								reinterpret_cast<uint16_t*>(&data), dpvt->pterm->m_inputSize);
+	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->pterm->m_inputStart, reinterpret_cast<uint16_t*>(&data),
+							 dpvt->pterm->m_inputSize);
 
 	/* Handle individual terminal pdo types */
 	switch (dpvt->terminalType) {
@@ -277,10 +276,9 @@ static long el5042_init_record(void* prec) {
 	uint16_t termid = 0;
 	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 	lock.unlock();
-	
+
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name,
-					termid);
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
 		return 1;
 	}
 	return 0;
@@ -330,7 +328,7 @@ static long el5042_read_record(void* prec) {
 	uint16_t buf[32];
 	uint16_t loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 3);
 	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf,
-								STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
+							 STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
 
 	/* Cast it to our pdo type */
 	pdo = reinterpret_cast<EL5042InputPDO_t*>(buf);

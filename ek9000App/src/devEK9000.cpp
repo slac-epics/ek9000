@@ -124,13 +124,13 @@ void PollThreadFunc(void*) {
 			}
 			/* read EL1xxx/EL3xxx/EL5xxx data */
 			if (device->m_digital_cnt) {
-				device->m_digital_status = device->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0,
-																		device->m_digital_buf, device->m_digital_cnt);
+				device->m_digital_status =
+					device->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0, device->m_digital_buf, device->m_digital_cnt);
 				scanIoRequest(device->m_digital_io);
 			}
 			if (device->m_analog_cnt) {
-				device->m_analog_status = device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0,
-																	   device->m_analog_buf, device->m_analog_cnt);
+				device->m_analog_status =
+					device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0, device->m_analog_buf, device->m_analog_cnt);
 				scanIoRequest(device->m_analog_io);
 			}
 			lock.unlock();
@@ -190,7 +190,7 @@ void devEK9000Terminal::Init(uint32_t termid, int termindex) {
 // This is LEGACY code, to maintain compatibility with older setups
 devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int* outindex) {
 	char ret[512];
-	strncpy(ret, recname, sizeof(ret)-1);
+	strncpy(ret, recname, sizeof(ret) - 1);
 	ret[sizeof(ret) - 1] = 0;
 
 	size_t len = strlen(ret);
@@ -280,8 +280,8 @@ int devEK9000Terminal::getEK9000IO(int type, int startaddr, uint16_t* buf, int l
 //		Holds useful vars for interacting with EK9000/EL****
 //		hardware
 //==========================================================//
-devEK9000::devEK9000(const char *portName, const char *octetPortName, int termCount, const char* ip) :
-	drvModbusAsyn(portName, octetPortName, 0, 2, -1, 256, dataTypeUInt16, 150, "") {
+devEK9000::devEK9000(const char* portName, const char* octetPortName, int termCount, const char* ip)
+	: drvModbusAsyn(portName, octetPortName, 0, 2, -1, 256, dataTypeUInt16, 150, "") {
 
 	/* Initialize members */
 	m_terms = static_cast<devEK9000Terminal*>(malloc(sizeof(devEK9000Terminal) * termCount));
@@ -361,7 +361,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	/* wdt =  */
 	uint16_t buf = 1;
 	pek->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1122, &buf, 1);
-	
+
 	if (!pek->ComputeTerminalMapping()) {
 		epicsPrintf("devEK9000::Create(): Unable to compute terminal mapping\n");
 		delete pek;
@@ -376,8 +376,8 @@ int devEK9000::AddTerminal(const char* name, uint32_t type, int position) {
 	if (position > m_numTerms || !name)
 		return EK_EBADPARAM;
 
-	m_terms[position-1].Init(type, position);
-	m_terms[position-1].SetRecordName(name);
+	m_terms[position - 1].Init(type, position);
+	m_terms[position - 1].SetRecordName(name);
 	return EK_EOK;
 }
 
@@ -419,7 +419,7 @@ bool devEK9000::ComputeTerminalMapping() {
 			return false;
 		}
 	}
-	
+
 	assert(m_numTerms <= ArraySize(railLayout));
 
 	/* Figure out the register map */
@@ -1578,7 +1578,6 @@ static long ek9k_rw_write_record(void* prec) {
 
 	if (!dev)
 		return -1;
-
 
 	DeviceLock lock(dev);
 	dev->doEK9000IO(1, dpvt->reg, 1, &buf);
