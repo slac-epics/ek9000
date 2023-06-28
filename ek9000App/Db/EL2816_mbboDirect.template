@@ -1,5 +1,6 @@
 record(mbboDirect,"$(TERMINAL)")
 {
 	field(DTYP, "EL20XX_mbboDirect")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL2816")
 }
 

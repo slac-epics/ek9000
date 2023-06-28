@@ -10,6 +10,7 @@ record(ao,"$(TERMINAL):1")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.02")
 	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL4028")
 }
 
 record(ao,"$(TERMINAL):2")
@@ -24,6 +25,7 @@ record(ao,"$(TERMINAL):2")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.02")
 	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=2,type=EL4028")
 }
 
 record(ao,"$(TERMINAL):3")
@@ -38,6 +40,7 @@ record(ao,"$(TERMINAL):3")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.02")
 	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=3,type=EL4028")
 }
 
 record(ao,"$(TERMINAL):4")
@@ -52,6 +55,7 @@ record(ao,"$(TERMINAL):4")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.02")
 	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=4,type=EL4028")
 }
 
 record(ao,"$(TERMINAL):5")
@@ -66,6 +70,7 @@ record(ao,"$(TERMINAL):5")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.02")
 	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=5,type=EL4028")
 }
 
 record(ao,"$(TERMINAL):6")
@@ -80,6 +85,7 @@ record(ao,"$(TERMINAL):6")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.02")
 	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=6,type=EL4028")
 }
 
 record(ao,"$(TERMINAL):7")
@@ -94,6 +100,7 @@ record(ao,"$(TERMINAL):7")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.02")
 	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=7,type=EL4028")
 }
 
 record(ao,"$(TERMINAL):8")
@@ -108,5 +115,6 @@ record(ao,"$(TERMINAL):8")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.02")
 	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=8,type=EL4028")
 }
 

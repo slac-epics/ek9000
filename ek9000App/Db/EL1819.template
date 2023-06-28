@@ -4,6 +4,7 @@ record(bi,"$(TERMINAL):1")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):2")
@@ -12,6 +13,7 @@ record(bi,"$(TERMINAL):2")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=2,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):3")
@@ -20,6 +22,7 @@ record(bi,"$(TERMINAL):3")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=3,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):4")
@@ -28,6 +31,7 @@ record(bi,"$(TERMINAL):4")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=4,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):5")
@@ -36,6 +40,7 @@ record(bi,"$(TERMINAL):5")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=5,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):6")
@@ -44,6 +49,7 @@ record(bi,"$(TERMINAL):6")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=6,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):7")
@@ -52,6 +58,7 @@ record(bi,"$(TERMINAL):7")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=7,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):8")
@@ -60,6 +67,7 @@ record(bi,"$(TERMINAL):8")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=8,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):9")
@@ -68,6 +76,7 @@ record(bi,"$(TERMINAL):9")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=9,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):10")
@@ -76,6 +85,7 @@ record(bi,"$(TERMINAL):10")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=10,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):11")
@@ -84,6 +94,7 @@ record(bi,"$(TERMINAL):11")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=11,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):12")
@@ -92,6 +103,7 @@ record(bi,"$(TERMINAL):12")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=12,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):13")
@@ -100,6 +112,7 @@ record(bi,"$(TERMINAL):13")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=13,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):14")
@@ -108,6 +121,7 @@ record(bi,"$(TERMINAL):14")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=14,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):15")
@@ -116,6 +130,7 @@ record(bi,"$(TERMINAL):15")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=15,type=EL1819")
 }
 
 record(bi,"$(TERMINAL):16")
@@ -124,5 +139,6 @@ record(bi,"$(TERMINAL):16")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=16,type=EL1819")
 }
 

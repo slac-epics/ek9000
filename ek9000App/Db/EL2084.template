@@ -3,6 +3,7 @@ record(bo,"$(TERMINAL):1")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL2084")
 }
 
 record(bo,"$(TERMINAL):2")
@@ -10,6 +11,7 @@ record(bo,"$(TERMINAL):2")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=2,type=EL2084")
 }
 
 record(bo,"$(TERMINAL):3")
@@ -17,6 +19,7 @@ record(bo,"$(TERMINAL):3")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=3,type=EL2084")
 }
 
 record(bo,"$(TERMINAL):4")
@@ -24,5 +27,6 @@ record(bo,"$(TERMINAL):4")
 	field(DTYP, "EL20XX")
 	field(ZNAM, "low")
 	field(ONAM, "high")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=4,type=EL2084")
 }
 

@@ -4,5 +4,6 @@ record(bi,"$(TERMINAL):1")
 	field(ZNAM, "low")
 	field(ONAM, "high")
 	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL1001")
 }
 
