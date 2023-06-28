@@ -11,5 +11,6 @@ record(ai,"$(TERMINAL):1")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.03")
 	field(MDEL, "0.03")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL3061")
 }
 

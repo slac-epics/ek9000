@@ -10,5 +10,6 @@ record(ao,"$(TERMINAL):1")
 	field(LINR, "SLOPE")
 	field(ADEL, "0.01")
 	field(MDEL, "0.01")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL4001")
 }
 
