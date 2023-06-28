@@ -161,7 +161,7 @@ static long el50xx_read_record(void* prec) {
 		EL5001Input_t el5001;
 		EL5002Input_t el5002;
 	} data;
-	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, dpvt->pterm->m_inputStart, reinterpret_cast<uint16_t*>(&data),
+	dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart, reinterpret_cast<uint16_t*>(&data),
 							 dpvt->pterm->m_inputSize);
 
 	/* Handle individual terminal pdo types */
@@ -253,7 +253,7 @@ static long el5042_read_record(void* prec) {
 	/* Read the stuff */
 	uint16_t buf[32];
 	uint16_t loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 3);
-	dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf,
+	dpvt->pterm->getEK9000IO(READ_ANALOG, loc, buf,
 							 STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
 
 	/* Cast it to our pdo type */

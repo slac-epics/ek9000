@@ -60,6 +60,10 @@
 
 #define STRUCT_SIZE_TO_MODBUS_SIZE(_x) ((_x % 2) == 0 ? (_x) / 2 : ((_x) / 2) + 1)
 
+/* Beginning of the block of register space containing status info. Spans from 0x1010 <-> 0x1040 */
+#define EK9000_STATUS_START 0x1010
+#define EK9000_STATUS_END 0x1040
+
 /* This device's error types */
 enum {
 	EK_EOK = 0,			/* OK */
@@ -80,6 +84,13 @@ enum {
 	EK_EMUTEXTIMEOUT = 15,
 	EK_EBADTERMID = 16, /* Invalid terminal id */
 	EK_EMODBUSERR = 17	/* Modbus error */
+};
+
+/* Buffered IO types */
+enum EIOType {
+	READ_ANALOG,	/* Analogous to MODBUS_READ_INPUT_REGISTER */
+	READ_DIGITAL,	/* Analogous to MODBUS_READ_DISCRETE_INPUTS */
+	READ_STATUS		/* For status registers (e.g. num TCP connections, hardware ver, etc) */
 };
 
 /* Forward decls */
@@ -123,7 +134,7 @@ public:
 	int doEK9000IO(int type, int startaddr, uint16_t* buf, int len);
 
 	/* Same calling convention as above, but use the buffered data! */
-	int getEK9000IO(int type, int startaddr, uint16_t* buf, int len);
+	int getEK9000IO(EIOType type, int startaddr, uint16_t* buf, int len);
 
 	void SetRecordName(const char* rec) {
 		m_recordName = rec;
@@ -195,14 +206,18 @@ public:
 	/* Interrupts for analog/digital inputs */
 	IOSCANPVT m_analog_io;
 	IOSCANPVT m_digital_io;
+	IOSCANPVT m_status_io;
+
 	int m_analog_status;
 	int m_digital_status;
+	int m_status_status;
 	/* The actual analog/digital data */
 	uint16_t* m_analog_buf;
 	uint16_t* m_digital_buf;
 	uint16_t m_analog_cnt;
 	uint16_t m_digital_cnt;
-
+	/* Buffer for status info */
+	uint16_t m_status_buf[EK9000_STATUS_END - EK9000_STATUS_START + 1];
 public:
 	static devEK9000* FindDevice(const char* name);
 
@@ -243,6 +258,15 @@ public:
 	/* len = number of regs to read */
 	/* addr = starting addr */
 	int doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t* data);
+
+	/**
+	 * Get at the internal buffered IO on the coupler
+	 * @param type IO type. Either READ_ANALOG, READ_DIGITAL or READ_STATUS. Write buffering not supported
+	 * @param startaddr Address to start reading at
+	 * @param buf Pointer to the buffer to receive the data
+	 * @param len Number of registers to read. This is NOT a byte count!
+	 */
+	int getEK9000IO(EIOType type, int startaddr, uint16_t* buf, uint16_t len);
 
 	/* Do CoE I/O */
 	int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t* data, uint16_t subindex,

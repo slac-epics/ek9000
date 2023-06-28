@@ -23,6 +23,7 @@
 #include <mbboDirectRecord.h>
 #include <asynDriver.h>
 #include <compilerSpecific.h>
+#include <epicsStdlib.h>
 
 /* STL includes */
 #include <string>
@@ -249,6 +250,12 @@ template <> inline bool setupCommonDpvt<mbboDirectRecord>(mbboDirectRecord* prec
 }
 template <> inline bool setupCommonDpvt<aoRecord>(aoRecord* prec, TerminalDpvt_t& dpvt) {
 	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
+}
+
+
+inline bool parseInt(const std::string& s, int& out) {
+	bool hex = s[0] == '0' && s[1] == 'x';
+	return epicsParseInt32(s.c_str(), &out, hex ? 16 : 10, NULL) == 0;
 }
 
 } // namespace util
