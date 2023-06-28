@@ -172,7 +172,7 @@ public:
 
 	/* List of attached terminals */
 	/* TODO: Redefine terminal struct */
-	devEK9000Terminal* m_terms;
+	std::vector<devEK9000Terminal*> m_terms;
 
 	/* Number of attached terminals */
 	int m_numTerms;
@@ -309,7 +309,7 @@ public:
 	int CoEVerifyConnection(uint16_t termid);
 
 	devEK9000Terminal* TerminalByIndex(int idx) const {
-		return &m_terms[idx - 1];
+		return m_terms[idx - 1];
 	}
 
 	asynUser* GetAsynUser() {

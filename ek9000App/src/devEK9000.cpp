@@ -213,10 +213,10 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 	for (std::list<devEK9000*>::iterator it = GlobalDeviceList().begin(); it != GlobalDeviceList().end(); ++it) {
 		devEK9000* dev = *it;
 		for (int i = 0; i < dev->m_numTerms; i++) {
-			if (dev->m_terms[i].m_recordName.empty())
+			if (dev->m_terms[i]->m_recordName.empty())
 				continue;
-			if (strcmp(dev->m_terms[i].m_recordName.data(), ret) == 0) {
-				return &dev->m_terms[i];
+			if (strcmp(dev->m_terms[i]->m_recordName.data(), ret) == 0) {
+				return dev->m_terms[i];
 			}
 		}
 	}
@@ -284,9 +284,8 @@ devEK9000::devEK9000(const char* portName, const char* octetPortName, int termCo
 	: drvModbusAsyn(portName, octetPortName, 0, 2, -1, 256, dataTypeUInt16, 150, "") {
 
 	/* Initialize members */
-	m_terms = static_cast<devEK9000Terminal*>(malloc(sizeof(devEK9000Terminal) * termCount));
 	for (int i = 0; i < termCount; i++)
-		new (&m_terms[i]) devEK9000Terminal(this);
+		m_terms.push_back(new devEK9000Terminal(this));
 
 	m_numTerms = termCount;
 	m_ip = ip;
@@ -305,7 +304,8 @@ devEK9000::devEK9000(const char* portName, const char* octetPortName, int termCo
 
 devEK9000::~devEK9000() {
 	epicsMutexDestroy(this->m_Mutex);
-	free(m_terms);
+	for (int i = 0; i < m_terms.size(); ++i)
+		delete m_terms[i];
 }
 
 devEK9000* devEK9000::FindDevice(const char* name) {
@@ -376,8 +376,8 @@ int devEK9000::AddTerminal(const char* name, uint32_t type, int position) {
 	if (position > m_numTerms || !name)
 		return EK_EBADPARAM;
 
-	m_terms[position - 1].Init(type, position);
-	m_terms[position - 1].SetRecordName(name);
+	m_terms[position - 1]->Init(type, position);
+	m_terms[position - 1]->SetRecordName(name);
 	return EK_EOK;
 }
 
@@ -392,7 +392,7 @@ int devEK9000::InitTerminal(int term) {
 	this->ReadTerminalID(term, tid);
 
 	/* Verify that the terminal has the proper id */
-	devEK9000Terminal* terminal = &this->m_terms[term];
+	devEK9000Terminal* terminal = this->m_terms[term];
 
 	if (tid != terminal->m_terminalId)
 		return EK_ETERMIDMIS;
@@ -430,7 +430,7 @@ bool devEK9000::ComputeTerminalMapping() {
 	/* then digital terms are mapped */
 	/* holding registers can have bit offsets */
 	for (int i = 0; i < this->m_numTerms; i++) {
-		devEK9000Terminal* term = &m_terms[i];
+		devEK9000Terminal* term = m_terms[i];
 		term->Init(railLayout[i], i);
 		if (term->m_terminalFamily == TERMINAL_FAMILY_ANALOG) {
 			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
@@ -829,7 +829,8 @@ void ek9000Configure(const iocshArgBuf* args) {
 		return;
 	}
 
-	if (num < 0) {
+	// Clamp num to a valid range, we can only have 255 terminals on this device.
+	if (num < 0 || num >= 0xFF) {
 		epicsPrintf("Invalid terminal count passed.\n");
 		return;
 	}
@@ -950,15 +951,15 @@ void ek9000Stat(const iocshArgBuf* args) {
 	epicsPrintf("\tMfg date: %u/%u/%u\n", month, day, year);
 
 	for (int i = 0; i < dev->m_numTerms; i++) {
-		if (dev->m_terms[i].m_recordName.empty())
+		if (dev->m_terms[i]->m_recordName.empty())
 			continue;
 		epicsPrintf("\tSlave #%i:\n", i + 1);
-		epicsPrintf("\t\tType: %u\n", dev->m_terms[i].m_terminalId);
-		epicsPrintf("\t\tRecord Name: %s\n", dev->m_terms[i].m_recordName.data());
-		epicsPrintf("\t\tOutput Size: %u\n", dev->m_terms[i].m_outputSize);
-		epicsPrintf("\t\tOutput Start: %u\n", dev->m_terms[i].m_outputStart);
-		epicsPrintf("\t\tInput Size: %u\n", dev->m_terms[i].m_inputSize);
-		epicsPrintf("\t\tInput Start: %u\n", dev->m_terms[i].m_inputStart);
+		epicsPrintf("\t\tType: %u\n", dev->m_terms[i]->m_terminalId);
+		epicsPrintf("\t\tRecord Name: %s\n", dev->m_terms[i]->m_recordName.data());
+		epicsPrintf("\t\tOutput Size: %u\n", dev->m_terms[i]->m_outputSize);
+		epicsPrintf("\t\tOutput Start: %u\n", dev->m_terms[i]->m_outputStart);
+		epicsPrintf("\t\tInput Size: %u\n", dev->m_terms[i]->m_inputSize);
+		epicsPrintf("\t\tInput Start: %u\n", dev->m_terms[i]->m_inputStart);
 	}
 }
 
@@ -1461,7 +1462,7 @@ int CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	termid = atoi(buffers[1]);
 	if (errno != 0)
 		return 1;
-	pterm = &pcoupler->m_terms[termid - 1];
+	pterm = pcoupler->m_terms[termid - 1];
 
 	param->pterm = pterm;
 	param->ek9k = pcoupler;
