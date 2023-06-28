@@ -204,7 +204,7 @@ static long EL30XX_read_record(void* prec) {
 
 	int status;
 
-	status = dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
+	status = dpvt->pterm->getEK9000IO(READ_ANALOG,
 									  dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
 	pRecord->rval = spdo->value;
@@ -286,7 +286,7 @@ static long EL36XX_read_record(void* prec) {
 	/* Lock mutex */
 	int status;
 
-	status = dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS,
+	status = dpvt->pterm->getEK9000IO(READ_ANALOG,
 									  dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
 	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
 	pRecord->rval = pdo->inp;
@@ -382,7 +382,7 @@ static long EL331X_read_record(void* prec) {
 	int status;
 
 	int loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2);
-	status = dpvt->pterm->getEK9000IO(MODBUS_READ_INPUT_REGISTERS, loc, buf, 2);
+	status = dpvt->pterm->getEK9000IO(READ_ANALOG, loc, buf, 2);
 
 	pdo = reinterpret_cast<EL331XInputPDO_t*>(buf);
 	pRecord->rval = pdo->value;

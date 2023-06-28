@@ -19,6 +19,8 @@ endif
 
 ifeq ($(BUILD_STRICT),1)
 USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -Wno-variadic-macros
+else
+USR_CXXFLAGS += -Werror=shadow -Wshadow
 endif
 
 ifeq ($(ENABLE_ASAN),1)

@@ -124,7 +124,7 @@ template <class RecordT> static long EL10XX_read_record(void* prec) {
 																// channel is 1-based index, m_inputStart is also
 																// 1-based, but modbus coils are 0-based, hence the -2
 	assert(num <= sizeof(buf));
-	status = dpvt->pterm->getEK9000IO(MODBUS_READ_DISCRETE_INPUTS, addr, buf, num);
+	status = dpvt->pterm->getEK9000IO(READ_DIGITAL, addr, buf, num);
 
 	/* Error states */
 	if (status) {
