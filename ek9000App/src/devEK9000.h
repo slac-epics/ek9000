@@ -88,9 +88,9 @@ enum {
 
 /* Buffered IO types */
 enum EIOType {
-	READ_ANALOG,	/* Analogous to MODBUS_READ_INPUT_REGISTER */
-	READ_DIGITAL,	/* Analogous to MODBUS_READ_DISCRETE_INPUTS */
-	READ_STATUS		/* For status registers (e.g. num TCP connections, hardware ver, etc) */
+	READ_ANALOG,  /* Analogous to MODBUS_READ_INPUT_REGISTER */
+	READ_DIGITAL, /* Analogous to MODBUS_READ_DISCRETE_INPUTS */
+	READ_STATUS	  /* For status registers (e.g. num TCP connections, hardware ver, etc) */
 };
 
 /* Forward decls */
@@ -218,6 +218,7 @@ public:
 	uint16_t m_digital_cnt;
 	/* Buffer for status info */
 	uint16_t m_status_buf[EK9000_STATUS_END - EK9000_STATUS_START + 1];
+
 public:
 	static devEK9000* FindDevice(const char* name);
 

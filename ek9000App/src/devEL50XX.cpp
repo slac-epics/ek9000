@@ -253,8 +253,7 @@ static long el5042_read_record(void* prec) {
 	/* Read the stuff */
 	uint16_t buf[32];
 	uint16_t loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 3);
-	dpvt->pterm->getEK9000IO(READ_ANALOG, loc, buf,
-							 STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
+	dpvt->pterm->getEK9000IO(READ_ANALOG, loc, buf, STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
 
 	/* Cast it to our pdo type */
 	pdo = reinterpret_cast<EL5042InputPDO_t*>(buf);
