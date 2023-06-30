@@ -252,7 +252,6 @@ template <> inline bool setupCommonDpvt<aoRecord>(aoRecord* prec, TerminalDpvt_t
 	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
 }
 
-
 inline bool parseInt(const std::string& s, int& out) {
 	bool hex = s[0] == '0' && s[1] == 'x';
 	return epicsParseInt32(s.c_str(), &out, hex ? 16 : 10, NULL) == 0;

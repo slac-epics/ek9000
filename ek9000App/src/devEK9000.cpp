@@ -144,9 +144,10 @@ void PollThreadFunc(void*) {
 				scanIoRequest(device->m_analog_io);
 			}
 			// Read status registers only after a ~1 second delay
-			if (((start.tv_sec + start.tv_usec / 1e6) - (last_read_status.tv_sec + last_read_status.tv_usec / 1e6)) >= 1.0) {
-				device->m_status_status = 
-					device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, EK9000_STATUS_START, device->m_status_buf, ArraySize(device->m_status_buf));
+			if (((start.tv_sec + start.tv_usec / 1e6) - (last_read_status.tv_sec + last_read_status.tv_usec / 1e6)) >=
+				1.0) {
+				device->m_status_status = device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, EK9000_STATUS_START,
+															 device->m_status_buf, ArraySize(device->m_status_buf));
 				scanIoRequest(device->m_status_io);
 				gettimeofday(&last_read_status, NULL);
 			}
@@ -1293,7 +1294,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint16_t buf;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-										  dpvt->param.subindex);
+												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1301,7 +1302,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint16_t buf;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-										  dpvt->param.subindex);
+												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1309,7 +1310,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint16_t buf;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-										  dpvt->param.subindex);
+												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1317,7 +1318,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint32_t buf;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 2,
-										  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1325,7 +1326,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint64_t buf;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 4,
-										  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1519,8 +1520,7 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 //-----------------------------------------------------------------//
 // EK9K RO configuration/status
 static long ek9k_status_init(int pass);
-template<class T>
-static long ek9k_status_init_record(void* prec); // Common init function for status/config records
+template <class T> static long ek9k_status_init_record(void* prec); // Common init function for status/config records
 static long ek9k_status_read_record(void* prec);
 static long ek9k_status_write_record(void* prec);
 static long ek9k_status_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
@@ -1531,7 +1531,7 @@ enum {
 	STATUS_RD = 0x1,
 	STATUS_WR = 0x2,
 	STATUS_RW = STATUS_RD | STATUS_WR,
-	STATUS_STATIC = 0x4,	/* These registers will never change during runtime, only need to read these once */
+	STATUS_STATIC = 0x4, /* These registers will never change during runtime, only need to read these once */
 };
 typedef int StatusFlags;
 
@@ -1541,29 +1541,27 @@ struct StatusReg {
 	StatusFlags flags;
 };
 
-CONSTEXPR StatusReg status_regs[] = {
-	{"analogOutputs", 0x1010, STATUS_RD | STATUS_STATIC},
-	{"analogInputs", 0x1011, STATUS_RD | STATUS_STATIC},
-	{"digitalOutputs", 0x1012, STATUS_RD | STATUS_STATIC},
-	{"digitalInputs", 0x1013, STATUS_RD | STATUS_STATIC},
-	{"fallbacks", 0x1021, STATUS_RD},
-	{"tcpConnections", 0x1022, STATUS_RD},
-	{"hardwareVer", 0x1030, STATUS_RD | STATUS_STATIC},
-	{"softVerMain", 0x1031, STATUS_RD | STATUS_STATIC},
-	{"softVerSub", 0x1032, STATUS_RD | STATUS_STATIC},
-	{"softVerBeta", 0x1033, STATUS_RD | STATUS_STATIC},
-	{"serialNum", 0x1034, STATUS_RD | STATUS_STATIC},
-	{"prodDay", 0x1035, STATUS_RD | STATUS_STATIC},
-	{"prodMonth", 0x1036, STATUS_RD | STATUS_STATIC},
-	{"prodYear", 0x1037, STATUS_RD | STATUS_STATIC},
-	{"ebusStatus", 0x1040, STATUS_RD},
-	{"wdtTime", 0x1120, STATUS_RW},
-	{"wdtReset", 0x1121, STATUS_RW},
-	{"wdtType", 0x1122, STATUS_RW},
-	{"wdtFallback", 0x1123, STATUS_RW},
-	{"writelock", 0x1124, STATUS_RW},
-	{"ebusMode", 0x1140, STATUS_RW}
-};
+CONSTEXPR StatusReg status_regs[] = {{"analogOutputs", 0x1010, STATUS_RD | STATUS_STATIC},
+									 {"analogInputs", 0x1011, STATUS_RD | STATUS_STATIC},
+									 {"digitalOutputs", 0x1012, STATUS_RD | STATUS_STATIC},
+									 {"digitalInputs", 0x1013, STATUS_RD | STATUS_STATIC},
+									 {"fallbacks", 0x1021, STATUS_RD},
+									 {"tcpConnections", 0x1022, STATUS_RD},
+									 {"hardwareVer", 0x1030, STATUS_RD | STATUS_STATIC},
+									 {"softVerMain", 0x1031, STATUS_RD | STATUS_STATIC},
+									 {"softVerSub", 0x1032, STATUS_RD | STATUS_STATIC},
+									 {"softVerBeta", 0x1033, STATUS_RD | STATUS_STATIC},
+									 {"serialNum", 0x1034, STATUS_RD | STATUS_STATIC},
+									 {"prodDay", 0x1035, STATUS_RD | STATUS_STATIC},
+									 {"prodMonth", 0x1036, STATUS_RD | STATUS_STATIC},
+									 {"prodYear", 0x1037, STATUS_RD | STATUS_STATIC},
+									 {"ebusStatus", 0x1040, STATUS_RD},
+									 {"wdtTime", 0x1120, STATUS_RW},
+									 {"wdtReset", 0x1121, STATUS_RW},
+									 {"wdtType", 0x1122, STATUS_RW},
+									 {"wdtFallback", 0x1123, STATUS_RW},
+									 {"writelock", 0x1124, STATUS_RW},
+									 {"ebusMode", 0x1140, STATUS_RW}};
 
 // Read-only status info (tcp connections, fallbacks triggered, etc.)
 struct devEK9000ConfigRO_t {
@@ -1574,7 +1572,12 @@ struct devEK9000ConfigRO_t {
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN write_longout;
 } devEK9000ConfigRO = {
-	5, NULL, (DEVSUPFUN)ek9k_status_init, ek9k_status_init_record<longinRecord>, (DEVSUPFUN)ek9k_status_get_ioint_info, ek9k_status_read_record,
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_status_init,
+	ek9k_status_init_record<longinRecord>,
+	(DEVSUPFUN)ek9k_status_get_ioint_info,
+	ek9k_status_read_record,
 };
 
 epicsExportAddress(dset, devEK9000ConfigRO);
@@ -1588,7 +1591,12 @@ struct devEK9000ConfigRW_t {
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN write_longout;
 } devEK9000ConfigRW = {
-	5, NULL, (DEVSUPFUN)ek9k_status_init, ek9k_status_init_record<longoutRecord>, (DEVSUPFUN)ek9k_status_get_ioint_info, ek9k_status_write_record,
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_status_init,
+	ek9k_status_init_record<longoutRecord>,
+	(DEVSUPFUN)ek9k_status_get_ioint_info,
+	ek9k_status_write_record,
 };
 
 epicsExportAddress(dset, devEK9000ConfigRW);
@@ -1605,8 +1613,7 @@ static const char* link_value(longoutRecord* rec) {
 	return rec->out.value.instio.string;
 }
 
-template<class T>
-static long ek9k_status_init_record(void* prec) {
+template <class T> static long ek9k_status_init_record(void* prec) {
 	T* precord = static_cast<T*>(prec);
 	precord->dpvt = calloc(1, sizeof(ek9k_param_t));
 	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
@@ -1666,7 +1673,7 @@ static long ek9k_status_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	longinRecord* rec = static_cast<longinRecord*>(prec);
 	ek9k_param_t* param = static_cast<ek9k_param_t*>(rec->dpvt);
 	if (!param->ek9k)
-			return 1;
+		return 1;
 
 	// Static parameters only need to be updated once on init, skip any updates later down the road.
 	if (param->flags & STATUS_STATIC)
@@ -1683,7 +1690,7 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 	LinkSpec_t spec;
 	if (!util::ParseLinkSpecification(str, INST_IO, spec))
 		return false;
-	
+
 	param.reg = 0;
 	param.flags = 0;
 
@@ -1691,7 +1698,8 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 		if (spec[i].first == "device") {
 			param.ek9k = devEK9000::FindDevice(spec[i].second.c_str());
 			if (!param.ek9k) {
-				epicsPrintf("Unable to find device '%s' specified in instio string '%s'\n", spec[i].second.c_str(), str);
+				epicsPrintf("Unable to find device '%s' specified in instio string '%s'\n", spec[i].second.c_str(),
+							str);
 				return false;
 			}
 		}
@@ -1718,4 +1726,3 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 
 	return true;
 }
-
