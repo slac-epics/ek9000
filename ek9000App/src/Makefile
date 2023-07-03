@@ -18,7 +18,7 @@ USR_CXXFLAGS += -std=c++11
 endif
 
 ifeq ($(BUILD_STRICT),1)
-USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -Wno-variadic-macros
+USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -Wno-variadic-macros -Wno-unused-parameter
 else
 USR_CXXFLAGS += -Werror=shadow -Wshadow
 endif

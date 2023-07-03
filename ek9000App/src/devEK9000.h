@@ -189,7 +189,7 @@ public:
 	int m_numTerms;
 
 	std::string m_name;
-	std::string m_portName;
+	std::string m_octetPortName;
 	std::string m_ip;
 
 	bool m_connected;
