@@ -108,10 +108,7 @@ template <class RecordT> static long EL10XX_read_record(void* prec) {
 
 	/* Check for invalid */
 	if (!util::DpvtValid(dpvt))
-		return 0;
-
-	/* Lock for modbus io */
-	int status;
+		return 1;
 
 	const bool mbbi = util::is_same<RecordT, mbbiDirectRecord>::value;
 
@@ -124,19 +121,13 @@ template <class RecordT> static long EL10XX_read_record(void* prec) {
 																// channel is 1-based index, m_inputStart is also
 																// 1-based, but modbus coils are 0-based, hence the -2
 	assert(num <= sizeof(buf));
-	status = dpvt->pterm->getEK9000IO(READ_DIGITAL, addr, buf, num);
+	int status = dpvt->pterm->getEK9000IO(READ_DIGITAL, addr, buf, num);
 
 	/* Error states */
-	if (status) {
-		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		/* Check type of err */
-		if (status > 0x100) {
-			LOG_WARNING(dpvt->pdrv, "EL10XX_read_record() for %s: %s\n", pRecord->name,
-						devEK9000::ErrorToString(status));
-			return 0;
-		}
-		LOG_WARNING(dpvt->pdrv, "EL10XX_read_record() for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));
-		return 0;
+	if (status != EK_EOK) {
+		recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
+		LOG_WARNING(dpvt->pdrv, "for %s: %s\n", pRecord->name, devEK9000::ErrorToString(status));
+		return 1;
 	}
 
 	// for mbbi, we need to composite our channel data into a single bit vector and leave .VAL alone
