@@ -292,7 +292,7 @@ int devEK9000::getEK9000IO(EIOType type, int startaddr, uint16_t* buf, uint16_t 
 	}
 	else if (type == READ_STATUS) {
 		startaddr -= EK9000_STATUS_START;
-		if (startaddr < 0 || startaddr + len > ArraySize(m_status_buf))
+		if (startaddr < 0 || size_t(startaddr + len) > ArraySize(m_status_buf))
 			status = EK_EBADPARAM + 0x100;
 		else if (this->m_status_status)
 			status = this->m_status_status;
@@ -311,8 +311,8 @@ int devEK9000::getEK9000IO(EIOType type, int startaddr, uint16_t* buf, uint16_t 
 //		Holds useful vars for interacting with EK9000/EL****
 //		hardware
 //==========================================================//
-devEK9000::devEK9000(const char* portName, const char* octetPortName, int termCount, const char* ip)
-	: drvModbusAsyn(portName, octetPortName, 0, 2, -1, 256, dataTypeUInt16, 150, "") {
+devEK9000::devEK9000(const char* portname, const char* octetPortName, int termCount, const char* ip)
+	: drvModbusAsyn(portname, octetPortName, 0, 2, -1, 256, dataTypeUInt16, 150, "") {
 
 	/* Initialize members */
 	for (int i = 0; i < termCount; i++)
@@ -325,8 +325,8 @@ devEK9000::devEK9000(const char* portName, const char* octetPortName, int termCo
 	m_debug = false;
 	m_error = EK_EOK;
 	LastADSErr = 0;
-	m_name = portName;
-	m_portName = octetPortName;
+	m_name = portname;
+	m_octetPortName = octetPortName;
 
 	this->m_Mutex = epicsMutexCreate();
 	m_analog_status = EK_EERR + 0x100; /* No data yet!! */
@@ -335,7 +335,7 @@ devEK9000::devEK9000(const char* portName, const char* octetPortName, int termCo
 
 devEK9000::~devEK9000() {
 	epicsMutexDestroy(this->m_Mutex);
-	for (int i = 0; i < m_terms.size(); ++i)
+	for (size_t i = 0; i < m_terms.size(); ++i)
 		delete m_terms[i];
 }
 
@@ -354,17 +354,17 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 	if (terminal_count < 0 || !name || !ip)
 		return NULL;
 
-	std::string portName = PORT_PREFIX;
-	portName.append(name);
+	std::string octetPortName = PORT_PREFIX;
+	octetPortName.append(name);
 
-	int status = drvAsynIPPortConfigure(portName.data(), ip, 0, 0, 0);
+	int status = drvAsynIPPortConfigure(octetPortName.data(), ip, 0, 0, 0);
 
 	if (status) {
 		epicsPrintf("devEK9000::Create(): Unable to configure drvAsynIPPort.");
 		return NULL;
 	}
 
-	status = modbusInterposeConfig(portName.data(), modbusLinkTCP, 5000, 0);
+	status = modbusInterposeConfig(octetPortName.data(), modbusLinkTCP, 5000, 0);
 
 	if (status) {
 		epicsPrintf("devEK9000::Create(): Unable to configure modbus driver.");
@@ -373,7 +373,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 
 	/* check connection */
 	asynUser* usr = pasynManager->createAsynUser(NULL, NULL);
-	pasynManager->connectDevice(usr, portName.data(), 0);
+	pasynManager->connectDevice(usr, octetPortName.data(), 0);
 	int conn = 0;
 	pasynManager->isConnected(usr, &conn);
 	pasynManager->disconnect(usr);
@@ -384,7 +384,7 @@ devEK9000* devEK9000::Create(const char* name, const char* ip, int terminal_coun
 		return NULL;
 	}
 
-	devEK9000* pek = new devEK9000(name, portName.c_str(), terminal_count, ip);
+	devEK9000* pek = new devEK9000(name, octetPortName.c_str(), terminal_count, ip);
 
 	/* Copy IP */
 	pek->m_ip = ip;
@@ -451,7 +451,7 @@ bool devEK9000::ComputeTerminalMapping() {
 		}
 	}
 
-	assert(m_numTerms <= ArraySize(railLayout));
+	assert(size_t(m_numTerms) <= ArraySize(railLayout));
 
 	/* Figure out the register map */
 	int coil_in = 1, coil_out = 1;
@@ -504,7 +504,7 @@ int devEK9000::VerifyConnection() const {
 	usr->timeout = 0.5; /* 500ms timeout */
 
 	/* Try for connection */
-	pasynManager->connectDevice(usr, this->m_portName.data(), 0);
+	pasynManager->connectDevice(usr, this->m_octetPortName.data(), 0);
 	int yn = 0;
 	pasynManager->isConnected(usr, &yn);
 	pasynManager->disconnect(usr);
@@ -970,7 +970,7 @@ void ek9000Stat(const iocshArgBuf* args) {
 	else
 		epicsPrintf("\tStatus: NOT CONNECTED\n");
 	epicsPrintf("\tIP: %s\n", dev->m_ip.data());
-	epicsPrintf("\tAsyn Port Name: %s\n", dev->m_portName.data());
+	epicsPrintf("\tAsyn Port Name: %s\n", dev->m_octetPortName.data());
 	epicsPrintf("\tAO size: %u [bytes]\n", ao);
 	epicsPrintf("\tAI size: %u [bytes]\n", ai);
 	epicsPrintf("\tBI size: %u [bits]\n", bi);
@@ -1694,7 +1694,7 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 	param.reg = 0;
 	param.flags = 0;
 
-	for (int i = 0; i < spec.size(); ++i) {
+	for (size_t i = 0; i < spec.size(); ++i) {
 		if (spec[i].first == "device") {
 			param.ek9k = devEK9000::FindDevice(spec[i].second.c_str());
 			if (!param.ek9k) {
@@ -1706,7 +1706,7 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 		else if (spec[i].first == "type") {
 
 			// Find param
-			for (int s = 0; s < ArraySize(status_regs); ++s) {
+			for (size_t s = 0; s < ArraySize(status_regs); ++s) {
 				if (!strcmp(spec[i].second.c_str(), status_regs[s].configName)) {
 					param.reg = status_regs[s].addr;
 					param.flags = status_regs[s].flags;

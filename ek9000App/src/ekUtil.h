@@ -44,7 +44,6 @@
 #define CONSTEXPR constexpr
 #define OVERRIDE override
 #define FINAL final
-#define MAYBE_UNUSED [[maybe_unused]]
 #define DELETE_CTOR(x)                                                                                                 \
 	x = delete /* Sucks! Mainly to prevent misuse of classes, if you need a deleted ctor for other reasons, just make  \
 				  it private. */
@@ -52,8 +51,13 @@
 #define CONSTEXPR static const
 #define OVERRIDE
 #define FINAL
-#define MAYBE_UNUSED
 #define DELETE_CTOR(x)
+#endif
+
+#if __cplusplus >= 201703L
+#define MAYBE_UNUSED [[maybe_unused]]
+#else
+#define MAYBE_UNUSED __attribute__((unused))
 #endif
 
 #undef UNUSED
