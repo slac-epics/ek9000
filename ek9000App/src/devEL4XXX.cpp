@@ -87,15 +87,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	int status = 0;
 
 	/* Check for invalid */
-	if (!dpvt->pterm) {
-		pRecord->pact = FALSE;
-		return;
-	}
-
-	/* Verify connection */
-	if (!dpvt->pterm->m_device->VerifyConnection()) {
-		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
+	if (!util::DpvtValid(dpvt)) {
 		pRecord->pact = FALSE;
 		return;
 	}
@@ -106,6 +98,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 
 		if (!lock.valid()) {
 			LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
+			recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
 			return;
 		}
 
@@ -115,19 +108,10 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 										 dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
 	}
 
-	pRecord->udf = FALSE;
-
 	/* Check error */
-	if (status) {
-		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-			LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			pRecord->pact = FALSE;
-			return;
-		}
-		else {
-			LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
-		}
+	if (status != EK_EOK) {
+		recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
 		pRecord->pact = FALSE;
 		return;
 	}

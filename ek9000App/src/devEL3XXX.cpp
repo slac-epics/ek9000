@@ -199,33 +199,26 @@ static long EL30XX_read_record(void* prec) {
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Check for invalid */
-	if (!dpvt->pterm)
-		return 0;
+	if (!util::DpvtValid(dpvt))
+		return 1;
 
-	int status;
+	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	if (status == EK_EOK) {
+		spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
+		pRecord->rval = spdo->value;
 
-	status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
-	spdo = reinterpret_cast<EL30XXStandardInputPDO_t*>(buf);
-	pRecord->rval = spdo->value;
-
-	/* For standard PDO types, we have limits, so we should set alarms based on these,
-	   apparently the error bit is just equal to (overrange || underrange) */
-	if (spdo->overrange || spdo->underrange) {
-		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
-	}
-
-	/* Check for error */
-	if (status) {
-		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-			LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			return 0;
+		/* For standard PDO types, we have limits, so we should set alarms based on these,
+		apparently the error bit is just equal to (overrange || underrange) */
+		if (spdo->overrange || spdo->underrange) {
+			recGblSetSevr(pRecord, HW_LIMIT_ALARM, MAJOR_ALARM);
 		}
+	}
+	else {
+		recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
 		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
-		return 0;
+		return 1;
 	}
 
-	pRecord->pact = FALSE;
 	pRecord->udf = FALSE;
 	return 0;
 }
@@ -279,35 +272,27 @@ static long EL36XX_read_record(void* prec) {
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Check for invalid */
-	if (!dpvt->pterm)
-		return 0;
+	if (!util::DpvtValid(dpvt))
+		return 1;
 
 	/* Lock mutex */
-	int status;
+	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	if (status == EK_EOK) {
+		pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
+		pRecord->rval = pdo->inp;
 
-	status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
-	pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
-	pRecord->rval = pdo->inp;
-
-	/* Check the overrange and underrange flags */
-	if ((pdo->status & EL36XX_OVERRANGE_MASK) || (pdo->status & EL36XX_UNDERRANGE_MASK)) {
-		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
-	}
-
-	/* Set props */
-	pRecord->pact = FALSE;
-	pRecord->udf = FALSE;
-
-	/* Check for error */
-	if (status) {
-		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-			LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			return 0;
+		/* Check the overrange and underrange flags */
+		if ((pdo->status & EL36XX_OVERRANGE_MASK) || (pdo->status & EL36XX_UNDERRANGE_MASK)) {
+			recGblSetSevr(pRecord, HW_LIMIT_ALARM, MAJOR_ALARM);
 		}
-		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
-		return 0;
 	}
+	else {
+		recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
+		return 1;
+	}
+
+	pRecord->udf = FALSE;
 	return 0;
 }
 
@@ -374,37 +359,26 @@ static long EL331X_read_record(void* prec) {
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 
 	/* Check for invalid */
-	if (!dpvt->pterm)
-		return 0;
-
-	int status;
+	if (!util::DpvtValid(dpvt))
+		return 1;
 
 	int loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2);
-	status = dpvt->pterm->getEK9000IO(READ_ANALOG, loc, buf, 2);
+	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, loc, buf, 2);
+	if (status == EK_EOK) {
+		pdo = reinterpret_cast<EL331XInputPDO_t*>(buf);
+		pRecord->rval = pdo->value;
 
-	pdo = reinterpret_cast<EL331XInputPDO_t*>(buf);
-	pRecord->rval = pdo->value;
-
-	/* Check the overrange and underrange flags */
-	if (pdo->overrange || pdo->underrange) {
-		recGblSetSevr(pRecord, READ_ALARM, MAJOR_ALARM);
-	}
-
-	/* Set props */
-	pRecord->pact = FALSE;
-	pRecord->udf = FALSE;
-
-	/* Check for error */
-	if (status) {
-		recGblSetSevr(pRecord, READ_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-
-			LOG_WARNING(dpvt->pdrv, "EL331X_read_record(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			return 0;
+		/* Check the overrange and underrange flags */
+		if (pdo->overrange || pdo->underrange) {
+			recGblSetSevr(pRecord, HW_LIMIT_ALARM, MAJOR_ALARM);
 		}
-		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
-		return 0;
 	}
-	recGblSetSevr(pRecord, READ_ALARM, NO_ALARM);
+	else {
+		recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
+		return 1;
+	}
+
+	pRecord->udf = FALSE;
 	return 0;
 }

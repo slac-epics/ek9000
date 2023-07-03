@@ -52,7 +52,7 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 	free(callback);
 
 	/* Check for invalid */
-	if (!dpvt->pterm) {
+	if (!util::DpvtValid(dpvt)) {
 		pRecord->pact = FALSE;
 		return;
 	}
@@ -63,7 +63,7 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 
 		if (!lock.valid()) {
 			LOG_ERROR(dpvt->pdrv, "failed to obtain device lock\n");
-			recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
+			recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
 			pRecord->pact = FALSE;
 			return;
 		}
@@ -92,14 +92,9 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 
 	/* check for errors... */
 	if (status) {
-		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-			LOG_WARNING(dpvt->pdrv, "EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			pRecord->pact = FALSE;
-			return;
-		}
-		LOG_WARNING(dpvt->pdrv, "EL20XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
+		recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
 		pRecord->pact = FALSE;
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
 		return;
 	}
 

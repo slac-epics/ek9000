@@ -148,21 +148,22 @@ static long el50xx_read_record(void* prec) {
 	longinRecord* precord = static_cast<longinRecord*>(prec);
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(precord->dpvt);
 
-	if (!dpvt || !dpvt->pterm || !dpvt->pdrv)
-		return 0;
-
-	if (!dpvt->pdrv->VerifyConnection()) {
-		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
-		return 0;
-	}
+	if (!util::DpvtValid(dpvt))
+		return 1;
 
 	/* Read into a buffer that's plenty big enough for any terminal type */
 	union {
 		EL5001Input_t el5001;
 		EL5002Input_t el5002;
 	} data;
-	dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart, reinterpret_cast<uint16_t*>(&data),
-							 dpvt->pterm->m_inputSize);
+	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart, reinterpret_cast<uint16_t*>(&data),
+										  dpvt->pterm->m_inputSize);
+
+	if (status != EK_EOK) {
+		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
+		return 1;
+	}
 
 	/* Handle individual terminal pdo types */
 	switch (dpvt->terminalType) {
@@ -246,14 +247,21 @@ static long el5042_read_record(void* prec) {
 	EL5042InputPDO_t* pdo;
 
 	dpvt = static_cast<TerminalDpvt_t*>(precord->dpvt);
-	if (!dpvt) {
-		return 0;
-	}
+	if (!util::DpvtValid(dpvt))
+		return 1;
 
 	/* Read the stuff */
 	uint16_t buf[32];
 	uint16_t loc = dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 3);
-	dpvt->pterm->getEK9000IO(READ_ANALOG, loc, buf, STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
+	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, loc, buf, STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL5042InputPDO_t)));
+
+	precord->udf = FALSE;
+
+	if (status != EK_EOK) {
+		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
+		return 1;
+	}
 
 	/* Cast it to our pdo type */
 	pdo = reinterpret_cast<EL5042InputPDO_t*>(buf);
@@ -270,7 +278,5 @@ static long el5042_read_record(void* prec) {
 	if (pdo->error) {
 		recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
 	}
-
-	precord->udf = FALSE;
 	return 0;
 }

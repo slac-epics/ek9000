@@ -204,7 +204,7 @@ concept RECORD_TYPE = detail::BASE_RECORD<T> &&(detail::INPUT_RECORD<T> || detai
 #endif
 
 inline bool DpvtValid(TerminalDpvt_t* dpvt) {
-	return dpvt && dpvt->pdrv;
+	return dpvt && dpvt->pdrv && dpvt->pterm;
 }
 
 /**

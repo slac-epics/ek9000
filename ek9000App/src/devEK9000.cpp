@@ -256,7 +256,7 @@ int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, int le
 	}
 	int status = this->m_device->doModbusIO(0, type, startaddr, buf, len);
 	if (status) {
-		return (status + 0x100);
+		return EK_EMODBUSERR;
 	}
 	return EK_EOK;
 }
@@ -270,9 +270,12 @@ int devEK9000Terminal::getEK9000IO(EIOType type, int startaddr, uint16_t* buf, i
 int devEK9000::getEK9000IO(EIOType type, int startaddr, uint16_t* buf, uint16_t len) {
 	int status = 0;
 	DeviceLock lock(this);
+	if (!lock.valid())
+		return EK_EMUTEXTIMEOUT;
+
 	if (type == READ_DIGITAL) { /* digital */
 		if (startaddr < 0 || startaddr + len > this->m_digital_cnt)
-			status = EK_EBADPARAM + 0x100;
+			status = EK_EBADPARAM;
 		else if (this->m_digital_status)
 			status = this->m_digital_status;
 		else {
@@ -282,7 +285,7 @@ int devEK9000::getEK9000IO(EIOType type, int startaddr, uint16_t* buf, uint16_t 
 	}
 	else if (type == READ_ANALOG) { /* analog */
 		if (startaddr < 0 || startaddr + len > this->m_analog_cnt)
-			status = EK_EBADPARAM + 0x100;
+			status = EK_EBADPARAM;
 		else if (this->m_analog_status)
 			status = this->m_analog_status;
 		else {
@@ -293,7 +296,7 @@ int devEK9000::getEK9000IO(EIOType type, int startaddr, uint16_t* buf, uint16_t 
 	else if (type == READ_STATUS) {
 		startaddr -= EK9000_STATUS_START;
 		if (startaddr < 0 || size_t(startaddr + len) > ArraySize(m_status_buf))
-			status = EK_EBADPARAM + 0x100;
+			status = EK_EBADPARAM;
 		else if (this->m_status_status)
 			status = this->m_status_status;
 		else {
@@ -302,7 +305,7 @@ int devEK9000::getEK9000IO(EIOType type, int startaddr, uint16_t* buf, uint16_t 
 		}
 	}
 	else
-		status = EK_EBADPARAM + 0x100;
+		status = EK_EBADPARAM;
 	return status;
 }
 
@@ -1335,10 +1338,9 @@ static long ek9k_confli_read_record(void* prec) {
 			break;
 	}
 	if (err != EK_EOK) {
-		recGblSetSevr(prec, READ_ALARM, MAJOR_ALARM);
+		recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
 		return 1;
 	}
-	recGblSetSevr(prec, READ_ALARM, NO_ALARM);
 	return 0;
 }
 
@@ -1433,9 +1435,8 @@ static long ek9k_conflo_write_record(void* prec) {
 
 	if (ret != EK_EOK) {
 		epicsPrintf("ek9k_conflo_write_record(): Error writing data to record.\n");
-		recGblSetSevr(prec, WRITE_ALARM, MAJOR_ALARM);
+		recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
 	}
-	recGblSetSevr(prec, WRITE_ALARM, NO_ALARM);
 
 	return 0;
 }
@@ -1639,7 +1640,7 @@ static long ek9k_status_write_record(void* prec) {
 	DeviceLock lock(dpvt->ek9k);
 	uint16_t buf = precord->val;
 	if (dev->doEK9000IO(1, dpvt->reg, 1, &buf) != EK_EOK) {
-		recGblSetSevr(precord, WRITE_ALARM, MAJOR_ALARM);
+		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
 		return 1;
 	}
 	return 0;
@@ -1656,15 +1657,14 @@ static long ek9k_status_read_record(void* prec) {
 
 	if (dpvt->flags & STATUS_STATIC) {
 		if (dev->doEK9000IO(0, dpvt->reg, 1, &buf) != EK_EOK) {
-			recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
+			recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
 			return 1;
 		}
 	}
 	else if (dev->getEK9000IO(READ_STATUS, dpvt->reg, &buf, 1) != EK_EOK) {
-		recGblSetSevr(precord, READ_ALARM, MAJOR_ALARM);
+		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
 		return 1;
 	}
-	recGblSetSevr(precord, READ_ALARM, NO_ALARM);
 	precord->val = buf;
 	return 0;
 }
