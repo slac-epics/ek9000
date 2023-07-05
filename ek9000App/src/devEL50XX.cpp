@@ -57,32 +57,11 @@ struct EL5002Input_t {
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5001Input_t, EL5001);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5002Input_t, EL5002);
 
-static long el50xx_dev_report(int lvl);
-static long el50xx_init(int after);
-static long el50xx_init_record(void* precord);
-static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
-static long el50xx_read_record(void* precord);
-
-struct devEL50XX_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN read_record;
-} devEL50XX = {
-	5,
-	(DEVSUPFUN)el50xx_dev_report,
-	(DEVSUPFUN)el50xx_init,
-	el50xx_init_record,
-	(DEVSUPFUN)el50xx_get_ioint_info,
-	el50xx_read_record,
-};
-
-extern "C"
-{
-	epicsExportAddress(dset, devEL50XX);
-}
+/*
+-------------------------------------
+Common routines for EL50XX terminals
+-------------------------------------
+*/
 
 static long el50xx_dev_report(int) {
 	return 0;
@@ -140,6 +119,30 @@ static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	return 0;
 }
 
+
+static long el50xx_read_record(void* precord);
+
+struct devEL50XX_t {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN read_record;
+} devEL50XX = {
+	5,
+	(DEVSUPFUN)el50xx_dev_report,
+	(DEVSUPFUN)el50xx_init,
+	el50xx_init_record,
+	(DEVSUPFUN)el50xx_get_ioint_info,
+	el50xx_read_record,
+};
+
+extern "C"
+{
+	epicsExportAddress(dset, devEL50XX);
+}
+
 static long el50xx_read_record(void* prec) {
 	longinRecord* precord = static_cast<longinRecord*>(prec);
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(precord->dpvt);
@@ -192,10 +195,6 @@ static long el50xx_read_record(void* prec) {
 	return 0;
 }
 
-static long el5042_dev_report(int lvl);
-static long el5042_init_record(void* prec);
-static long el5042_init(int after);
-static long el5042_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long el5042_read_record(void* prec);
 
 struct devEL5042_t {
@@ -207,10 +206,10 @@ struct devEL5042_t {
 	DEVSUPFUN read_record;
 } devEL5042 = {
 	5,
-	(DEVSUPFUN)el5042_dev_report,
-	(DEVSUPFUN)el5042_init,
-	el5042_init_record,
-	(DEVSUPFUN)el5042_get_ioint_info,
+	(DEVSUPFUN)el50xx_dev_report,
+	(DEVSUPFUN)el50xx_init,
+	el50xx_init_record,
+	(DEVSUPFUN)el50xx_get_ioint_info,
 	el5042_read_record,
 };
 
@@ -234,80 +233,6 @@ struct EL5042InputPDO_t {
 #pragma pack()
 
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5042InputPDO_t, EL5042);
-
-/*
--------------------------------------
-Report on all EL5042 devices
--------------------------------------
-*/
-static long el5042_dev_report(int) {
-	return 0;
-}
-
-/*
--------------------------------------
-Initialize the specified record
--------------------------------------
-*/
-static long el5042_init_record(void* prec) {
-	longinRecord* record = static_cast<longinRecord*>(prec);
-	record->dpvt = util::allocDpvt();
-	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(record->dpvt);
-
-	if (!util::setupCommonDpvt(record, *dpvt)) {
-		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for %s\n", record->name);
-		return 1;
-	}
-
-	DeviceLock lock(dpvt->pdrv);
-
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
-		return 1;
-	}
-
-	/* Check connection to terminal */
-	if (!dpvt->pdrv->VerifyConnection()) {
-		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		return 1;
-	}
-
-	/* Check that slave # is OK */
-	uint16_t termid = 0;
-	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	lock.unlock();
-
-	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
-		return 1;
-	}
-	return 0;
-}
-
-/*
--------------------------------------
-Initialize the device support module
--------------------------------------
-*/
-static long el5042_init(int) {
-	return 0;
-}
-
-/*
----------------------------------------
-Called to update the I/O interrupt data
----------------------------------------
-*/
-static long el5042_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
-	UNUSED(cmd);
-	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
-	if (!util::DpvtValid(dpvt))
-		return 1;
-
-	*iopvt = dpvt->pdrv->m_analog_io;
-	return 0;
-}
 
 /*
 -------------------------------------

@@ -30,17 +30,74 @@
 
 #include "terminal_types.g.h"
 
+
+//======================================================//
+//
+//	Common analog input routines
+//
+//======================================================//
+
+static long EL3XXX_dev_report(int interest);
+static long EL3XXX_init(int after);
+static long EL3XXX_init_record(void* precord);
+static long EL3XXX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
+static long EL3XXX_linconv(void* precord, int after);
+
+static long EL3XXX_linconv(void*, int) {
+	return 0;
+}
+
+static long EL3XXX_dev_report(int) {
+	return 0;
+}
+
+static long EL3XXX_init(int) {
+	return 0;
+}
+
+static long EL3XXX_init_record(void* precord) {
+	aiRecord* pRecord = static_cast<aiRecord*>(precord);
+	pRecord->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
+
+	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
+		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for record %s\n", pRecord->name);
+		return 1;
+	}
+
+	DeviceLock lock(dpvt->pdrv);
+
+	if (!lock.valid()) {
+		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
+		return 1;
+	}
+
+	/* Check connection to terminal */
+	if (!dpvt->pterm->m_device->VerifyConnection()) {
+		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
+		return 1;
+	}
+
+	/* Check that slave # is OK */
+	uint16_t termid = 0;
+	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	lock.unlock();
+
+	/* This is important; if the terminal id is different than what we want, report an error */
+	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
+		return 1;
+	}
+
+	return 0;
+}
+
 //======================================================//
 //
 //	EL30XX Device support
 //
 //======================================================//
-static long EL30XX_dev_report(int interest);
-static long EL30XX_init(int after);
-static long EL30XX_init_record(void* precord);
-static long EL30XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long EL30XX_read_record(void* precord);
-static long EL30XX_linconv(void* precord, int after);
 
 struct devEL30XX_t {
 	long number;
@@ -52,12 +109,12 @@ struct devEL30XX_t {
 	DEVSUPFUN linconv;
 } devEL30XX = {
 	6,
-	(DEVSUPFUN)EL30XX_dev_report,
-	(DEVSUPFUN)EL30XX_init,
-	(DEVSUPFUN)EL30XX_init_record,
-	(DEVSUPFUN)EL30XX_get_ioint_info,
+	(DEVSUPFUN)EL3XXX_dev_report,
+	(DEVSUPFUN)EL3XXX_init,
+	(DEVSUPFUN)EL3XXX_init_record,
+	(DEVSUPFUN)EL3XXX_get_ioint_info,
 	(DEVSUPFUN)EL30XX_read_record,
-	(DEVSUPFUN)EL30XX_linconv,
+	(DEVSUPFUN)EL3XXX_linconv,
 };
 
 epicsExportAddress(dset, devEL30XX);
@@ -120,52 +177,7 @@ DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3164);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3174);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3202);
 
-static long EL30XX_dev_report(int) {
-	return 0;
-}
-
-static long EL30XX_init(int) {
-	return 0;
-}
-
-static long EL30XX_init_record(void* precord) {
-	aiRecord* pRecord = static_cast<aiRecord*>(precord);
-	pRecord->dpvt = util::allocDpvt();
-	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
-
-	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
-		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for record %s\n", pRecord->name);
-		return 1;
-	}
-
-	DeviceLock lock(dpvt->pdrv);
-
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
-		return 1;
-	}
-
-	/* Check connection to terminal */
-	if (!dpvt->pterm->m_device->VerifyConnection()) {
-		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		return 1;
-	}
-
-	/* Check that slave # is OK */
-	uint16_t termid = 0;
-	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	lock.unlock();
-
-	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
-		return 1;
-	}
-
-	return 0;
-}
-
-static long EL30XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+static long EL3XXX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
@@ -218,21 +230,12 @@ static long EL30XX_read_record(void* prec) {
 	return 0;
 }
 
-static long EL30XX_linconv(void*, int) {
-	return 0;
-}
-
 //======================================================//
 //
 //	EL36XX Device support
 //
 //======================================================//
-static long EL36XX_dev_report(int interest);
-static long EL36XX_init(int after);
-static long EL36XX_init_record(void* precord);
-static long EL36XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long EL36XX_read_record(void* precord);
-static long EL36XX_linconv(void* precord, int after);
 
 struct devEL36XX_t {
 	long number;
@@ -244,12 +247,12 @@ struct devEL36XX_t {
 	DEVSUPFUN linconv;
 } devEL36XX = {
 	6,
-	(DEVSUPFUN)EL36XX_dev_report,
-	(DEVSUPFUN)EL36XX_init,
-	(DEVSUPFUN)EL36XX_init_record,
-	(DEVSUPFUN)EL36XX_get_ioint_info,
+	(DEVSUPFUN)EL3XXX_dev_report,
+	(DEVSUPFUN)EL3XXX_init,
+	(DEVSUPFUN)EL3XXX_init_record,
+	(DEVSUPFUN)EL3XXX_get_ioint_info,
 	(DEVSUPFUN)EL36XX_read_record,
-	(DEVSUPFUN)EL36XX_linconv,
+	(DEVSUPFUN)EL3XXX_linconv,
 };
 epicsExportAddress(dset, devEL36XX);
 
@@ -265,63 +268,6 @@ DEFINE_DUMMY_OUTPUT_PDO_CHECK(EL3681); // Currently no output support for EL3681
 
 #define EL36XX_OVERRANGE_MASK 0x2
 #define EL36XX_UNDERRANGE_MASK 0x1
-
-static long EL36XX_dev_report(int) {
-	return 0;
-}
-
-static long EL36XX_init(int) {
-	return 0;
-}
-
-static long EL36XX_init_record(void* precord) {
-	aiRecord* pRecord = static_cast<aiRecord*>(precord);
-	pRecord->dpvt = util::allocDpvt();
-	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
-
-	/* Get the terminal */
-	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
-		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for %s\n", pRecord->name);
-		return 1;
-	}
-
-	DeviceLock lock(dpvt->pdrv);
-
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "failed to obtain device lock");
-		return 1;
-	}
-
-	/* Check connection to terminal */
-	if (!dpvt->pterm->m_device->VerifyConnection()) {
-		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		return 1;
-	}
-
-	/* Check that slave # is OK */
-	uint16_t termid = 0;
-	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	lock.unlock();
-
-	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
-		return 1;
-	}
-
-	return 0;
-}
-
-static long EL36XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
-	UNUSED(cmd);
-	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
-	if (!util::DpvtValid(dpvt))
-		return 1;
-
-	*iopvt = dpvt->pdrv->m_analog_io;
-	return 0;
-}
 
 static long EL36XX_read_record(void* prec) {
 	struct aiRecord* pRecord = (struct aiRecord*)prec;
@@ -366,21 +312,12 @@ static long EL36XX_read_record(void* prec) {
 	return 0;
 }
 
-static long EL36XX_linconv(void*, int) {
-	return 0;
-}
-
 //======================================================//
 //
 //	EL331X Device support
 //
 //======================================================//
-static long EL331X_dev_report(int interest);
-static long EL331X_init(int after);
-static long EL331X_init_record(void* precord);
-static long EL331X_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 static long EL331X_read_record(void* precord);
-static long EL331X_linconv(void* precord, int after);
 
 struct devEL331X_t {
 	long number;
@@ -392,12 +329,12 @@ struct devEL331X_t {
 	DEVSUPFUN linconv;
 } devEL331X = {
 	6,
-	(DEVSUPFUN)EL331X_dev_report,
-	(DEVSUPFUN)EL331X_init,
-	(DEVSUPFUN)EL331X_init_record,
-	(DEVSUPFUN)EL331X_get_ioint_info,
+	(DEVSUPFUN)EL3XXX_dev_report,
+	(DEVSUPFUN)EL3XXX_init,
+	(DEVSUPFUN)EL3XXX_init_record,
+	(DEVSUPFUN)EL3XXX_get_ioint_info,
 	(DEVSUPFUN)EL331X_read_record,
-	(DEVSUPFUN)EL331X_linconv,
+	(DEVSUPFUN)EL3XXX_linconv,
 };
 epicsExportAddress(dset, devEL331X);
 
@@ -429,63 +366,6 @@ struct EL3314_0010_InputPDO_t {
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL331XInputPDO_t, EL3314);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL331XInputPDO_t, EL3312);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL331XInputPDO_t, EL3311);
-
-static long EL331X_dev_report(int) {
-	return 0;
-}
-
-static long EL331X_init(int) {
-	return 0;
-}
-
-static long EL331X_init_record(void* precord) {
-	aiRecord* pRecord = static_cast<aiRecord*>(precord);
-	pRecord->dpvt = util::allocDpvt();
-	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
-
-	/* Get the terminal */
-	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
-		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for %s\n", pRecord->name);
-		return 1;
-	}
-
-	DeviceLock lock(dpvt->pdrv);
-
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock.\n");
-		return 1;
-	}
-
-	/* Check connection to terminal */
-	if (!dpvt->pterm->m_device->VerifyConnection()) {
-		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		return 1;
-	}
-
-	/* Check that slave # is OK */
-	uint16_t termid = 0;
-	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	lock.unlock();
-
-	/* This is important; if the terminal id is different than what we want, report an error */
-	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
-		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
-		return 1;
-	}
-
-	return 0;
-}
-
-static long EL331X_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
-	UNUSED(cmd);
-	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
-	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
-	if (!util::DpvtValid(dpvt))
-		return 1;
-
-	*iopvt = dpvt->pdrv->m_analog_io;
-	return 0;
-}
 
 static long EL331X_read_record(void* prec) {
 	struct aiRecord* pRecord = (struct aiRecord*)prec;
@@ -527,9 +407,5 @@ static long EL331X_read_record(void* prec) {
 		return 0;
 	}
 	recGblSetSevr(pRecord, READ_ALARM, NO_ALARM);
-	return 0;
-}
-
-static long EL331X_linconv(void*, int) {
 	return 0;
 }
