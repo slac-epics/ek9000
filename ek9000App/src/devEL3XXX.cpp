@@ -30,7 +30,6 @@
 
 #include "terminal_types.g.h"
 
-
 //======================================================//
 //
 //	Common analog input routines
