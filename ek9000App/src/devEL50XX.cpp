@@ -119,7 +119,6 @@ static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	return 0;
 }
 
-
 static long el50xx_read_record(void* precord);
 
 struct devEL50XX_t {
