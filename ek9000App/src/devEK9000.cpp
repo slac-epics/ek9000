@@ -110,12 +110,17 @@ void PollThreadFunc(void*) {
 				/* check connection every other loop */
 				bool connected = device->VerifyConnection();
 				if (!connected && device->m_connected) {
-					LOG_WARNING(device, "%s: Link status changed to DISCONNECTED\n", device->m_name.data());
+					epicsPrintf("%s: Link status changed to DISCONNECTED\n", device->m_name.data());
 					device->m_connected = false;
 				}
 				if (connected && !device->m_connected) {
-					LOG_WARNING(device, "%s: Link status changed to CONNECTED\n", device->m_name.data());
+					epicsPrintf("%s: Link status changed to CONNECTED\n", device->m_name.data());
 					device->m_connected = true;
+				}
+				/* Skip poll if we're not connected */
+				if (!device->m_connected) {
+					LOG_INFO(device, "%s: device not connected, skipping poll", device->m_name.data());
+					continue;
 				}
 				uint16_t buf = 1;
 				if (device->doModbusIO(0, MODBUS_WRITE_SINGLE_REGISTER, 0x1121, &buf, 1)) {
