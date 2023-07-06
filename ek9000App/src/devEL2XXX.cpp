@@ -44,6 +44,7 @@ static inline uint16_t get_nobt(mbboDirectRecord* record) {
 
 template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 	RecordT* pRecord;
+	int status = 0;
 	void* record;
 	callbackGetUser(record, callback);
 	pRecord = (RecordT*)record;
@@ -56,38 +57,38 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 		return;
 	}
 
-	/* Lock & verify mutex */
-	DeviceLock lock(dpvt->pdrv);
+	// Write data to device
+	{
+		DeviceLock lock(dpvt->pdrv);
 
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "failed to obtain device lock\n");
-		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		pRecord->pact = FALSE;
-		return;
-	}
-
-	const bool mbbo = util::is_same<mbboDirectRecord, RecordT>::value;
-
-	uint16_t buf[32];
-	const uint16_t length = get_nobt(pRecord); // Will be 1 for bo, nobt for mbboDirect
-	if (mbbo) {
-		// Inflate packed bit data into the input buffer
-		for (int i = 0; i < length; ++i) {
-			buf[i] = (pRecord->rval & (1 << i)) >> i;
+		if (!lock.valid()) {
+			LOG_ERROR(dpvt->pdrv, "failed to obtain device lock\n");
+			recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
+			pRecord->pact = FALSE;
+			return;
 		}
+
+		const bool mbbo = util::is_same<mbboDirectRecord, RecordT>::value;
+
+		uint16_t buf[32];
+		const uint16_t length = get_nobt(pRecord); // Will be 1 for bo, nobt for mbboDirect
+		if (mbbo) {
+			// Inflate packed bit data into the input buffer
+			for (int i = 0; i < length; ++i) {
+				buf[i] = (pRecord->rval & (1 << i)) >> i;
+			}
+		}
+		else {
+			buf[0] = pRecord->val;
+		}
+
+		const uint16_t addr = mbbo ? dpvt->pterm->m_outputStart - 1 : dpvt->pterm->m_outputStart + (dpvt->channel - 2);
+
+		/* Write to buffer */
+		/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and
+		* inputStart is 1-based **/
+		status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, addr, buf, length);
 	}
-	else {
-		buf[0] = pRecord->val;
-	}
-
-	const uint16_t addr = mbbo ? dpvt->pterm->m_outputStart - 1 : dpvt->pterm->m_outputStart + (dpvt->channel - 2);
-
-	/* Write to buffer */
-	/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and
-	 * inputStart is 1-based **/
-	int status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, addr, buf, length);
-
-	lock.unlock();
 
 	/* check for errors... */
 	if (status) {

@@ -84,6 +84,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 	aoRecord* pRecord = (aoRecord*)record;
 	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 	free(callback);
+	int status = 0;
 
 	/* Check for invalid */
 	if (!dpvt->pterm) {
@@ -99,21 +100,20 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 		return;
 	}
 
-	/* Lock the mutex */
-	DeviceLock lock(dpvt->pdrv);
+	// Write to the device
+	{
+		DeviceLock lock(dpvt->pdrv);
 
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
-		return;
+		if (!lock.valid()) {
+			LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
+			return;
+		}
+
+		/* Set buffer & do write */
+		uint16_t buf = (int16_t)pRecord->rval;
+		status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
+											dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
 	}
-
-	/* Set buffer & do write */
-	uint16_t buf = (int16_t)pRecord->rval;
-	int status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
-										 dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
-
-	/* Unlock mutex */
-	lock.unlock();
 
 	pRecord->udf = FALSE;
 
@@ -152,6 +152,7 @@ static long EL40XX_init_record(void* record) {
 	aoRecord* pRecord = (aoRecord*)record;
 	pRecord->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
+	uint16_t termid = 0;
 
 	/* Verify terminal */
 	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
@@ -159,20 +160,19 @@ static long EL40XX_init_record(void* record) {
 		return 1;
 	}
 
-	/* Lock mutex for IO */
-	DeviceLock lock(dpvt->pdrv);
+	// Validate terminal ID
+	{
+		DeviceLock lock(dpvt->pdrv);
 
-	/* Verify it's error free */
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
-		return 1;
+		/* Verify it's error free */
+		if (!lock.valid()) {
+			LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
+			return 1;
+		}
+
+		/* Read terminal ID */
+		dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 	}
-
-	/* Read terminal ID */
-	uint16_t termid = 0;
-	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-
-	lock.unlock();
 
 	/* Verify terminal ID */
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {

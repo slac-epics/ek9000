@@ -110,11 +110,11 @@ void PollThreadFunc(void*) {
 				/* check connection every other loop */
 				bool connected = device->VerifyConnection();
 				if (!connected && device->m_connected) {
-					epicsPrintf("%s: Link status changed to DISCONNECTED\n", device->m_name.data());
+					LOG_WARNING(device, "%s: Link status changed to DISCONNECTED\n", device->m_name.data());
 					device->m_connected = false;
 				}
 				if (connected && !device->m_connected) {
-					epicsPrintf("%s: Link status changed to CONNECTED\n", device->m_name.data());
+					LOG_WARNING(device, "%s: Link status changed to CONNECTED\n", device->m_name.data());
 					device->m_connected = true;
 				}
 				/* Skip poll if we're not connected */
@@ -138,7 +138,6 @@ void PollThreadFunc(void*) {
 					device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0, device->m_analog_buf, device->m_analog_cnt);
 				scanIoRequest(device->m_analog_io);
 			}
-			lock.unlock();
 		}
 		cnt = (cnt + 1) % 2;
 		gettimeofday(&finish, NULL);

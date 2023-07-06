@@ -50,6 +50,7 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 	RecordT* pRecord = (RecordT*)precord;
 	pRecord->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
+	uint16_t termid = 0;
 
 	/* Get terminal */
 	const bool mbbi = util::is_same<RecordT, mbbiDirectRecord>::value;
@@ -60,20 +61,19 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 
 	type_specific_setup(pRecord, dpvt->pterm->m_inputSize);
 
-	/* Lock mutex for modbus io */
-	DeviceLock lock(dpvt->pdrv);
+	// Verify terminal ID
+	{
+		DeviceLock lock(dpvt->pdrv);
 
-	/* Verify lock OK */
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "failed to obtain device lock\n");
-		return 1;
+		/* Verify lock OK */
+		if (!lock.valid()) {
+			LOG_ERROR(dpvt->pdrv, "failed to obtain device lock\n");
+			return 1;
+		}
+
+		/* Read termid */
+		dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 	}
-
-	/* Read termid */
-	uint16_t termid = 0;
-	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-
-	lock.unlock();
 
 	pRecord->udf = FALSE;
 
