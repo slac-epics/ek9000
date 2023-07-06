@@ -75,6 +75,7 @@ static long el50xx_init_record(void* precord) {
 	longinRecord* record = static_cast<longinRecord*>(precord);
 	record->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(record->dpvt);
+	uint16_t termid = 0;
 
 	/* Get the terminal */
 	if (!util::setupCommonDpvt(record, *dpvt)) {
@@ -82,23 +83,24 @@ static long el50xx_init_record(void* precord) {
 		return 1;
 	}
 
-	DeviceLock lock(dpvt->pdrv);
+	// Validate terminal ID
+	{
+		DeviceLock lock(dpvt->pdrv);
 
-	if (!lock.valid()) {
-		LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
-		return 1;
+		if (!lock.valid()) {
+			LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
+			return 1;
+		}
+
+		/* Check connection to terminal */
+		if (!dpvt->pdrv->VerifyConnection()) {
+			LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
+			return 1;
+		}
+
+		/* Check that slave # is OK */
+		dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
 	}
-
-	/* Check connection to terminal */
-	if (!dpvt->pdrv->VerifyConnection()) {
-		LOG_ERROR(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(EK_ENOCONN));
-		return 1;
-	}
-
-	/* Check that slave # is OK */
-	uint16_t termid = 0;
-	dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
-	lock.unlock();
 
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
 		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), record->name, termid);
