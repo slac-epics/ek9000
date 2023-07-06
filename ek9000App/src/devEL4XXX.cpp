@@ -112,7 +112,7 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 		/* Set buffer & do write */
 		uint16_t buf = (int16_t)pRecord->rval;
 		status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
-											dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
+										 dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
 	}
 
 	pRecord->udf = FALSE;

@@ -86,7 +86,7 @@ template <class RecordT> static void EL20XX_WriteCallback(CALLBACK* callback) {
 
 		/* Write to buffer */
 		/** The logic here: channel - 1 for a 0-based index, and subtract another 1 because modbus coils start at 0, and
-		* inputStart is 1-based **/
+		 * inputStart is 1-based **/
 		status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_COILS, addr, buf, length);
 	}
 
