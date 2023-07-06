@@ -1714,8 +1714,30 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 				}
 			}
 			if (param.reg == 0) {
-				epicsPrintf("Malformed integer value '%s' in instio string '%s'\n", spec[i].second.c_str(), str);
+				epicsPrintf("Malformed instio string '%s', does not specify register\n", spec[i].second.c_str());
 				return false;
+			}
+		}
+		else if (spec[i].first == "addr") {
+			if (epicsParseInt32(spec[i].second.c_str(), &param.reg, 16, NULL) != 0) {
+				epicsStdoutPrintf("Malformed integer '%s' in instio string for key 'addr'\n", spec[i].second.c_str());
+				return false;
+			}
+		}
+		else if (spec[i].first == "flags") {
+			for (int n = 0; n < spec[i].second.length(); ++n) {
+				char c = spec[i].second[n];
+				if (c == 'r')
+					param.flags |= STATUS_RD;
+				else if (c == 'w')
+					param.flags |= STATUS_WR;
+				else if (c == 's')
+					param.flags |= STATUS_STATIC;
+				else {
+					epicsPrintf("Unknown status flag '%c' in instio string '%s' for key 'flags'\n", c,
+								spec[i].second.c_str());
+					return false;
+				}
 			}
 		}
 		else {
