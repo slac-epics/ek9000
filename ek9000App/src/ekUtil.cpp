@@ -88,9 +88,11 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 		}
 		/* Terminal position in rail (1=first) */
 		else if (strcmp(param.first.c_str(), "pos") == 0) {
-			int term = atoi(param.second.c_str());
+			int term = 0;
+			bool ok = epicsParseInt32(param.second.c_str(), &term, 10, NULL) != 0;
+
 			/* Max supported devices by the EK9K is 255 */
-			if (term < 0 || term > 255) {
+			if (term < 0 || term > 255 || !ok) {
 				epicsPrintf("%s (when parsing %s): invalid rail position: %i\n", function, recName, term);
 				return false;
 			}
@@ -98,9 +100,10 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 		}
 		/* Channel number */
 		else if (strcmp(param.first.c_str(), "channel") == 0) {
-			int channel = atoi(param.second.c_str());
+			int channel = 0;
+			bool ok = epicsParseInt32(param.second.c_str(), &channel, 10, NULL) != 0;
 			/* No real max here, but I think it's good to limit this to 8k as nothing has this many channels */
-			if (channel < 0 || channel > 8192) {
+			if (channel < 0 || channel > 8192 || !ok) {
 				epicsPrintf("%s (when parsing %s): invalid channel: %i\n", function, recName, channel);
 				return false;
 			}
@@ -124,7 +127,7 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 
 	if (!dpvt.pdrv) {
 		epicsPrintf("%s (when parsing %s): no device specified\n", function, recName);
-		memset(&dpvt, 0, sizeof(dpvt));
+		dpvt = TerminalDpvt_t();
 		return false;
 	}
 
@@ -137,7 +140,7 @@ bool util::setupCommonDpvt(const char* recName, const char* inp, TerminalDpvt_t&
 	dpvt.pterm->Init(dpvt.terminalType, dpvt.pos);
 	if (dpvt.pterm == NULL) {
 		epicsPrintf("%s (when parsing %s): unable to find terminal\n", function, recName);
-		memset(&dpvt, 0, sizeof(dpvt));
+		dpvt = TerminalDpvt_t();
 		return false;
 	}
 

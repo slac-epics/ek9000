@@ -76,7 +76,7 @@ int devEK9000::pollDelay = 200;
 // This is a big hack for safety reasons! This will force you to use the DEFINE_XXX_PDO macro for every terminal type at
 // least once, so we can catch mismatches between terminals.json and the in-code PDO structs.
 // LTO may remove this symbol in release.
-void __PDOHack() {
+void ek9000_PDOHack() {
 	__pdo_check();
 }
 
@@ -217,8 +217,8 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 		for (size_t i = len; i >= 0; i--) {
 			if (ret[i] == ':' && (size_t)i < len) {
 				ret[i] = '\0';
-				good = true;
-				*outindex = atoi(&ret[i + 1]);
+				if (epicsParseInt32(ret + 1, outindex, 10, NULL) == 0)
+					good = true;
 				break;
 			}
 		}
@@ -878,7 +878,7 @@ void ek9000Configure(const iocshArgBuf* args) {
 	devEK9000* dev;
 
 	char ipbuf[64];
-	snprintf(ipbuf, sizeof(ipbuf), "%s:%i", ip, port);
+	(void)snprintf(ipbuf, sizeof(ipbuf), "%s:%i", ip, port);
 
 	dev = devEK9000::Create(name, ipbuf, num);
 
@@ -1295,41 +1295,41 @@ static long ek9k_confli_read_record(void* prec) {
 	switch (dpvt->param.type) {
 		case ek9k_coe_param_t::COE_TYPE_BOOL:
 			{
-				uint16_t buf;
+				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-												dpvt->param.subindex);
+										  dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
 		case ek9k_coe_param_t::COE_TYPE_INT8:
 			{
-				uint16_t buf;
+				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-												dpvt->param.subindex);
+										  dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
 		case ek9k_coe_param_t::COE_TYPE_INT16:
 			{
-				uint16_t buf;
+				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-												dpvt->param.subindex);
+										  dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
 		case ek9k_coe_param_t::COE_TYPE_INT32:
 			{
-				uint32_t buf;
+				uint32_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 2,
-												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+										  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
 		case ek9k_coe_param_t::COE_TYPE_INT64:
 			{
-				uint64_t buf;
+				uint64_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 4,
-												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+										  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1450,6 +1450,7 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	size_t bufcnt = 0;
 	char buf[512];
 	char* buffers[5];
+	memset(buffers, 0, sizeof(buffers));
 
 	if (str[0] == 0)
 		return false;
@@ -1462,6 +1463,9 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 		buffers[bufcnt] = tok;
 		++bufcnt;
 	}
+
+	if (!buffers[0])
+		return 1;
 
 	const size_t strl = strlen(str);
 	for (size_t i = 0; i < strl; i++)
@@ -1500,20 +1504,17 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	else
 		return false;
 
-	termid = atoi(buffers[1]);
-	if (errno != 0)
-		return false;
+	if (epicsParseInt32(buffers[1], &termid, 10, NULL) != 0)
+		return 1;
 	pterm = pcoupler->m_terms[termid - 1];
 
 	param->pterm = pterm;
 	param->ek9k = pcoupler;
-	param->index = (int)strtol(buffers[2], 0, 16);
-	if (errno != 0)
-		return false;
+	if (epicsParseInt32(buffers[2], &param->index, 16, NULL) != 0)
+		return 1;
 
-	param->subindex = (int)strtol(buffers[3], 0, 16);
-	if (errno != 0)
-		return false;
+	if (epicsParseInt32(buffers[3], &param->subindex, 16, NULL) != 0)
+		return 1;
 
 	return true;
 }
