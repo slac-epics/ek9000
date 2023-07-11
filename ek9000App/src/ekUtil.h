@@ -77,6 +77,9 @@ typedef std::pair<std::string, std::string> LinkSpecPair_t;
 typedef std::vector<LinkSpecPair_t> LinkSpec_t;
 
 struct TerminalDpvt_t {
+	TerminalDpvt_t() : pdrv(NULL), pos(0), pterm(NULL), channel(0), terminalType(0) {
+	}
+
 	class devEK9000* pdrv;			// Pointer to the coupler itself
 	int pos;						// Position in the rail (first=1)
 	class devEK9000Terminal* pterm; // Pointer to the terminal, which contains mappings

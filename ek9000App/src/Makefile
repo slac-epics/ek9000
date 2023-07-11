@@ -31,7 +31,6 @@ endif
 USR_CXXFLAGS += -Wno-deprecated-declarations -Wno-unused-variable
 
 # Records/Device support sources
-ek9000Support_SRCS += ekDiag.cpp
 ek9000Support_SRCS += devEK9000.cpp
 ek9000Support_SRCS += devEL1XXX.cpp
 ek9000Support_SRCS += devEL2XXX.cpp
