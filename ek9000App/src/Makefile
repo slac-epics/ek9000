@@ -11,12 +11,6 @@ DBD += devEK9000.dbd
 DBD += ek9000.dbd
 DBD += ek9000Include.dbd
 
-ifneq ($(NO_FORCE_CXX03),1)
-USR_CXXFLAGS += -std=c++03
-else
-USR_CXXFLAGS += -std=c++11
-endif
-
 ifeq ($(BUILD_STRICT),1)
 USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -Wno-variadic-macros -Wno-unused-parameter
 endif
