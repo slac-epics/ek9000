@@ -53,7 +53,6 @@
 #include <vector>
 
 #include "ekUtil.h"
-#include "ekDiag.h"
 #include "ekCoE.h"
 
 #define PORT_PREFIX "PORT_"

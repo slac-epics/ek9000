@@ -81,14 +81,27 @@ jobs:
           - os: ubuntu-20.04
             cmp: gcc
             configuration: static
-            extra: "CMD_CXXFLAGS=-std=c++11"
-            name: "Ub-20 gcc-9 C++11, static"
+            extra: "CMD_CXXFLAGS=-std=c++14"
+            name: "clang-tidy checks"
+            clang-tidy: true
+
+          - os: ubuntu-20.04
+            cmp: gcc
+            configuration: static
+            extra: "CMD_CXXFLAGS=-std=c++14"
+            name: "Ub-20 gcc-9 C++14, static"
+
+          - os: ubuntu-20.04
+            cmp: gcc
+            configuration: static
+            extra: "CMD_CXXFLAGS=-std=c++03"
+            name: "Ub-20 gcc-9 C++03, static"
 
           - os: ubuntu-20.04
             cmp: clang
             configuration: default
-            extra: "CMD_CXXFLAGS=-std=c++11"
-            name: "Ub-20 clang-10 C++11"
+            extra: "CMD_CXXFLAGS=-std=c++14"
+            name: "Ub-20 clang-10 C++14"
 
           - os: ubuntu-20.04
             cmp: gcc
@@ -101,7 +114,8 @@ jobs:
           - os: ubuntu-20.04
             cmp: clang
             configuration: default
-            name: "Ub-20 clang-10"
+            extra: "CMD_CXXFLAGS=-std=c++03"
+            name: "Ub-20 clang-10 C++03"
 
           - os: macos-latest
             cmp: clang
@@ -122,7 +136,7 @@ jobs:
     - name: "apt-get install"
       run: |
         sudo apt-get update
-        sudo apt-get -y install qemu-system-x86 g++-mingw-w64-x86-64 gdb
+        sudo apt-get -y install qemu-system-x86 g++-mingw-w64-x86-64 gdb bear clang-tidy
       if: runner.os == 'Linux'
     - name: "apt-get install ${{ matrix.cmp }}"
       run: |
@@ -135,6 +149,12 @@ jobs:
       run: python .ci/cue.py prepare
     - name: Build main module
       run: python .ci/cue.py build
+    - name: Run clang-tidy
+      run: |
+        make clean
+        bear make -j$(nproc)
+        python3 clang-tidy.py
+      if: matrix.clang-tidy
     - name: Run main module tests
       run: python .ci/cue.py test
     - name: Upload tapfiles Artifact

@@ -11,12 +11,6 @@ DBD += devEK9000.dbd
 DBD += ek9000.dbd
 DBD += ek9000Include.dbd
 
-ifneq ($(NO_FORCE_CXX03),1)
-USR_CXXFLAGS += -std=c++03
-else
-USR_CXXFLAGS += -std=c++11
-endif
-
 ifeq ($(BUILD_STRICT),1)
 USR_CXXFLAGS += -Wunused -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -Wno-variadic-macros -Wno-unused-parameter
 endif
@@ -31,7 +25,6 @@ endif
 USR_CXXFLAGS += -Wno-deprecated-declarations -Wno-unused-variable
 
 # Records/Device support sources
-ek9000Support_SRCS += ekDiag.cpp
 ek9000Support_SRCS += devEK9000.cpp
 ek9000Support_SRCS += devEL1XXX.cpp
 ek9000Support_SRCS += devEL2XXX.cpp

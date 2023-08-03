@@ -76,7 +76,7 @@ int devEK9000::pollDelay = 200;
 // This is a big hack for safety reasons! This will force you to use the DEFINE_XXX_PDO macro for every terminal type at
 // least once, so we can catch mismatches between terminals.json and the in-code PDO structs.
 // LTO may remove this symbol in release.
-void __PDOHack() {
+void ek9000_PDOHack() {
 	__pdo_check();
 }
 
@@ -217,8 +217,8 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 		for (size_t i = len; i >= 0; i--) {
 			if (ret[i] == ':' && (size_t)i < len) {
 				ret[i] = '\0';
-				good = true;
-				*outindex = atoi(&ret[i + 1]);
+				if (epicsParseInt32(ret + 1, outindex, 10, NULL) == 0)
+					good = true;
 				break;
 			}
 		}
@@ -878,7 +878,7 @@ void ek9000Configure(const iocshArgBuf* args) {
 	devEK9000* dev;
 
 	char ipbuf[64];
-	snprintf(ipbuf, sizeof(ipbuf), "%s:%i", ip, port);
+	(void)snprintf(ipbuf, sizeof(ipbuf), "%s:%i", ip, port);
 
 	dev = devEK9000::Create(name, ipbuf, num);
 
@@ -1068,8 +1068,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Time", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetWatchdogTime", 2, args, NULL};
-		static const iocshFuncDef func2 = {"ek9kSetWdTime", 2, args, NULL};
+		static const iocshFuncDef func = {"ek9000SetWatchdogTime", 2, args};
+		static const iocshFuncDef func2 = {"ek9kSetWdTime", 2, args};
 		iocshRegister(&func, ek9000SetWatchdogTime);
 		iocshRegister(&func2, ek9000SetWatchdogTime);
 	}
@@ -1079,8 +1079,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Type", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetWatchdogType", 2, args, NULL};
-		static const iocshFuncDef func2 = {"ek9kSetWdType", 2, args, NULL};
+		static const iocshFuncDef func = {"ek9000SetWatchdogType", 2, args};
+		static const iocshFuncDef func2 = {"ek9kSetWdType", 2, args};
 		iocshRegister(&func, ek9000SetWatchdogType);
 		iocshRegister(&func2, ek9000SetWatchdogType);
 	}
@@ -1090,8 +1090,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg1 = {"Name", iocshArgString};
 		static const iocshArg arg2 = {"Type", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2};
-		static const iocshFuncDef func = {"ek9000SetPollTime", 2, args, NULL};
-		static const iocshFuncDef func2 = {"ek9kSetPollTime", 2, args, NULL};
+		static const iocshFuncDef func = {"ek9000SetPollTime", 2, args};
+		static const iocshFuncDef func2 = {"ek9kSetPollTime", 2, args};
 		iocshRegister(&func, ek9000SetPollTime);
 		iocshRegister(&func2, ek9000SetPollTime);
 	}
@@ -1103,8 +1103,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg3 = {"Port", iocshArgInt};
 		static const iocshArg arg4 = {"# of Terminals", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"ek9000Configure", 4, args, NULL};
-		static const iocshFuncDef func2 = {"ek9kConfigure", 4, args, NULL};
+		static const iocshFuncDef func = {"ek9000Configure", 4, args};
+		static const iocshFuncDef func2 = {"ek9kConfigure", 4, args};
 		iocshRegister(&func, ek9000Configure);
 		iocshRegister(&func2, ek9000Configure);
 	}
@@ -1116,8 +1116,8 @@ int ek9000RegisterFunctions() {
 		static const iocshArg arg3 = {"Type", iocshArgString};
 		static const iocshArg arg4 = {"Positon", iocshArgInt};
 		static const iocshArg* const args[] = {&arg1, &arg2, &arg3, &arg4};
-		static const iocshFuncDef func = {"ek9000ConfigureTerminal", 4, args, NULL};
-		static const iocshFuncDef func2 = {"ek9kConfigureTerm", 4, args, NULL};
+		static const iocshFuncDef func = {"ek9000ConfigureTerminal", 4, args};
+		static const iocshFuncDef func2 = {"ek9kConfigureTerm", 4, args};
 		iocshRegister(&func, ek9000ConfigureTerminal);
 		iocshRegister(&func2, ek9000ConfigureTerminal);
 	}
@@ -1126,8 +1126,8 @@ int ek9000RegisterFunctions() {
 	{
 		static const iocshArg arg1 = {"EK9000 Name", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000Stat", 1, args, NULL};
-		static const iocshFuncDef func2 = {"ek9kStat", 1, args, NULL};
+		static const iocshFuncDef func = {"ek9000Stat", 1, args};
+		static const iocshFuncDef func2 = {"ek9kStat", 1, args};
 		iocshRegister(&func, ek9000Stat);
 		iocshRegister(&func2, ek9000Stat);
 	}
@@ -1136,8 +1136,8 @@ int ek9000RegisterFunctions() {
 	{
 		static const iocshArg arg1 = {"EK9k", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9000EnableDebug", 1, args, NULL};
-		static const iocshFuncDef func2 = {"ek9kEnableDbg", 1, args, NULL};
+		static const iocshFuncDef func = {"ek9000EnableDebug", 1, args};
+		static const iocshFuncDef func2 = {"ek9kEnableDbg", 1, args};
 		iocshRegister(&func, ek9000EnableDebug);
 		iocshRegister(&func2, ek9000EnableDebug);
 	}
@@ -1146,16 +1146,16 @@ int ek9000RegisterFunctions() {
 	{
 		static const iocshArg arg1 = {"EK9K", iocshArgString};
 		static const iocshArg* const args[] = {&arg1};
-		static const iocshFuncDef func = {"ek9kDisableDebug", 1, args, NULL};
-		static const iocshFuncDef func2 = {"ek9kDisableDbg", 1, args, NULL};
+		static const iocshFuncDef func = {"ek9kDisableDebug", 1, args};
+		static const iocshFuncDef func2 = {"ek9kDisableDbg", 1, args};
 		iocshRegister(&func, ek9000DisableDebug);
 		iocshRegister(&func2, ek9000DisableDebug);
 	}
 
 	/* ek9000List */
 	{
-		static iocshFuncDef func = {"ek9000List", 0, NULL, NULL};
-		static iocshFuncDef func2 = {"ek9kList", 0, NULL, NULL};
+		static iocshFuncDef func = {"ek9000List", 0, NULL};
+		static iocshFuncDef func2 = {"ek9kList", 0, NULL};
 		iocshRegister(&func, ek9000List);
 		iocshRegister(&func2, ek9000List);
 	}
@@ -1295,7 +1295,7 @@ static long ek9k_confli_read_record(void* prec) {
 	switch (dpvt->param.type) {
 		case ek9k_coe_param_t::COE_TYPE_BOOL:
 			{
-				uint16_t buf;
+				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
 												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
@@ -1303,7 +1303,7 @@ static long ek9k_confli_read_record(void* prec) {
 			}
 		case ek9k_coe_param_t::COE_TYPE_INT8:
 			{
-				uint16_t buf;
+				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
 												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
@@ -1311,7 +1311,7 @@ static long ek9k_confli_read_record(void* prec) {
 			}
 		case ek9k_coe_param_t::COE_TYPE_INT16:
 			{
-				uint16_t buf;
+				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
 												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
@@ -1319,7 +1319,7 @@ static long ek9k_confli_read_record(void* prec) {
 			}
 		case ek9k_coe_param_t::COE_TYPE_INT32:
 			{
-				uint32_t buf;
+				uint32_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 2,
 												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
@@ -1327,7 +1327,7 @@ static long ek9k_confli_read_record(void* prec) {
 			}
 		case ek9k_coe_param_t::COE_TYPE_INT64:
 			{
-				uint64_t buf;
+				uint64_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 4,
 												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
@@ -1450,6 +1450,7 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	size_t bufcnt = 0;
 	char buf[512];
 	char* buffers[5];
+	memset(buffers, 0, sizeof(buffers));
 
 	if (str[0] == 0)
 		return false;
@@ -1462,6 +1463,9 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 		buffers[bufcnt] = tok;
 		++bufcnt;
 	}
+
+	if (!buffers[0])
+		return 1;
 
 	const size_t strl = strlen(str);
 	for (size_t i = 0; i < strl; i++)
@@ -1500,20 +1504,17 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	else
 		return false;
 
-	termid = atoi(buffers[1]);
-	if (errno != 0)
-		return false;
+	if (epicsParseInt32(buffers[1], &termid, 10, NULL) != 0)
+		return 1;
 	pterm = pcoupler->m_terms[termid - 1];
 
 	param->pterm = pterm;
 	param->ek9k = pcoupler;
-	param->index = (int)strtol(buffers[2], 0, 16);
-	if (errno != 0)
-		return false;
+	if (epicsParseInt32(buffers[2], &param->index, 16, NULL) != 0)
+		return 1;
 
-	param->subindex = (int)strtol(buffers[3], 0, 16);
-	if (errno != 0)
-		return false;
+	if (epicsParseInt32(buffers[3], &param->subindex, 16, NULL) != 0)
+		return 1;
 
 	return true;
 }
