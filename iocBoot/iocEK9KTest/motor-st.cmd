@@ -21,7 +21,6 @@ dbLoadRecords("../motor/db/motorUtil.db", "P=IOC:m1")
 
 cd "${TOP}/iocBoot/${IOC}"
 
-dbLoadTemplate("Test3.substitutions")
 dbLoadTemplate("motor.substitutions")
 
 iocInit

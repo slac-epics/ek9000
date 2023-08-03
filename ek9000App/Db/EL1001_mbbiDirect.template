@@ -1,0 +1,7 @@
+record(mbbiDirect,"$(TERMINAL)")
+{
+	field(DTYP, "EL10XX_mbbiDirect")
+	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL1001")
+}
+

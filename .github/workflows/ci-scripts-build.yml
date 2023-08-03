@@ -22,12 +22,39 @@ env:
   APT: re2c
   CHOCO: re2c
   BREW: re2c
-  MODULES: "asyn modbus motor"
+  MODULES: "asyn modbus"
   ASYN: master
   MODBUS: master
-  MOTOR: master
+  # FIXME: Motor module build fails in mingw/windows. Only needed for motor support though
+  #MOTOR: master
 
 jobs:
+  format:
+    name: clang-format formatting check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: clang-format check
+        uses: jidicula/clang-format-action@v4.8.0
+        with:
+          clang-format-version: '14'
+          check-path: 'ek9000App'
+          exclude-regex: 'terminals.h'
+  
+  scripts-check:
+    name: Scripts Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install Packages
+        run: python3 -m pip install -r ek9000App/src/scripts/requirements.txt
+      - name: Check terminals.json and templates
+        run: python3 ek9000App/src/scripts/ci_check.py
+  
   build-base:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}

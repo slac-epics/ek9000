@@ -1,0 +1,8 @@
+record(longin,"$(TERMINAL):1")
+{
+	field(DTYP, "EL50XX")
+	field(EGU, "Counts")
+	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL5001")
+}
+

@@ -1,4 +1,4 @@
-## Supported Devices
+# Supported Terminals
 
 * EL1001
 * EL1002
@@ -39,6 +39,7 @@
 * EL2084
 * EL2088
 * EL2124
+* EL2794
 * EL2808
 * EL2816
 * EL3001
@@ -109,5 +110,9 @@
 * EL4134
 * EL4132
 * EL4122
+* EL5001
+* EL5002
 * EL5042
 * EL7047
+
+

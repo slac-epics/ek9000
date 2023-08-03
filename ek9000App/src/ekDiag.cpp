@@ -384,5 +384,6 @@ size_t COE_DecodeDiagString(void* string, char* outbuf, unsigned int outbuflen) 
 			break;
 	}
 	strncpy(outbuf, tmpbuf, outbuflen);
+	outbuf[outbuflen - 1] = 0;
 	return outbuflen;
 }

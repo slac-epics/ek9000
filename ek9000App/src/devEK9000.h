@@ -50,6 +50,7 @@
 #include <string.h>
 #include <functional>
 #include <list>
+#include <vector>
 
 #include "ekUtil.h"
 #include "ekDiag.h"
@@ -59,104 +60,89 @@
 
 #define STRUCT_SIZE_TO_MODBUS_SIZE(_x) ((_x % 2) == 0 ? (_x) / 2 : ((_x) / 2) + 1)
 
+/* Beginning of the block of register space containing status info. Spans from 0x1010 <-> 0x1040 */
+#define EK9000_STATUS_START 0x1010
+#define EK9000_STATUS_END 0x1040
+
 /* This device's error types */
-#define EK_EOK 0		 /* OK */
-#define EK_EERR 1		 /* Unspecified err */
-#define EK_EBADTERM 2	 /* Bad terminal */
-#define EK_ENOCONN 3	 /* Bad connection */
-#define EK_EBADPARAM 4	 /* Bad parameter passed */
-#define EK_EBADPTR 5	 /* Bad pointer */
-#define EK_ENODEV 6		 /* Bad device */
-#define EK_ENOENT 7		 /* No dir entry */
-#define EK_EWTCHDG 8	 /* Watchdog error */
-#define EK_EBADTYP 9	 /* Bad terminal type */
-#define EK_EBADIP 10	 /* Bad IP format */
-#define EK_EBADPORT 11	 /* Bad port # */
-#define EK_EADSERR 12	 /* ADS error */
-#define EK_ETERMIDMIS 13 /* Terminal id mismatch. e.g. term type is EL1124, but id is 2008 */
-#define EK_EBADMUTEX 14	 /* Mutex error */
-#define EK_EMUTEXTIMEOUT 15
-#define EK_EBADTERMID 16 /* Invalid terminal id */
-#define EK_EMODBUSERR 17 /* Modbus error */
+enum {
+	EK_EOK = 0,			/* OK */
+	EK_EERR = 1,		/* Unspecified err */
+	EK_EBADTERM = 2,	/* Bad terminal */
+	EK_ENOCONN = 3,		/* Bad connection */
+	EK_EBADPARAM = 4,	/* Bad parameter passed */
+	EK_EBADPTR = 5,		/* Bad pointer */
+	EK_ENODEV = 6,		/* Bad device */
+	EK_ENOENT = 7,		/* No dir entry */
+	EK_EWTCHDG = 8,		/* Watchdog error */
+	EK_EBADTYP = 9,		/* Bad terminal type */
+	EK_EBADIP = 10,		/* Bad IP format */
+	EK_EBADPORT = 11,	/* Bad port # */
+	EK_EADSERR = 12,	/* ADS error */
+	EK_ETERMIDMIS = 13, /* Terminal id mismatch. e.g. term type is EL1124, but id is 2008 */
+	EK_EBADMUTEX = 14,	/* Mutex error */
+	EK_EMUTEXTIMEOUT = 15,
+	EK_EBADTERMID = 16, /* Invalid terminal id */
+	EK_EMODBUSERR = 17	/* Modbus error */
+};
+
+/* Buffered IO types */
+enum EIOType {
+	READ_ANALOG,  /* Analogous to MODBUS_READ_INPUT_REGISTER */
+	READ_DIGITAL, /* Analogous to MODBUS_READ_DISCRETE_INPUTS */
+	READ_STATUS	  /* For status registers (e.g. num TCP connections, hardware ver, etc) */
+};
 
 /* Forward decls */
 class devEK9000;
 class devEK9000Terminal;
 
-extern std::list<devEK9000*> g_Devices;
-extern bool g_bDebug;
-
 std::list<devEK9000*>& GlobalDeviceList();
 
-#define TERMINAL_FAMILY_ANALOG 0x1
-#define TERMINAL_FAMILY_DIGITAL 0x2
-
-#define DevInfo(fmt, ...)                                                                                              \
-	if (g_bDebug) {                                                                                                    \
-		util::Log(fmt, __VA_ARGS__);                                                                                   \
-	}
-#define DevWarn(fmt, ...)                                                                                              \
-	if (g_bDebug) {                                                                                                    \
-		util::Warn(fmt, __VA_ARGS__);                                                                                  \
-	}
-#define DevError(fmt, ...)                                                                                             \
-	if (g_bDebug) {                                                                                                    \
-		util::Error(fmt, __VA_ARGS__);                                                                                 \
-	}
-
-struct LinkParameter_t {
-	char* key;
-	char* value;
+enum {
+	TERMINAL_FAMILY_ANALOG = 0x1,
+	TERMINAL_FAMILY_DIGITAL = 0x2
 };
 
-struct LinkSpecification_t {
-	LinkParameter_t* params;
-	int numParams;
-};
-
-typedef struct {
-	class devEK9000* pdrv;
-	int slave, terminal, channel;
-	int baseaddr, len;
-	LinkSpecification_t linkSpec;
-	char* terminalType;
-	char* mapping;
-	char* representation;
-} TerminalDpvt_t;
-
-enum ELinkType {
-	BAD = 0,
-	LINK_INST_IO,
-};
+#define DevInfo(...)                                                                                                   \
+	if (devEK9000::debugEnabled) {                                                                                     \
+		epicsPrintf(__VA_ARGS__);                                                                                      \
+	}
+#define DevWarn(...)                                                                                                   \
+	if (devEK9000::debugEnabled) {                                                                                     \
+		epicsPrintf(__VA_ARGS__);                                                                                      \
+	}
+#define DevError(...)                                                                                                  \
+	if (devEK9000::debugEnabled) {                                                                                     \
+		epicsPrintf(__VA_ARGS__);                                                                                      \
+	}
 
 class devEK9000Terminal {
 public:
 	/* Copy constructor */
-	devEK9000Terminal(const devEK9000Terminal& other);
-	devEK9000Terminal();
-	~devEK9000Terminal();
+	devEK9000Terminal(devEK9000* device);
 
-	/* device is parent device, termid is 3064 in el3064 */
-	static devEK9000Terminal* Create(devEK9000* device, uint32_t termid, int termindex, const char* record);
+	void Init(uint32_t termid, int termindex);
 
-	/* Process record name */
-	static devEK9000Terminal* ProcessRecordName(const char* recname, int& outindex, char* outname);
+	/* Process a record name. if outindex is nullptr, we are not expecting a channel selector at the end of the record
+	 * name */
+	static devEK9000Terminal* ProcessRecordName(const char* recname, int* outindex);
 
 	static void GetTerminalInfo(int termid, int& inp_size, int& out_size);
 
 	/* Do EK9000 IO */
-	int doEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
+	int doEK9000IO(int type, int startaddr, uint16_t* buf, int len);
 
 	/* Same calling convention as above, but use the buffered data! */
-	int getEK9000IO(int type, int startaddr, uint16_t* buf, size_t len);
+	int getEK9000IO(EIOType type, int startaddr, uint16_t* buf, int len);
 
-	template <class T> bool CoEWriteParameter(coe::param_t param, T value);
-
-	template <class T> bool CoEReadParameter(coe::param_t param, T& outval);
+	void SetRecordName(const char* rec) {
+		m_recordName = rec;
+	}
 
 public:
 	/* Name of record */
-	char* m_recordName;
+	std::string m_recordName;
 	/* Terminal family */
 	int m_terminalFamily;
 	/* Zero-based index of the terminal */
@@ -165,10 +151,6 @@ public:
 	devEK9000* m_device;
 	/* Terminal id, aka the 1124 in EL1124 */
 	int m_terminalId;
-	/* Number of inputs */
-	int m_inputs;
-	/* Number of outputs */
-	int m_outputs;
 	/* Size of inputs */
 	int m_inputSize;
 	/* Size of outputs */
@@ -186,7 +168,7 @@ public:
 //==========================================================//
 
 /* This holds various useful info about each ek9000 coupler */
-class devEK9000 {
+class devEK9000 : public drvModbusAsyn {
 private:
 	friend class CDeviceMgr;
 	friend class CTerminal;
@@ -195,22 +177,20 @@ private:
 	epicsMutexId m_Mutex;
 
 public:
-	/* Device info */
-	// EK9000Device m_pDevice;
+	DELETE_CTOR(devEK9000());
+	devEK9000(const char* portName, const char* octetPortName, int termCount, const char* ip);
+	~devEK9000();
 
 	/* List of attached terminals */
 	/* TODO: Redefine terminal struct */
-	devEK9000Terminal* m_terms;
+	std::vector<devEK9000Terminal*> m_terms;
 
 	/* Number of attached terminals */
 	int m_numTerms;
 
-	/* The driver */
-	drvModbusAsyn* m_driver;
-
-	char* m_name;
-	char* m_portName;
-	char* m_ip;
+	std::string m_name;
+	std::string m_octetPortName;
+	std::string m_ip;
 
 	bool m_connected;
 	bool m_init;
@@ -226,19 +206,19 @@ public:
 	/* Interrupts for analog/digital inputs */
 	IOSCANPVT m_analog_io;
 	IOSCANPVT m_digital_io;
-	int       m_analog_status;
-	int       m_digital_status;
+	IOSCANPVT m_status_io;
+
+	int m_analog_status;
+	int m_digital_status;
+	int m_status_status;
+	
 	/* The actual analog/digital data */
-	uint16_t  *m_analog_buf;
-	uint16_t  *m_digital_buf;
-	uint16_t  m_analog_cnt;
-	uint16_t  m_digital_cnt;
-
-public:
-	devEK9000();
-
-	/* Make  sure to free everything */
-	~devEK9000();
+	uint16_t* m_analog_buf;
+	uint16_t* m_digital_buf;
+	uint16_t m_analog_cnt;
+	uint16_t m_digital_cnt;
+	/* Buffer for status info */
+	uint16_t m_status_buf[EK9000_STATUS_END - EK9000_STATUS_START + 1];
 
 public:
 	static devEK9000* FindDevice(const char* name);
@@ -247,24 +227,13 @@ public:
 	/* Allows for better error handling (instead of using print statements to indicate error) */
 	static devEK9000* Create(const char* name, const char* ip, int terminal_count);
 
-	int AddTerminal(const char* name, int type, int position);
-
-	devEK9000Terminal* GetTerminal(const char* recordname);
-
-	devEK9000Terminal* GetAllTerminals() {
-		return m_terms;
-	}
+	int AddTerminal(const char* name, uint32_t type, int position);
 
 	/* Initializes a terminal (after it's been added). This should be called from the init_record routines */
 	int InitTerminal(int termindex);
 
 	/* Called to set proper image start addresses and such */
-	int InitTerminals();
-
-	/* Grab mutex */
-	int Lock();
-	/* Unlock it */
-	void Unlock();
+	bool ComputeTerminalMapping();
 
 public:
 	/* Error handling functions */
@@ -285,12 +254,21 @@ public:
 	/* Return 1 for connect */
 	int VerifyConnection() const;
 
-	/* Do a simple I/O thing */
+	/* Do a simple *blocking* I/O request. For optimized coupler IO use getEK9000IO */
 	/* rw = 0 for read, rw = 1 for write */
 	/* term = -1 for no terminal */
 	/* len = number of regs to read */
 	/* addr = starting addr */
 	int doEK9000IO(int rw, uint16_t addr, uint16_t len, uint16_t* data);
+
+	/**
+	 * Get at the internal buffered IO on the coupler
+	 * @param type IO type. Either READ_ANALOG, READ_DIGITAL or READ_STATUS. Write buffering not supported
+	 * @param startaddr Address to start reading at
+	 * @param buf Pointer to the buffer to receive the data
+	 * @param len Number of registers to read. This is NOT a byte count!
+	 */
+	int getEK9000IO(EIOType type, int startaddr, uint16_t* buf, uint16_t len);
 
 	/* Do CoE I/O */
 	int doCoEIO(int rw, uint16_t term, uint16_t index, uint16_t len, uint16_t* data, uint16_t subindex,
@@ -356,112 +334,54 @@ public:
 	/* Returns 1 for connection, 0 for not */
 	int CoEVerifyConnection(uint16_t termid);
 
-public:
-	/* Error reporting function, only prints on debug */
-	// void ReportError(int errorcode, const char* _msg = NULL);
+	devEK9000Terminal* TerminalByIndex(int idx) const {
+		return m_terms[idx - 1];
+	}
 
-	/* Enable/disable debug */
-	// void EnableDebug(bool enabled) { m_debug = enabled; };
+	asynUser* GetAsynUser() {
+		return pasynUserSelf;
+	}
+
+public:
+	/* Statics! */
+
+	static bool debugEnabled;
+	static int pollDelay;
 
 public:
 	/* Needed for the list impl */
 	bool operator==(const devEK9000& other) const {
-		return (strcmp(this->m_name, other.m_name) == 0);
+		return (strcmp(this->m_name.data(), other.m_name.data()) == 0);
 	}
-
-	/* Couple utility functions */
-	template <class RecordT> static bool setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
-
-	template <class RecordT> static void destroyDpvt(RecordT* prec, TerminalDpvt_t& dpvt);
-
-	static TerminalDpvt_t emptyDpvt() {
-		TerminalDpvt_t dpvt;
-		memset(&dpvt, 0, sizeof(TerminalDpvt_t));
-		return dpvt;
-	}
-
-	static void DestroyLinkSpecification(LinkSpecification_t& spec);
-	static bool ParseLinkSpecification(const char* link, ELinkType linkType, LinkSpecification_t& outSpec);
 };
 
-/**
- * We also handle some backwards compatibility here.
- */
-template <class RecordT> bool devEK9000::setupCommonDpvt(RecordT* prec, TerminalDpvt_t& dpvt) {
-	const char* function = "util::setupCommonDpvt<RecordT>()";
-	std::list<devEK9000*>& devList = GlobalDeviceList();
+class DeviceLock FINAL {
+	devEK9000& m_mutex;
+	bool m_unlocked;
+	int m_status;
 
-	if (!devEK9000::ParseLinkSpecification(prec->inp.text, LINK_INST_IO, dpvt.linkSpec)) {
-		/* Try to work with legacy stuff */
-		// TODO: STUB
-		return false;
+public:
+	DELETE_CTOR(DeviceLock());
+
+	explicit DeviceLock(devEK9000* mutex) : m_mutex(*mutex), m_unlocked(false) {
+		m_status = m_mutex.lock();
 	}
 
-	/* Parse the params passed via INST_IO stuff */
-	for (int i = 0; i < dpvt.linkSpec.numParams; i++) {
-		LinkParameter_t param = dpvt.linkSpec.params[i];
-
-		/* Device name */
-		if (strcmp(param.key, "device") == 0) {
-			bool found = false;
-			std::list<devEK9000*>& devList = GlobalDeviceList();
-			for (std::list<devEK9000*>::iterator x = devList.begin(); x != devList.end(); ++x) {
-				// for (const auto& x : GlobalDeviceList()) {
-				if (strcmp((*x)->m_name, param.value) == 0) {
-					dpvt.pdrv = *x;
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				epicsPrintf("%s (when parsing %s): invalid device name: %s\n", function, prec->name, param.value);
-				return false;
-			}
-		}
-		/* Terminal position in rail (1 based) */
-		else if (strcmp(param.key, "terminal") == 0) {
-			int term = atoi(param.value);
-			/* Max supported devices by the EK9K is 255 */
-			if (term < 0 || term > 255) {
-				epicsPrintf("%s (when parsing %s): invalid slave number: %i\n", function, prec->name, term);
-				return false;
-			}
-			dpvt.slave = term;
-		}
-		/* Channel number */
-		else if (strcmp(param.key, "channel") == 0) {
-			int channel = atoi(param.value);
-			/* No real max here, but I think it's good to limit this to 8k as nothing has this many channels */
-			if (channel < 0 || channel > 8192) {
-				epicsPrintf("%s (when parsing %s): invalid channel: %i\n", function, prec->name, channel);
-				return false;
-			}
-			dpvt.channel = channel;
-		}
-		/* Terminal type string e.g. EL3064 */
-		else if (strcmp(param.key, "type") == 0) {
-			dpvt.terminalType = epicsStrDup(param.value);
-		}
-		/* Representation. Generally used for analog termianls */
-		else if (strcmp(param.key, "repres") == 0) {
-			dpvt.representation = epicsStrDup(param.value);
-		}
-		/* Mapping type. Terminals generally have different mapping types. */
-		/* Ex: compact, compact w/status, standard, standard w/status */
-		/* Can be changed by iocsh */
-		else if (strcmp(param.key, "mapping") == 0) {
-			dpvt.mapping = epicsStrDup(param.value);
-		}
-		else {
-			epicsPrintf("%s (when parsing %s): ignored unknown param %s\n", function, prec->name, param.key);
-		}
+	~DeviceLock() {
+		if (!m_unlocked)
+			m_mutex.unlock();
 	}
 
-	if (!dpvt.mapping)
-		dpvt.mapping = epicsStrDup("");
-	if (!dpvt.terminalType)
-		dpvt.terminalType = epicsStrDup("");
-	if (!dpvt.representation)
-		dpvt.representation = epicsStrDup("");
-	return true;
-}
+	inline int status() const {
+		return m_status;
+	}
+	inline bool valid() const {
+		return m_status == asynSuccess;
+	}
+
+	inline void unlock() {
+		if (!m_unlocked)
+			m_mutex.unlock();
+		m_unlocked = true;
+	}
+};

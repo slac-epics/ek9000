@@ -1,8 +1,6 @@
 # Ignore certain bad files
 .vscode/
 .vscode/ipch
-bin/
-lib/
 __pycache__
 *.o
 *.a
@@ -10,11 +8,11 @@ __pycache__
 *.d
 
 # Ignore this shtuff
-dbd/
-db/
-lib/
-include/
-bin/
+/dbd/
+/db/
+/lib/
+/include/
+/bin/
 
 O.*
 *.local
@@ -41,7 +39,14 @@ ek9000App/src/BhcConfigFiles.zip
 .idea
 .vscode
 
-db/
-
 # Ignore ioc generated files
 envPaths
+
+# Ignore script-downloaded XML files
+BhcConfigFiles.zip
+BhcConfigFiles/
+
+.ccls-cache
+.cache
+
+st*.cmd

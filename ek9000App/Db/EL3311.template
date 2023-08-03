@@ -1,9 +1,10 @@
 record(ai,"$(TERMINAL):1")
 {
 	field(DTYP, "EL331X")
-	field(LINR, "LINEAR")
 	field(EGU, "C")
 	field(SCAN, "I/O Intr")
+	field(PREC, "3")
 	field(ESLO, "0.1")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL3311")
 }
 

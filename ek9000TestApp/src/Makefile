@@ -12,6 +12,11 @@ PROD_IOC = ek9000Test
 # ek9000Test.dbd will be created and installed
 DBD += ek9000Test.dbd
 
+ifeq ($(ENABLE_ASAN),1)
+USR_CXXFLAGS += -fsanitize=address
+USR_LDFLAGS += -fsanitize=address -static-libasan
+endif
+
 # ek9000Test.dbd will be made up from these files:
 ek9000Test_DBD += base.dbd
 ek9000Test_DBD += devEK9000.dbd

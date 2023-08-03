@@ -1,10 +1,15 @@
 record(ao,"$(TERMINAL):1")
 {
 	field(DTYP, "EL40XX")
-	field(LINR, "LINEAR")
-	field(PINI, "YES")
 	field(EGU, "mA")
-	field(EGUL, "4")
+	field(PREC, "3")
+	field(ESLO, "0.0004882961516159551")
+	field(EOFF, "4")
 	field(EGUF, "20")
+	field(EGUL, "4")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.02")
+	field(MDEL, "0.02")
+	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL4021")
 }
 

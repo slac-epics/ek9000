@@ -28,15 +28,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "ekUtil.h"
 #include "devEK9000.h"
 
-struct EL40XXDpvt_t {
-	int channel;
-	devEK9000Terminal* terminal;
-	devEK9000* device;
-	/* Standard or compact PDO used */
-	bool compactPDO;
-};
+#include "terminal_types.g.h"
 
 static long EL40XX_dev_report(int after);
 static long EL40XX_init(int after);
@@ -59,61 +54,74 @@ struct devEL40XX_t {
 
 epicsExportAddress(dset, devEL40XX);
 
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4001);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4002);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4004);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4008);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4011);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4012);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4014);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4018);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4021);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4022);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4024);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4028);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4031);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4032);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4034);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4038);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4102);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4104);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4112);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4114);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4122);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4132);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4134);
+
 static void EL40XX_WriteCallback(CALLBACK* callback) {
 	void* record = NULL;
 	callbackGetUser(record, callback);
 	aoRecord* pRecord = (aoRecord*)record;
-	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
+	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 	free(callback);
+	int status = 0;
 
 	/* Check for invalid */
-	if (!dpvt->terminal) {
-	        pRecord->pact = FALSE;
-		return;
-	}
-
-	/* Verify connection */
-	if (!dpvt->terminal->m_device->VerifyConnection()) {
-		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_ENOCONN));
+	if (!util::DpvtValid(dpvt)) {
 		pRecord->pact = FALSE;
 		return;
 	}
 
-	/* Lock the mutex */
-	dpvt->terminal->m_device->Lock();
+	// Write to the device
+	{
+		DeviceLock lock(dpvt->pdrv);
 
-	/* Set buffer & do write */
-	uint16_t buf = (int16_t)pRecord->rval;
-	int status = dpvt->terminal->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
-											dpvt->terminal->m_outputStart + (dpvt->channel - 1), &buf, 1);
-
-	/* Unlock mutex */
-	dpvt->terminal->m_device->Unlock();
-
-	pRecord->udf = FALSE;
-
-	/* Check error */
-	if (status) {
-		recGblSetSevr(pRecord, WRITE_ALARM, INVALID_ALARM);
-		if (status > 0x100) {
-			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(EK_EMODBUSERR));
-			pRecord->pact = FALSE;
+		if (!lock.valid()) {
+			LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
+			recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
 			return;
 		}
-		else {
-			DevError("EL40XX_WriteCallback(): %s\n", devEK9000::ErrorToString(status));
-		}
+
+		/* Set buffer & do write */
+		uint16_t buf = (int16_t)pRecord->rval;
+		status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
+										 dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
+	}
+
+	/* Check error */
+	if (status != EK_EOK) {
+		recGblSetSevr(pRecord, COMM_ALARM, INVALID_ALARM);
+		LOG_WARNING(dpvt->pdrv, "%s\n", devEK9000::ErrorToString(status));
 		pRecord->pact = FALSE;
 		return;
 	}
 
 	/* OK, we've written a value, everything looks good.  We need to reprocess this! */
-	struct typed_rset *prset=(struct typed_rset *)(pRecord->rset); 
-	dbScanLock((struct dbCommon *)pRecord); 
+	struct typed_rset* prset = (struct typed_rset*)(pRecord->rset);
+	dbScanLock((struct dbCommon*)pRecord);
 	pRecord->udf = FALSE;
-	(*prset->process)((struct dbCommon *)pRecord); /* This will set PACT false! */
-	dbScanUnlock((struct dbCommon *)pRecord); 
+	(*prset->process)((struct dbCommon*)pRecord); /* This will set PACT false! */
+	dbScanUnlock((struct dbCommon*)pRecord);
 }
 
 static long EL40XX_dev_report(int) {
@@ -126,39 +134,33 @@ static long EL40XX_init(int) {
 
 static long EL40XX_init_record(void* record) {
 	aoRecord* pRecord = (aoRecord*)record;
-	pRecord->dpvt = calloc(1, sizeof(EL40XXDpvt_t));
-	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
-
-	/* Find record name */
-	char* out = NULL;
-	dpvt->terminal = devEK9000Terminal::ProcessRecordName(pRecord->name, dpvt->channel, out);
+	pRecord->dpvt = util::allocDpvt();
+	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
+	uint16_t termid = 0;
 
 	/* Verify terminal */
-	if (!dpvt->terminal) {
-		util::Error("EL40XX_init_record(): Unable to find terminal for record %s\n", pRecord->name);
-		return 1;
-	}
-	free(out);
-	dpvt->device = dpvt->terminal->m_device;
-
-	/* Lock mutex for IO */
-	int status = dpvt->terminal->m_device->Lock();
-	/* Verify it's error free */
-	if (status) {
-		util::Error("EL40XX_init_record(): %s\n", devEK9000::ErrorToString(EK_EMUTEXTIMEOUT));
+	if (!util::setupCommonDpvt(pRecord, *dpvt)) {
+		LOG_ERROR(dpvt->pdrv, "Unable to find terminal for record %s\n", pRecord->name);
 		return 1;
 	}
 
-	/* Read terminal ID */
-	uint16_t termid = 0;
-	dpvt->terminal->m_device->ReadTerminalID(dpvt->terminal->m_terminalIndex, termid);
+	// Validate terminal ID
+	{
+		DeviceLock lock(dpvt->pdrv);
 
-	dpvt->device->Unlock();
+		/* Verify it's error free */
+		if (!lock.valid()) {
+			LOG_ERROR(dpvt->pdrv, "unable to obtain device lock\n");
+			return 1;
+		}
+
+		/* Read terminal ID */
+		dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	}
 
 	/* Verify terminal ID */
-	if (termid != dpvt->terminal->m_terminalId || termid == 0) {
-		util::Error("EL40XX_init_record(): %s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name,
-					termid);
+	if (termid != dpvt->pterm->m_terminalId || termid == 0) {
+		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
 
@@ -166,12 +168,12 @@ static long EL40XX_init_record(void* record) {
 }
 
 static long EL40XX_write_record(void* record) {
-        struct aoRecord *prec = (struct aoRecord *) record;
+	struct aoRecord* prec = (struct aoRecord*)record;
 	if (prec->pact)
-	    prec->pact = FALSE;
+		prec->pact = FALSE;
 	else {
-	    prec->pact = TRUE;
-	    util::setupCallback(record, EL40XX_WriteCallback);
+		prec->pact = TRUE;
+		util::setupCallback(record, EL40XX_WriteCallback);
 	}
 	return 0;
 }

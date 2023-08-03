@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="PyDMFrame" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>589</width>
+    <height>520</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>EK9000 Coupler Settings</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="8" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit_5">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:AnalogInputSize</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit_7">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:AnalogOutputSize</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit_9">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:SerialNumber</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit_4">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:FallbacksTriggered</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="0" colspan="2" alignment="Qt::AlignHCenter">
+    <widget class="PyDMLabel" name="PyDMLabel_20">
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Coupler Settings</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="1">
+    <widget class="PyDMEnumComboBox" name="PyDMEnumComboBox">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:WatchdogType</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>Write Telegram</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Telegram (Default)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Disable</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_7">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Hardware Version</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_8">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Mfg. Date (DD/MM/YYYY)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_25">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${EK9K}:SoftwareVersionMain</string>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignHCenter">
+      <widget class="PyDMLabel" name="PyDMLabel_24">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>.</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_23">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${EK9K}:SoftwareVersionSub</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_22">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>.</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_26">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${EK9K}:SoftwareVersionBeta</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="10" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_13">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Analog Outputs (bytes)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit_6">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:DigitalInputSize</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Watchdog Mode</string>
+     </property>
+     <property name="precision" stdset="0">
+      <number>0</number>
+     </property>
+     <property name="showUnits" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="precisionFromPV" stdset="0">
+      <bool>true</bool>
+     </property>
+     <property name="alarmSensitiveContent" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="alarmSensitiveBorder" stdset="0">
+      <bool>true</bool>
+     </property>
+     <property name="PyDMToolTip" stdset="0">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_15">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${EK9K}:DayOfMfg</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_18">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>/</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_17">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${EK9K}:MonthOfMfg</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_19">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>/</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PyDMLabel" name="PyDMLabel_16">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="channel" stdset="0">
+        <string>ca://${EK9K}:YearOfMfg</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="5" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_9">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>EBus Status</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_2">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Watchdog Timeout (ms)</string>
+     </property>
+     <property name="precision" stdset="0">
+      <number>0</number>
+     </property>
+     <property name="showUnits" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="precisionFromPV" stdset="0">
+      <bool>true</bool>
+     </property>
+     <property name="alarmSensitiveContent" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="alarmSensitiveBorder" stdset="0">
+      <bool>true</bool>
+     </property>
+     <property name="PyDMToolTip" stdset="0">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit_2">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:TCPConnections</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="PyDMEnumComboBox" name="PyDMEnumComboBox_4">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:EbusStatus</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>FAULT</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>OK</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="15" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:WatchdogTime</string>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="11" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit_8">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:DigitalOutputSize</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_6">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Software Version</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
+    <widget class="PyDMLabel" name="PyDMLabel_21">
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+      </font>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Coupler State</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="1">
+    <widget class="PyDMCheckbox" name="PyDMCheckbox">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:WriteLock</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_28">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>TCP Connections</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_12">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Digital Inputs (bits)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_27">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Serial Number</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_4">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Fallback Mode</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_10">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Fallbacks Triggered</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_14">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Digital Outputs (bits)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="PyDMLineEdit" name="PyDMLineEdit_3">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:HardwareVersion</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_3">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Writelock</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="1">
+    <widget class="PyDMEnumComboBox" name="PyDMEnumComboBox_2">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="channel" stdset="0">
+      <string>ca://${EK9K}:FallbackMode</string>
+     </property>
+     <item>
+      <property name="text">
+       <string>Set to Zero (Default)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Freeze</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Stop E-Bus</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="PyDMLabel" name="PyDMLabel_11">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>Analog Inputs (bytes)</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PyDMLabel</class>
+   <extends>QLabel</extends>
+   <header>pydm.widgets.label</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMCheckbox</class>
+   <extends>QCheckBox</extends>
+   <header>pydm.widgets.checkbox</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMEnumComboBox</class>
+   <extends>QComboBox</extends>
+   <header>pydm.widgets.enum_combo_box</header>
+  </customwidget>
+  <customwidget>
+   <class>PyDMFrame</class>
+   <extends>QFrame</extends>
+   <header>pydm.widgets.frame</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PyDMLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>pydm.widgets.line_edit</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

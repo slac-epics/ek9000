@@ -151,31 +151,31 @@ public:
 								  uint16_t enc_inc);
 
 	/* Move to home */
-	asynStatus move(double pos, int rel, double min_vel, double max_vel, double accel) override;
+	asynStatus move(double pos, int rel, double min_vel, double max_vel, double accel) OVERRIDE;
 
 	/* Move with a velocity */
-	asynStatus moveVelocity(double min_vel, double max_vel, double accel) override;
+	asynStatus moveVelocity(double min_vel, double max_vel, double accel) OVERRIDE;
 
 	/* Move to home */
-	asynStatus home(double min_vel, double max_vel, double accel, int forwards) override;
+	asynStatus home(double min_vel, double max_vel, double accel, int forwards) OVERRIDE;
 
 	/* Stop with accel */
-	asynStatus stop(double accel) override;
+	asynStatus stop(double accel) OVERRIDE;
 
 	/* Poll */
-	asynStatus poll(bool* moving) override;
+	asynStatus poll(bool* moving) OVERRIDE;
 
 	/* Set the position target */
-	asynStatus setPosition(double pos) override;
+	asynStatus setPosition(double pos) OVERRIDE;
 
 	/* Set the position of the encoder in steps from 0 */
-	asynStatus setEncoderPosition(double pos) override;
+	asynStatus setEncoderPosition(double pos) OVERRIDE;
 
 	/* Set if it's closed loop or not */
-	asynStatus setClosedLoop(bool closed) override;
+	asynStatus setClosedLoop(bool closed) OVERRIDE;
 
 	/* Report all detected motor axes */
-	void report(FILE* fd, int lvl) override;
+	void report(FILE* fd, int lvl) OVERRIDE;
 
 	/* Locks the driver */
 	void lock();
@@ -209,11 +209,11 @@ public:
 public:
 	el70x7Controller(devEK9000* dev, devEK9000Terminal* controller, const char* port, int numAxis);
 
-	el70x7Axis* getAxis(int num) override;
-	el70x7Axis* getAxis(asynUser* axis) override;
+	el70x7Axis* getAxis(int num) OVERRIDE;
+	el70x7Axis* getAxis(asynUser* axis) OVERRIDE;
 
 	/* Report all parameters */
-	void report(FILE* fd, int lvl) override;
+	void report(FILE* fd, int lvl) OVERRIDE;
 
 	friend class el70x7Axis;
 };

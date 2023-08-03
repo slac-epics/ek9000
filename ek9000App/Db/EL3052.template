@@ -1,20 +1,32 @@
 record(ai,"$(TERMINAL):1")
 {
 	field(DTYP, "EL30XX")
-	field(LINR, "LINEAR")
 	field(EGU, "mA")
 	field(SCAN, "I/O Intr")
-	field(EGUL, "4")
+	field(PREC, "3")
+	field(ESLO, "0.0004882961516159551")
+	field(EOFF, "4")
 	field(EGUF, "20")
+	field(EGUL, "4")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.06")
+	field(MDEL, "0.06")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL3052")
 }
 
 record(ai,"$(TERMINAL):2")
 {
 	field(DTYP, "EL30XX")
-	field(LINR, "LINEAR")
 	field(EGU, "mA")
 	field(SCAN, "I/O Intr")
-	field(EGUL, "4")
+	field(PREC, "3")
+	field(ESLO, "0.0004882961516159551")
+	field(EOFF, "4")
 	field(EGUF, "20")
+	field(EGUL, "4")
+	field(LINR, "SLOPE")
+	field(ADEL, "0.06")
+	field(MDEL, "0.06")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=2,type=EL3052")
 }
 
