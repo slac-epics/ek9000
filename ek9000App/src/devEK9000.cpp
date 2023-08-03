@@ -1297,7 +1297,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-										  dpvt->param.subindex);
+												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1305,7 +1305,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-										  dpvt->param.subindex);
+												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1313,7 +1313,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint16_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 1, &buf,
-										  dpvt->param.subindex);
+												dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1321,7 +1321,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint32_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 2,
-										  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
@@ -1329,7 +1329,7 @@ static long ek9k_confli_read_record(void* prec) {
 			{
 				uint64_t buf = 0;
 				err = dpvt->param.ek9k->doCoEIO(0, dpvt->param.pterm->m_terminalIndex, dpvt->param.index, 4,
-										  reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
+												reinterpret_cast<uint16_t*>(&buf), dpvt->param.subindex);
 				precord->val = static_cast<epicsInt64>(buf);
 				break;
 			}
