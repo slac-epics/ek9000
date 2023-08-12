@@ -56,8 +56,10 @@
 
 #if __cplusplus >= 201703L
 #define MAYBE_UNUSED [[maybe_unused]]
+#define NODISCARD [[nodiscard]]
 #else
 #define MAYBE_UNUSED __attribute__((unused))
+#define NODISCARD
 #endif
 
 #undef UNUSED
@@ -125,7 +127,7 @@ public:
 	FmtStr(const char* fmt, ...) EPICS_PRINTF_STYLE(2, 3) {
 		va_list va;
 		va_start(va, fmt);
-		vsnprintf(str_, sizeof(str_), fmt, va);
+		(void)vsnprintf(str_, sizeof(str_), fmt, va);
 		va_end(va);
 	}
 
@@ -200,9 +202,14 @@ concept INPUT_RECORD = requires(T a) {
 template <typename T>
 concept RECORD_TYPE = detail::BASE_RECORD<T> &&(detail::INPUT_RECORD<T> || detail::OUTPUT_RECORD<T>);
 
+template <typename T>
+concept NUMERIC_TYPE = std::same_as<T, epicsInt32> || std::same_as<T, epicsUInt32> || std::same_as<T, epicsInt16> ||
+	std::same_as<T, epicsUInt16> || std::same_as<T, epicsInt64> || std::same_as<T, epicsUInt64>;
+
 #else
 
 #define RECORD_TYPE typename
+#define NUMERIC_TYPE typename
 
 #endif
 
@@ -259,7 +266,34 @@ template <> inline bool setupCommonDpvt<aoRecord>(aoRecord* prec, TerminalDpvt_t
 	return setupCommonDpvt(prec->name, prec->out.value.instio.string, dpvt);
 }
 
+template <NUMERIC_TYPE T> NODISCARD inline bool parseNumber(const char* str, T& out, int base = 10);
+
+template <> NODISCARD inline bool parseNumber<epicsInt16>(const char* str, epicsInt16& out, int base) {
+	return epicsParseInt16(str, &out, base, NULL) == 0;
+}
+
+template <> NODISCARD inline bool parseNumber<epicsUInt16>(const char* str, epicsUInt16& out, int base) {
+	return epicsParseUInt16(str, &out, base, NULL) == 0;
+}
+
+template <> NODISCARD inline bool parseNumber<epicsInt32>(const char* str, epicsInt32& out, int base) {
+	return epicsParseInt32(str, &out, base, NULL) == 0;
+}
+
+template <> NODISCARD inline bool parseNumber<epicsUInt32>(const char* str, epicsUInt32& out, int base) {
+	return epicsParseUInt32(str, &out, base, NULL) == 0;
+}
+
+template <> NODISCARD inline bool parseNumber<epicsInt64>(const char* str, epicsInt64& out, int base) {
+	return epicsParseInt64(str, &out, base, NULL) == 0;
+}
+
+template <> NODISCARD inline bool parseNumber<epicsUInt64>(const char* str, epicsUInt64& out, int base) {
+	return epicsParseUInt64(str, &out, base, NULL) == 0;
+}
+
 } // namespace util
 
 // Clear pre-C++20 concept hacks
 #undef RECORD_TYPE
+#undef NUMERIC_TYPE
