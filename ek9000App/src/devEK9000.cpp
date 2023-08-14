@@ -217,7 +217,7 @@ devEK9000Terminal* devEK9000Terminal::ProcessRecordName(const char* recname, int
 		for (size_t i = len; i >= 0; i--) {
 			if (ret[i] == ':' && (size_t)i < len) {
 				ret[i] = '\0';
-				if (epicsParseInt32(ret + 1, outindex, 10, NULL) == 0)
+				if (util::parseNumber(ret + 1, *outindex, 10))
 					good = true;
 				break;
 			}
@@ -1504,16 +1504,16 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 	else
 		return false;
 
-	if (epicsParseInt32(buffers[1], &termid, 10, NULL) != 0)
+	if (!util::parseNumber(buffers[1], termid, 10))
 		return 1;
 	pterm = pcoupler->m_terms[termid - 1];
 
 	param->pterm = pterm;
 	param->ek9k = pcoupler;
-	if (epicsParseInt32(buffers[2], &param->index, 16, NULL) != 0)
+	if (!util::parseNumber(buffers[2], param->index, 16))
 		return 1;
 
-	if (epicsParseInt32(buffers[3], &param->subindex, 16, NULL) != 0)
+	if (!util::parseNumber(buffers[3], param->subindex, 16))
 		return 1;
 
 	return true;
@@ -1720,7 +1720,7 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 			}
 		}
 		else if (spec[i].first == "addr") {
-			if (epicsParseInt32(spec[i].second.c_str(), &param.reg, 16, NULL) != 0) {
+			if (!util::parseNumber(spec[i].second.c_str(), param.reg, 16)) {
 				epicsStdoutPrintf("Malformed integer '%s' in instio string for key 'addr'\n", spec[i].second.c_str());
 				return false;
 			}
