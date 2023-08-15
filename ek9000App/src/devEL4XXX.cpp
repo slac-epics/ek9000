@@ -155,7 +155,7 @@ static long EL40XX_init_record(void* record) {
 		}
 
 		/* Read terminal ID */
-		dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+		termid = dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex);
 	}
 
 	/* Verify terminal ID */

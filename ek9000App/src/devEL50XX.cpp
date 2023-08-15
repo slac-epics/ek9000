@@ -99,7 +99,7 @@ static long el50xx_init_record(void* precord) {
 		}
 
 		/* Check that slave # is OK */
-		dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+		termid = dpvt->pterm->m_device->ReadTerminalID(dpvt->pterm->m_terminalIndex);
 	}
 
 	if (termid != dpvt->pterm->m_terminalId || termid == 0) {

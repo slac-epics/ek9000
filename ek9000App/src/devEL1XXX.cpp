@@ -53,7 +53,6 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 	uint16_t termid = 0;
 
 	/* Get terminal */
-	const bool mbbi = util::is_same<RecordT, mbbiDirectRecord>::value;
 	if (!util::setupCommonDpvt<RecordT>(pRecord, *dpvt)) {
 		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for record %s\n", pRecord->name);
 		return 1;
@@ -72,7 +71,7 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 		}
 
 		/* Read termid */
-		dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+		termid = dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex);
 	}
 
 	pRecord->udf = FALSE;

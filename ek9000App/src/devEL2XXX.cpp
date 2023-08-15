@@ -127,8 +127,6 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 	pRecord->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 
-	const bool mbbo = util::is_same<RecordT, mbboDirectRecord>::value;
-
 	/* Grab terminal info */
 	if (!util::setupCommonDpvt<RecordT>(pRecord, *dpvt)) {
 		LOG_ERROR(dpvt->pdrv, "Unable to setup dpvt for %s\n", pRecord->name);
@@ -154,7 +152,7 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 
 	/* Read terminal ID */
 	uint16_t termid = 0;
-	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	termid = dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex);
 
 	/* Verify terminal ID */
 	if (termid == 0 || termid != dpvt->pterm->m_terminalId) {

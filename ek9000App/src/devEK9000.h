@@ -217,6 +217,10 @@ public:
 	uint16_t m_digital_cnt;
 	/* Buffer for status info */
 	uint16_t m_status_buf[EK9000_STATUS_END - EK9000_STATUS_START + 1];
+	
+	/* Cache of terminal layout */
+	uint16_t m_terminals[0xFF];
+	bool m_readTerminals;
 
 public:
 	static devEK9000* FindDevice(const char* name);
@@ -321,7 +325,7 @@ public:
 	int WriteWritelockMode(uint16_t mode);
 
 	/* Read terminal type */
-	int ReadTerminalID(uint16_t termid, uint16_t& termidout);
+	uint16_t ReadTerminalID(uint16_t index);
 
 	/* Poll the ek9000 until data is ready/error */
 	/* Return 0 for OK, 1 for error */

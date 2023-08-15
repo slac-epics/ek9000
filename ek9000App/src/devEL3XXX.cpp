@@ -81,7 +81,7 @@ static long EL3XXX_init_record(void* precord) {
 		}
 
 		/* Check that slave # is OK */
-		dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+		termid = dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex);
 	}
 
 	/* This is important; if the terminal id is different than what we want, report an error */
