@@ -61,6 +61,7 @@
 
 /* Beginning of the block of register space containing status info. Spans from 0x1010 <-> 0x1040 */
 #define EK9000_STATUS_START 0x1010
+#define EK9000_STATUS_EBUS_STATUS 0x1040
 #define EK9000_STATUS_END 0x1040
 
 /* This device's error types */
@@ -207,6 +208,7 @@ public:
 	IOSCANPVT m_digital_io;
 	IOSCANPVT m_status_io;
 
+	bool m_ebus_ok;
 	int m_analog_status;
 	int m_digital_status;
 	int m_status_status;
@@ -217,7 +219,7 @@ public:
 	uint16_t m_digital_cnt;
 	/* Buffer for status info */
 	uint16_t m_status_buf[EK9000_STATUS_END - EK9000_STATUS_START + 1];
-	
+
 	/* Cache of terminal layout */
 	uint16_t m_terminals[0xFF];
 	bool m_readTerminals;

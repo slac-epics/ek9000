@@ -132,24 +132,36 @@ void PollThreadFunc(void*) {
 					LOG_WARNING(device, "%s: FAILED TO RESET WATCHDOG!\n", device->m_name.data());
 				}
 			}
-			/* read EL1xxx/EL3xxx/EL5xxx data */
-			if (device->m_digital_cnt) {
-				device->m_digital_status =
-					device->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0, device->m_digital_buf, device->m_digital_cnt);
-				scanIoRequest(device->m_digital_io);
-			}
-			if (device->m_analog_cnt) {
-				device->m_analog_status =
-					device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0, device->m_analog_buf, device->m_analog_cnt);
-				scanIoRequest(device->m_analog_io);
-			}
+
 			// Read status registers only after a ~1 second delay
 			if (((start.tv_sec + start.tv_usec / 1e6) - (last_read_status.tv_sec + last_read_status.tv_usec / 1e6)) >=
 				1.0) {
 				device->m_status_status = device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, EK9000_STATUS_START,
 															 device->m_status_buf, ArraySize(device->m_status_buf));
+
+				bool ebus = device->m_status_buf[EK9000_STATUS_EBUS_STATUS - EK9000_STATUS_START] == 1;
+				if (ebus != device->m_ebus_ok) {
+					device->m_ebus_ok = ebus;
+					LOG_WARNING(device, "%s: E-Bus status switched to %s\n", device->m_name.data(),
+								ebus ? "OK" : "FAULT");
+				}
 				scanIoRequest(device->m_status_io);
 				gettimeofday(&last_read_status, NULL);
+				// Signal digital/analog error
+				if (!ebus)
+					device->m_digital_status = device->m_analog_status = asynError;
+			}
+
+			/* read EL1xxx/EL3xxx/EL5xxx data */
+			if (device->m_digital_cnt && device->m_ebus_ok) {
+				device->m_digital_status =
+					device->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0, device->m_digital_buf, device->m_digital_cnt);
+				scanIoRequest(device->m_digital_io);
+			}
+			if (device->m_analog_cnt && device->m_ebus_ok) {
+				device->m_analog_status =
+					device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0, device->m_analog_buf, device->m_analog_cnt);
+				scanIoRequest(device->m_analog_io);
 			}
 		}
 		cnt = (cnt + 1) % 2;
@@ -331,6 +343,7 @@ devEK9000::devEK9000(const char* portname, const char* octetPortName, int termCo
 	m_name = portname;
 	m_readTerminals = false;
 	m_octetPortName = octetPortName;
+	m_ebus_ok = true;
 
 	this->m_Mutex = epicsMutexCreate();
 	m_analog_status = EK_EERR + 0x100; /* No data yet!! */
@@ -776,7 +789,7 @@ uint16_t devEK9000::ReadTerminalID(uint16_t index) {
 		return m_terminals[index];
 
 	memset(m_terminals, 0, sizeof(m_terminals));
-	for(int off = 0; off < 255; off += 125) {
+	for (int off = 0; off < 255; off += 125) {
 		if (off > 0 && m_terminals[off] == 0)
 			break;
 		const size_t toRead = util::clamp(ArraySize(m_terminals) - off, 0, 125);
