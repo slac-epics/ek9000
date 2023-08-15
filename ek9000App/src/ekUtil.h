@@ -117,6 +117,11 @@ template <class T, size_t N> size_t ArraySize(T (&arr)[N]) {
 namespace util
 {
 
+template<class T, class A, class B>
+inline T clamp(const T& val, const A& low, const B& high) {
+	return val < low ? low : (val > high ? high : val);
+}
+
 /**
  * Simple format string
  * TODO: When we upgrade to C++11, make this templated with a constant for string length

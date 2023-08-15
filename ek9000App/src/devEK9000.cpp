@@ -329,6 +329,7 @@ devEK9000::devEK9000(const char* portname, const char* octetPortName, int termCo
 	m_error = EK_EOK;
 	LastADSErr = 0;
 	m_name = portname;
+	m_readTerminals = false;
 	m_octetPortName = octetPortName;
 
 	this->m_Mutex = epicsMutexCreate();
@@ -422,8 +423,7 @@ int devEK9000::InitTerminal(int term) {
 		return EK_EBADPARAM;
 
 	/* Read ther terminal's id */
-	uint16_t tid = 0;
-	this->ReadTerminalID(term, tid);
+	uint16_t tid = this->ReadTerminalID(term);
 
 	/* Verify that the terminal has the proper id */
 	devEK9000Terminal* terminal = this->m_terms[term];
@@ -770,13 +770,24 @@ int devEK9000::WriteWritelockMode(uint16_t mode) {
 }
 
 /* Read terminal ID */
-int devEK9000::ReadTerminalID(uint16_t termid, uint16_t& out) {
-	uint16_t tmp = 0;
-	this->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0x6000 + (termid), &tmp, 1);
-	if (tmp == 0)
-		return EK_ENOCONN;
-	out = tmp;
-	return EK_EOK;
+uint16_t devEK9000::ReadTerminalID(uint16_t index) {
+	assert(index < 0xFF);
+	if (m_readTerminals)
+		return m_terminals[index];
+
+	memset(m_terminals, 0, sizeof(m_terminals));
+	for(int off = 0; off < 255; off += 125) {
+		if (off > 0 && m_terminals[off] == 0)
+			break;
+		const size_t toRead = util::clamp(ArraySize(m_terminals) - off, 0, 125);
+		if (this->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0x6000, m_terminals + off, toRead) != asynSuccess) {
+			LOG_WARNING(this, "%s: Failed to read terminal layout\n", m_name.data());
+			break;
+		}
+	}
+
+	m_readTerminals = true;
+	return m_terminals[index];
 }
 
 int devEK9000::Poll(float duration, int timeout) {
@@ -1726,7 +1737,7 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 			}
 		}
 		else if (spec[i].first == "flags") {
-			for (int n = 0; n < spec[i].second.length(); ++n) {
+			for (size_t n = 0; n < spec[i].second.length(); ++n) {
 				char c = spec[i].second[n];
 				if (c == 'r')
 					param.flags |= STATUS_RD;
