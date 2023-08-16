@@ -1,20 +1,67 @@
-#RELEASE Location of external products
+# RELEASE - Location of external support modules
+#
+# IF YOU CHANGE ANY PATHS in this file or make API changes to
+# any modules it refers to, you should do a "make rebuild" in
+# this application's top level directory.
+#
+# The EPICS build process does not check dependencies against
+# any files from outside the application, so it is safest to
+# rebuild it completely if any modules it depends on change.
+#
+# Host- or target-specific settings can be given in files named
+#  RELEASE.$(EPICS_HOST_ARCH).Common
+#  RELEASE.Common.$(T_A)
+#  RELEASE.$(EPICS_HOST_ARCH).$(T_A)
+#
+# This file is parsed by both GNUmake and an EPICS Perl script,
+# so it may ONLY contain definititions of paths to other support
+# modules, variable definitions that are used in module paths,
+# and include statements that pull in other RELEASE files.
+# Variables may be used before their values have been set.
+# Build variables that are NOT used in paths should be set in
+# the CONFIG_SITE file.
+# Variables and paths to dependent modules:
+#MODULES = /path/to/modules
+#MYMODULE = $(MODULES)/my-module
 
-# Default support and base settings. These are intentionally non-functional
-SUPPORT=/path/to/support/
-EPICS_BASE=/path/to/epics/base/
+# If using the sequencer, point SNCSEQ at its top directory:
+#SNCSEQ = $(MODULES)/seq-ver
 
-# Include local release file
--include $(TOP)/configure/RELEASE.local 
+-include $(TOP)/RELEASE_SITE
 
--include $(TOP)/../configure/SUPPORT.$(EPICS_HOST_ARCH)
+# Set RULES here if you want to use build rules from somewhere
+# other than EPICS_BASE:
+#RULES = $(MODULES)/build-rules
 
-# Modbus and ASYN modules are dependencies
-MODBUS=$(SUPPORT)/modbus
-ASYN=$(SUPPORT)/asyn-4-36
+#  ==========================================================
+# Define the version strings for all needed modules
+# Use naming pattern:
+#   FOO_MODULE_VERSION = R1.2
+# so scripts can extract version strings
+# Don't set your version to anything such as "test" that
+# could match a directory name.
+# ==========================================================
+ASYN_MODULE_VERSION=R4.39-1.0.1
+MODBUS_MODULE_VERSION=R3.2-1.0.1
+
+# ==========================================================
+# Define module paths using pattern
+# FOO = $(EPICS_MODULES)/foo/$(FOO_MODULE_VERSION)
+#  or
+# FOO = /Full/Path/To/Development/Version 
+# ==========================================================
+ASYN=/reg/g/pcds/epics/R7.0.2-2.0/modules/asyn/$(ASYN_MODULE_VERSION)
+MODBUS=/reg/g/pcds/epics/R7.0.2-2.0/modules/modbus/$(MODBUS_MODULE_VERSION)
 
 # Motor module only required for EL7XXX support
-MOTOR=$(SUPPORT)/motor-r7-2
+#MOTOR=$(EPICS_MODULES)/motor/$(MOTOR_MODULE_VERSION)
 
--include $(TOP)/configure/RELEASE.local 
--include $(TOP)/../configure/EPICS_BASE.$(EPICS_HOST_ARCH)
+# Override in RELEASE.local please!
+EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
+
+# These lines allow developers to override these RELEASE settings
+# without having to modify this file directly.
+-include $(TOP)/../RELEASE.local
+-include $(TOP)/../RELEASE.$(EPICS_HOST_ARCH).local
+-include $(TOP)/configure/RELEASE.local
+
