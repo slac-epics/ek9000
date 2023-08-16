@@ -168,15 +168,11 @@ namespace util
 #if __cplusplus >= 201103L
 using std::is_same;
 #else
-template <class T, class U> struct is_same {
-	static bool value;
-};
+template <class T, class U> struct is_same { static bool value; };
 
 template <class T, class U> bool is_same<T, U>::value = false;
 
-template <class T> struct is_same<T, T> {
-	static bool value;
-};
+template <class T> struct is_same<T, T> { static bool value; };
 
 template <class T> bool is_same<T, T>::value = true;
 #endif
@@ -204,7 +200,7 @@ concept INPUT_RECORD = requires(T a) {
 } // namespace detail
 
 template <typename T>
-concept RECORD_TYPE = detail::BASE_RECORD<T> && (detail::INPUT_RECORD<T> || detail::OUTPUT_RECORD<T>);
+concept RECORD_TYPE = detail::BASE_RECORD<T> &&(detail::INPUT_RECORD<T> || detail::OUTPUT_RECORD<T>);
 
 template <typename T>
 concept NUMERIC_TYPE = std::same_as<T, epicsInt32> || std::same_as<T, epicsUInt32> || std::same_as<T, epicsInt16> ||
