@@ -8,6 +8,7 @@ import os
 import sys
 import re
 import argparse
+import string
 
 use_modbus = True
 try:
@@ -22,6 +23,9 @@ parser.add_argument('--out', type=str, default='st.cmd', help='File to output to
 parser.add_argument('--terminals', type=str, help='Comma separated list of terminals')
 parser.add_argument('--port', type=int, default=502, help='Port to use')
 parser.add_argument('--legacy', action='store_true', help='Generate a legacy rail configuration')
+parser.add_argument('--ek9k-name', dest='ek9k_name', type=str, default='EK9K1', help='EK9000 device name, for the record')
+parser.add_argument('--ioc-prefix', dest='prefix', type=str, default='iocEK9KTest', help='Prefix for the IOC')
+parser.add_argument('--record-base', dest='record_base', type=str, default='t', help='Root of terminal record names')
 args = parser.parse_args()
 
 os.chdir(os.path.dirname(__file__))
@@ -54,7 +58,14 @@ else:
 with open('st.tpl', 'r') as fp:
 	data = fp.read()
 
-data = data.replace('$ARCH$', arch).replace('$IP$', args.ip).replace('$NUM_TERMS$', str(len(terms))).replace('$PORT$', str(args.port))
+data = string.Template(data).safe_substitute({
+	'PREFIX': args.prefix,
+	'EK9K': args.ek9k_name,
+	'NUM_TERMS': str(len(terms)),
+	'IP': args.ip,
+	'ARCH': arch,
+	'PORT': str(args.port)
+})
 
 conf = ''
 if args.legacy:
@@ -64,7 +75,7 @@ data = data.replace('$CONFIGURE$', conf)
 
 rec = ''
 for index, term in enumerate(terms, start=1):
-	rec += f'dbLoadRecords("../../db/{term}.template", "TERMINAL=t{index},DEVICE=EK9K1,POS={index}")\n'
+	rec += f'dbLoadRecords("../../db/{term}.template", "TERMINAL={args.record_base}{index},DEVICE={args.ek9k_name},POS={index}")\n'
 data = data.replace('$RECORDS$', rec)
 
 with open(args.out, 'w') as outfp:
