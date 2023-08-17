@@ -64,6 +64,8 @@
 #define EK9000_STATUS_EBUS_STATUS 0x1040
 #define EK9000_STATUS_END 0x1040
 
+#define TERMINAL_REGISTER_COUNT 0xFF
+
 /* This device's error types */
 enum {
 	EK_EOK = 0,			/* OK */
@@ -221,7 +223,7 @@ public:
 	uint16_t m_status_buf[EK9000_STATUS_END - EK9000_STATUS_START + 1];
 
 	/* Cache of terminal layout */
-	uint16_t m_terminals[0xFF];
+	uint16_t m_terminals[TERMINAL_REGISTER_COUNT];
 	bool m_readTerminals;
 
 public:

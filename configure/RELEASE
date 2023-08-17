@@ -14,7 +14,7 @@
 #  RELEASE.$(EPICS_HOST_ARCH).$(T_A)
 #
 # This file is parsed by both GNUmake and an EPICS Perl script,
-# so it may ONLY contain definititions of paths to other support
+# so it may ONLY contain definitions of paths to other support
 # modules, variable definitions that are used in module paths,
 # and include statements that pull in other RELEASE files.
 # Variables may be used before their values have been set.
@@ -50,8 +50,8 @@ MODBUS_MODULE_VERSION=R3.2-1.0.1
 #  or
 # FOO = /Full/Path/To/Development/Version 
 # ==========================================================
-ASYN=/reg/g/pcds/epics/R7.0.2-2.0/modules/asyn/$(ASYN_MODULE_VERSION)
-MODBUS=/reg/g/pcds/epics/R7.0.2-2.0/modules/modbus/$(MODBUS_MODULE_VERSION)
+ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
+MODBUS=$(EPICS_MODULES)/modbus/$(MODBUS_MODULE_VERSION)
 
 # Motor module only required for EL7XXX support
 #MOTOR=$(EPICS_MODULES)/motor/$(MOTOR_MODULE_VERSION)
