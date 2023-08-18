@@ -790,8 +790,9 @@ uint16_t devEK9000::ReadTerminalID(uint16_t index) {
 
 	memset(m_terminals, 0, sizeof(m_terminals));
 	// Read the terminal register space. 0x6000 will contain 9000, corresponding to the bus coupler.
-	// registers thereafter will contain a numeric ID corresponding to the terminal type. i.e. 0x6001 will contain 3064 if the second terminal is an EL3064
-	// read 125 registers in a loop, as that's the max number that can be read in a single modbus transaction
+	// registers thereafter will contain a numeric ID corresponding to the terminal type. i.e. 0x6001 will contain 3064
+	// if the second terminal is an EL3064 read 125 registers in a loop, as that's the max number that can be read in a
+	// single modbus transaction
 	for (int off = 0; off < TERMINAL_REGISTER_COUNT; off += 125) {
 		// Check if there are no further terminals on the rail, otherwise continue reading
 		if (off > 0 && m_terminals[off] == 0)
