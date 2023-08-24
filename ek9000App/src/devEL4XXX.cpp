@@ -35,24 +35,26 @@
 
 static long EL40XX_dev_report(int after);
 static long EL40XX_init(int after);
-static long EL40XX_init_record(void* record);
-static long EL40XX_write_record(void* record);
-static long EL40XX_linconv(void* precord, int after);
+static long EL40XX_init_record(dbCommon* record);
+static long EL40XX_write_record(aoRecord* record);
+static long EL40XX_linconv(aoRecord* precord, int after);
 
-struct devEL40XX_t {
-	long num;
-	DEVSUPFUN report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN ioint_info;
-	DEVSUPFUN write_record;
-	DEVSUPFUN linconv;
-} devEL40XX = {
-	6,	  (DEVSUPFUN)EL40XX_dev_report,	  (DEVSUPFUN)EL40XX_init,	 (DEVSUPFUN)EL40XX_init_record,
-	NULL, (DEVSUPFUN)EL40XX_write_record, (DEVSUPFUN)EL40XX_linconv,
+aodset devEL40XX = {
+	{
+		6,
+		EL40XX_dev_report,
+		EL40XX_init,
+		EL40XX_init_record,
+		NULL,
+	},
+	EL40XX_write_record,
+	EL40XX_linconv,
 };
 
-epicsExportAddress(dset, devEL40XX);
+extern "C"
+{
+	epicsExportAddress(dset, devEL40XX);
+}
 
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4001);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4002);
@@ -132,7 +134,7 @@ static long EL40XX_init(int) {
 	return 0;
 }
 
-static long EL40XX_init_record(void* record) {
+static long EL40XX_init_record(dbCommon* record) {
 	aoRecord* pRecord = (aoRecord*)record;
 	pRecord->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
@@ -167,7 +169,7 @@ static long EL40XX_init_record(void* record) {
 	return 0;
 }
 
-static long EL40XX_write_record(void* record) {
+static long EL40XX_write_record(aoRecord* record) {
 	struct aoRecord* prec = (struct aoRecord*)record;
 	if (prec->pact)
 		prec->pact = FALSE;
@@ -178,6 +180,6 @@ static long EL40XX_write_record(void* record) {
 	return 0;
 }
 
-static long EL40XX_linconv(void*, int) {
+static long EL40XX_linconv(aoRecord*, int) {
 	return 0;
 }
