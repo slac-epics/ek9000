@@ -27,6 +27,9 @@ USR_CXXFLAGS += -Wno-deprecated-declarations -Wno-unused-variable
 # Disable non-null compare, some macros have null checks and these generate a warning if `this` or a &ref makes its way in there
 USR_CXXFLAGS += -Wno-nonnull-compare
 
+# Enable typed dset & rset (rset to silence warnings)
+USR_CPPFLAGS += -DUSE_TYPED_DSET=1 -DUSE_TYPED_RSET=1
+
 # Records/Device support sources
 ek9000Support_SRCS += devEK9000.cpp
 ek9000Support_SRCS += devEL1XXX.cpp

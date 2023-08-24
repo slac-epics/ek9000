@@ -46,7 +46,7 @@ static inline void type_specific_setup(mbbiDirectRecord* record, uint16_t numbit
 	record->shft = 0;
 }
 
-template <class RecordT> static long EL10XX_init_record(void* precord) {
+template <class RecordT> static long EL10XX_init_record(dbCommon* precord) {
 	RecordT* pRecord = (RecordT*)precord;
 	pRecord->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
@@ -84,7 +84,7 @@ template <class RecordT> static long EL10XX_init_record(void* precord) {
 	return 0;
 }
 
-static long EL10XX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+static long EL10XX_get_ioint_info(int cmd, dbCommon* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
 	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
@@ -101,8 +101,7 @@ static inline void set_mbbi_rval(mbbiDirectRecord* record, uint32_t val) {
 	record->rval = (val >> record->shft) & record->mask;
 }
 
-template <class RecordT> static long EL10XX_read_record(void* prec) {
-	RecordT* pRecord = (RecordT*)prec;
+template <class RecordT> static long EL10XX_read_record(RecordT* pRecord) {
 	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
 
 	/* Check for invalid */
@@ -146,38 +145,34 @@ template <class RecordT> static long EL10XX_read_record(void* prec) {
 	return 0;
 }
 
-struct devEL10XX_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN read_record;
-} devEL10XX = {
-	5,
-	(DEVSUPFUN)EL10XX_dev_report,
-	(DEVSUPFUN)EL10XX_init,
-	(DEVSUPFUN)EL10XX_init_record<biRecord>,
-	(DEVSUPFUN)EL10XX_get_ioint_info,
-	(DEVSUPFUN)EL10XX_read_record<biRecord>,
+bidset devEL10XX = {
+	{
+		5,
+		EL10XX_dev_report,
+		EL10XX_init,
+		EL10XX_init_record<biRecord>,
+		EL10XX_get_ioint_info,
+	},
+	EL10XX_read_record<biRecord>,
 };
 
-epicsExportAddress(dset, devEL10XX);
+extern "C"
+{
+	epicsExportAddress(dset, devEL10XX);
+}
 
-struct devEL10XXmbbi_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN read_record;
-} devEL10XX_mbbiDirect = {
-	5,
-	(DEVSUPFUN)EL10XX_dev_report,
-	(DEVSUPFUN)EL10XX_init,
-	(DEVSUPFUN)EL10XX_init_record<mbbiDirectRecord>,
-	(DEVSUPFUN)EL10XX_get_ioint_info,
-	(DEVSUPFUN)EL10XX_read_record<mbbiDirectRecord>,
+mbbidirectdset devEL10XX_mbbiDirect = {
+	{
+		5,
+		EL10XX_dev_report,
+		EL10XX_init,
+		EL10XX_init_record<mbbiDirectRecord>,
+		EL10XX_get_ioint_info,
+	},
+	EL10XX_read_record<mbbiDirectRecord>,
 };
 
-epicsExportAddress(dset, devEL10XX_mbbiDirect);
+extern "C"
+{
+	epicsExportAddress(dset, devEL10XX_mbbiDirect);
+}
