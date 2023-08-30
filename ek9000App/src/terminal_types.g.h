@@ -1428,9 +1428,9 @@ struct EL3311_t FINAL : terminal_t {
 struct EL3681_t FINAL : terminal_t {
 	static const uint32_t ID = 3681;
 	static const uint16_t NUM_INPUTS = 1;
-	static const uint16_t INPUT_SIZE = 3;
+	static const uint16_t INPUT_SIZE = 4;
 	static const uint16_t NUM_OUTPUTS = 1;
-	static const uint16_t OUTPUT_SIZE = 2;
+	static const uint16_t OUTPUT_SIZE = 1;
 	EL3681_t() {
 		str = "EL3681";
 		id = ID;
