@@ -1032,8 +1032,8 @@
 			"type": "AnalogIn",
 			"inputs": 1,
 			"outputs": 1,
-			"pdo_in_size": 3,
-			"pdo_out_size": 2,
+			"pdo_in_size": 4,
+			"pdo_out_size": 1,
 			"dtyp": "EL36XX"
 		},
 		{

@@ -251,20 +251,27 @@ epicsExportAddress(dset, devEL36XX);
 
 #pragma pack(1)
 struct EL36XXInputPDO_t {
-	uint16_t status;
+	struct {
+		uint8_t underrange : 1;
+		uint8_t overrange : 1;
+		uint8_t limit1 : 1;
+		uint8_t limit2 : 1;
+		uint8_t _r0 : 4;
+	} status;
+	uint8_t _r1; // Corresponds to some data we don't care about
 	uint32_t inp;
+	uint8_t _r2 : 4;
+	uint8_t sai_mode : 4;
+	uint8_t sai_range;
 };
 #pragma pack()
 
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL36XXInputPDO_t, EL3681);
 DEFINE_DUMMY_OUTPUT_PDO_CHECK(EL3681); // Currently no output support for EL3681 outputs. This is a TODO!
 
-#define EL36XX_OVERRANGE_MASK 0x2
-#define EL36XX_UNDERRANGE_MASK 0x1
-
 static long EL36XX_read_record(void* prec) {
 	struct aiRecord* pRecord = (struct aiRecord*)prec;
-	uint16_t buf[3];
+	uint16_t buf[STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL36XXInputPDO_t))];
 	EL36XXInputPDO_t* pdo = NULL;
 	/*static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
 				  "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
@@ -276,13 +283,14 @@ static long EL36XX_read_record(void* prec) {
 		return 1;
 
 	/* Lock mutex */
-	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf,
+										  ArraySize(buf));
 	if (status == EK_EOK) {
 		pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
 		pRecord->rval = pdo->inp;
 
 		/* Check the overrange and underrange flags */
-		if ((pdo->status & EL36XX_OVERRANGE_MASK) || (pdo->status & EL36XX_UNDERRANGE_MASK)) {
+		if ((pdo->status.overrange) || (pdo->status.underrange)) {
 			recGblSetSevr(pRecord, HW_LIMIT_ALARM, MAJOR_ALARM);
 		}
 	}
