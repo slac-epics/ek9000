@@ -1,4 +1,4 @@
-#!../../bin/$ARCH$/ek9000Test
+#!../../bin/$ARCH/ek9000Test
 
 < envPaths
 dbLoadDatabase("../../dbd/ek9000Test.dbd")
