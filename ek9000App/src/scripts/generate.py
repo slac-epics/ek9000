@@ -262,22 +262,24 @@ class Terminal():
 
         rawMin, rawMax = self._get_raw_range(self.spec)
         range = self.spec['max'] - self.spec['min']
-        deadband = self._compute_deadbands(self.spec)
+        # Disabled as this is a giant landmine; just let the IOC engineer configure it
+        #deadband = self._compute_deadbands(self.spec)
+        deadband = 0
         return {
-            'ESLO': (range / (rawMax-rawMin)),
-            'EOFF': 0 if rawMin < 0 else self.spec['min'],
-            'EGUF': self.spec['max'],
-            'EGUL': self.spec['min'],
-            'EGU': self.spec['egu'],
-            'LINR': 'SLOPE',
-            'ADEL': deadband,
-            'MDEL': deadband
+            'ESLO': f'$(ESLO={(range / (rawMax-rawMin))})',
+            'EOFF': f'$(EOFF={0 if rawMin < 0 else self.spec["min"]})',
+            'EGUF': f'$(EGUF={self.spec["max"]})',
+            'EGUL': f'$(EGUL={self.spec["min"]})',
+            'EGU': f'$(EGU={self.spec["egu"]})',
+            'LINR': '$(LINR=SLOPE)',
+            'ADEL': f'$(ADEL={deadband})',
+            'MDEL': f'$(MDEL={deadband})'
         }
 
 
     def set_default_bi(self):
-        self.vals['ZNAM'] = 'low'
-        self.vals['ONAM'] = 'high'
+        self.vals['ZNAM'] = '$(ZNAM=low)'
+        self.vals['ONAM'] = '$(ONAM=high)'
         self.vals['SCAN'] = 'I/O Intr'
 
 
@@ -290,25 +292,25 @@ class Terminal():
 
 
     def set_default_bo(self):
-        self.vals['ZNAM'] = 'low'
-        self.vals['ONAM'] = 'high'
+        self.vals['ZNAM'] = '$(ZNAM=low)'
+        self.vals['ONAM'] = '$(ONAM=high)'
 
 
     def set_default_ai(self):
-        self.vals['EGU'] = 'V'
+        self.vals['EGU'] = '$(EGU=V)'
         self.vals['SCAN'] = 'I/O Intr'
-        self.vals['PREC'] = '3'
+        self.vals['PREC'] = '$(PREC=3)'
         self.vals.update(self._compute_analog_defaults())
 
 
     def set_default_longin(self):
-        self.vals['EGU'] = 'Counts'
+        self.vals['EGU'] = '$(EGU=Counts)'
         self.vals['SCAN'] = 'I/O Intr'
 
 
     def set_default_ao(self):
-        self.vals['EGU'] = 'V'
-        self.vals['PREC'] = '3'
+        self.vals['EGU'] = '$(EGU=V)'
+        self.vals['PREC'] = '$(PREC=3)'
         self.vals.update(self._compute_analog_defaults())
 
 
