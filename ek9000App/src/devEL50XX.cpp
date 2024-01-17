@@ -71,8 +71,8 @@ static long el50xx_init(int) {
 	return 0;
 }
 
-static long el50xx_init_record(dbCommon* precord) {
-	longinRecord* record = reinterpret_cast<longinRecord*>(precord);
+static long el50xx_init_record(void* precord) {
+	longinRecord* record = static_cast<longinRecord*>(precord);
 	record->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(record->dpvt);
 	uint16_t termid = 0;
@@ -110,8 +110,9 @@ static long el50xx_init_record(dbCommon* precord) {
 	return 0;
 }
 
-static long el50xx_get_ioint_info(int cmd, dbCommon* pRecord, IOSCANPVT* iopvt) {
+static long el50xx_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
+	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 	if (!util::DpvtValid(dpvt))
 		return 1;
@@ -120,16 +121,21 @@ static long el50xx_get_ioint_info(int cmd, dbCommon* pRecord, IOSCANPVT* iopvt) 
 	return 0;
 }
 
-static long el50xx_read_record(longinRecord* precord);
+static long el50xx_read_record(void* precord);
 
-longindset devEL50XX = {
-	{
-		5,
-		el50xx_dev_report,
-		el50xx_init,
-		el50xx_init_record,
-		el50xx_get_ioint_info,
-	},
+struct devEL50XX_t {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN read_record;
+} devEL50XX = {
+	5,
+	(DEVSUPFUN)el50xx_dev_report,
+	(DEVSUPFUN)el50xx_init,
+	el50xx_init_record,
+	(DEVSUPFUN)el50xx_get_ioint_info,
 	el50xx_read_record,
 };
 
@@ -138,7 +144,8 @@ extern "C"
 	epicsExportAddress(dset, devEL50XX);
 }
 
-static long el50xx_read_record(longinRecord* precord) {
+static long el50xx_read_record(void* prec) {
+	longinRecord* precord = static_cast<longinRecord*>(prec);
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(precord->dpvt);
 
 	if (!util::DpvtValid(dpvt))
@@ -190,16 +197,21 @@ static long el50xx_read_record(longinRecord* precord) {
 	return 0;
 }
 
-static long el5042_read_record(longinRecord* prec);
+static long el5042_read_record(void* prec);
 
-longindset devEL5042 = {
-	{
-		5,
-		el50xx_dev_report,
-		el50xx_init,
-		el50xx_init_record,
-		el50xx_get_ioint_info,
-	},
+struct devEL5042_t {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN read_record;
+} devEL5042 = {
+	5,
+	(DEVSUPFUN)el50xx_dev_report,
+	(DEVSUPFUN)el50xx_init,
+	el50xx_init_record,
+	(DEVSUPFUN)el50xx_get_ioint_info,
 	el5042_read_record,
 };
 
@@ -229,7 +241,8 @@ DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL5042InputPDO_t, EL5042);
 Called to read the specified record
 -------------------------------------
 */
-static long el5042_read_record(longinRecord* precord) {
+static long el5042_read_record(void* prec) {
+	longinRecord* precord = static_cast<longinRecord*>(prec);
 	TerminalDpvt_t* dpvt;
 	EL5042InputPDO_t* pdo;
 
