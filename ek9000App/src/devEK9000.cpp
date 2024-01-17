@@ -132,24 +132,36 @@ void PollThreadFunc(void*) {
 					LOG_WARNING(device, "%s: FAILED TO RESET WATCHDOG!\n", device->m_name.data());
 				}
 			}
-			/* read EL1xxx/EL3xxx/EL5xxx data */
-			if (device->m_digital_cnt) {
-				device->m_digital_status =
-					device->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0, device->m_digital_buf, device->m_digital_cnt);
-				scanIoRequest(device->m_digital_io);
-			}
-			if (device->m_analog_cnt) {
-				device->m_analog_status =
-					device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0, device->m_analog_buf, device->m_analog_cnt);
-				scanIoRequest(device->m_analog_io);
-			}
+
 			// Read status registers only after a ~1 second delay
 			if (((start.tv_sec + start.tv_usec / 1e6) - (last_read_status.tv_sec + last_read_status.tv_usec / 1e6)) >=
 				1.0) {
 				device->m_status_status = device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, EK9000_STATUS_START,
 															 device->m_status_buf, ArraySize(device->m_status_buf));
+
+				bool ebus = device->m_status_buf[EK9000_STATUS_EBUS_STATUS - EK9000_STATUS_START] == 1;
+				if (ebus != device->m_ebus_ok) {
+					device->m_ebus_ok = ebus;
+					LOG_WARNING(device, "%s: E-Bus status switched to %s\n", device->m_name.data(),
+								ebus ? "OK" : "FAULT");
+				}
 				scanIoRequest(device->m_status_io);
 				gettimeofday(&last_read_status, NULL);
+				// Signal digital/analog error
+				if (!ebus)
+					device->m_digital_status = device->m_analog_status = asynError;
+			}
+
+			/* read EL1xxx/EL3xxx/EL5xxx data */
+			if (device->m_digital_cnt && device->m_ebus_ok) {
+				device->m_digital_status =
+					device->doModbusIO(0, MODBUS_READ_DISCRETE_INPUTS, 0, device->m_digital_buf, device->m_digital_cnt);
+				scanIoRequest(device->m_digital_io);
+			}
+			if (device->m_analog_cnt && device->m_ebus_ok) {
+				device->m_analog_status =
+					device->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0, device->m_analog_buf, device->m_analog_cnt);
+				scanIoRequest(device->m_analog_io);
 			}
 		}
 		cnt = (cnt + 1) % 2;
@@ -329,7 +341,9 @@ devEK9000::devEK9000(const char* portname, const char* octetPortName, int termCo
 	m_error = EK_EOK;
 	LastADSErr = 0;
 	m_name = portname;
+	m_readTerminals = false;
 	m_octetPortName = octetPortName;
+	m_ebus_ok = true;
 
 	this->m_Mutex = epicsMutexCreate();
 	m_analog_status = EK_EERR + 0x100; /* No data yet!! */
@@ -422,8 +436,7 @@ int devEK9000::InitTerminal(int term) {
 		return EK_EBADPARAM;
 
 	/* Read ther terminal's id */
-	uint16_t tid = 0;
-	this->ReadTerminalID(term, tid);
+	uint16_t tid = this->ReadTerminalID(term);
 
 	/* Verify that the terminal has the proper id */
 	devEK9000Terminal* terminal = this->m_terms[term];
@@ -770,13 +783,29 @@ int devEK9000::WriteWritelockMode(uint16_t mode) {
 }
 
 /* Read terminal ID */
-int devEK9000::ReadTerminalID(uint16_t termid, uint16_t& out) {
-	uint16_t tmp = 0;
-	this->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0x6000 + (termid), &tmp, 1);
-	if (tmp == 0)
-		return EK_ENOCONN;
-	out = tmp;
-	return EK_EOK;
+uint16_t devEK9000::ReadTerminalID(uint16_t index) {
+	assert(index < 0xFF);
+	if (m_readTerminals)
+		return m_terminals[index];
+
+	memset(m_terminals, 0, sizeof(m_terminals));
+	// Read the terminal register space. 0x6000 will contain 9000, corresponding to the bus coupler.
+	// registers thereafter will contain a numeric ID corresponding to the terminal type. i.e. 0x6001 will contain 3064
+	// if the second terminal is an EL3064 read 125 registers in a loop, as that's the max number that can be read in a
+	// single modbus transaction
+	for (int off = 0; off < TERMINAL_REGISTER_COUNT; off += 125) {
+		// Check if there are no further terminals on the rail, otherwise continue reading
+		if (off > 0 && m_terminals[off] == 0)
+			break;
+		const size_t toRead = util::clamp(ArraySize(m_terminals) - off, 0, 125);
+		if (this->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0x6000, m_terminals + off, toRead) != asynSuccess) {
+			LOG_WARNING(this, "%s: Failed to read terminal layout\n", m_name.data());
+			break;
+		}
+	}
+
+	m_readTerminals = true;
+	return m_terminals[index];
 }
 
 int devEK9000::Poll(float duration, int timeout) {
@@ -1171,22 +1200,19 @@ epicsExportRegistrar(ek9000RegisterFunctions);
 //
 //======================================================//
 static long ek9000_init(int);
-static long ek9000_init_record(void* prec);
+static long ek9000_init_record(dbCommon* prec);
 
-struct devEK9000_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN write_record;
-} devEK9000 = {
-	5, NULL, (DEVSUPFUN)ek9000_init, (DEVSUPFUN)ek9000_init_record, NULL, NULL,
+bidset devEK9000 = {
+	{5, NULL, ek9000_init, ek9000_init_record, NULL},
+	NULL,
 };
 
-epicsExportAddress(dset, devEK9000);
+extern "C"
+{
+	epicsExportAddress(dset, devEK9000);
+}
 
-static long ek9000_init_record(void*) {
+static long ek9000_init_record(dbCommon*) {
 	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
 	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
 	return 0;
@@ -1248,28 +1274,25 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param);
 //-----------------------------------------------------------------//
 // Configuration CoE RO parameter
 static long ek9k_confli_init(int pass);
-static long ek9k_confli_init_record(void* prec);
-static long ek9k_confli_read_record(void* prec);
+static long ek9k_confli_init_record(dbCommon* prec);
+static long ek9k_confli_read_record(int64inRecord* prec);
 
-struct devEK9KCoERO_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record; /*returns: (-1,0)=>(failure,success)*/
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN read_longin; /*returns: (-1,0)=>(failure,success)*/
-} devEK9KCoERO = {
-	5, NULL, (DEVSUPFUN)ek9k_confli_init, ek9k_confli_init_record, NULL, ek9k_confli_read_record,
+int64indset devEK9KCoERO = {
+	{5, NULL, ek9k_confli_init, ek9k_confli_init_record, NULL},
+	ek9k_confli_read_record,
 };
 
-epicsExportAddress(dset, devEK9KCoERO);
+extern "C"
+{
+	epicsExportAddress(dset, devEK9KCoERO);
+}
 
 static long ek9k_confli_init(int) {
 	return 0;
 }
 
-static long ek9k_confli_init_record(void* prec) {
-	int64inRecord* precord = static_cast<int64inRecord*>(prec);
+static long ek9k_confli_init_record(dbCommon* prec) {
+	int64inRecord* precord = reinterpret_cast<int64inRecord*>(prec);
 	ek9k_coe_param_t param;
 	precord->dpvt = calloc(1, sizeof(ek9k_conf_pvt_t));
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
@@ -1282,8 +1305,7 @@ static long ek9k_confli_init_record(void* prec) {
 	return 0;
 }
 
-static long ek9k_confli_read_record(void* prec) {
-	int64inRecord* precord = static_cast<int64inRecord*>(prec);
+static long ek9k_confli_read_record(int64inRecord* precord) {
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 
 	if (!dpvt || !dpvt->param.ek9k)
@@ -1338,7 +1360,7 @@ static long ek9k_confli_read_record(void* prec) {
 			break;
 	}
 	if (err != EK_EOK) {
-		recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
 		return 1;
 	}
 	return 0;
@@ -1349,8 +1371,8 @@ static long ek9k_confli_read_record(void* prec) {
 //-----------------------------------------------------------------//
 // Configuration RW CoE parameter
 static long ek9k_conflo_init(int pass);
-static long ek9k_conflo_init_record(void* prec);
-static long ek9k_conflo_write_record(void* prec);
+static long ek9k_conflo_init_record(dbCommon* prec);
+static long ek9k_conflo_write_record(int64outRecord* prec);
 
 struct devEK9KCoERW_t {
 	long number;
@@ -1359,18 +1381,23 @@ struct devEK9KCoERW_t {
 	DEVSUPFUN init_record; /*returns: (-1,0)=>(failure,success)*/
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN write_longout; /*(-1,0)=>(failure,success*/
-} devEK9KCoERW = {
-	5, NULL, (DEVSUPFUN)ek9k_conflo_init, ek9k_conflo_init_record, NULL, ek9k_conflo_write_record,
+};
+int64outdset devEK9KCoERW = {
+	{5, NULL, ek9k_conflo_init, ek9k_conflo_init_record, NULL},
+	ek9k_conflo_write_record,
 };
 
-epicsExportAddress(dset, devEK9KCoERW);
+extern "C"
+{
+	epicsExportAddress(dset, devEK9KCoERW);
+}
 
 static long ek9k_conflo_init(int) {
 	return 0;
 }
 
-static long ek9k_conflo_init_record(void* prec) {
-	int64outRecord* precord = static_cast<int64outRecord*>(prec);
+static long ek9k_conflo_init_record(dbCommon* prec) {
+	int64outRecord* precord = reinterpret_cast<int64outRecord*>(prec);
 	ek9k_coe_param_t param;
 	precord->dpvt = calloc(1, sizeof(ek9k_conf_pvt_t));
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
@@ -1383,8 +1410,7 @@ static long ek9k_conflo_init_record(void* prec) {
 	return 0;
 }
 
-static long ek9k_conflo_write_record(void* prec) {
-	int64outRecord* precord = static_cast<int64outRecord*>(prec);
+static long ek9k_conflo_write_record(int64outRecord* precord) {
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 	int ret = EK_EOK;
 
@@ -1435,7 +1461,7 @@ static long ek9k_conflo_write_record(void* prec) {
 
 	if (ret != EK_EOK) {
 		epicsPrintf("ek9k_conflo_write_record(): Error writing data to record.\n");
-		recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
 	}
 
 	return 0;
@@ -1522,10 +1548,11 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 //-----------------------------------------------------------------//
 // EK9K RO configuration/status
 static long ek9k_status_init(int pass);
-template <class T> static long ek9k_status_init_record(void* prec); // Common init function for status/config records
-static long ek9k_status_read_record(void* prec);
-static long ek9k_status_write_record(void* prec);
-static long ek9k_status_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
+template <class T>
+static long ek9k_status_init_record(dbCommon* prec); // Common init function for status/config records
+static long ek9k_status_read_record(longinRecord* prec);
+static long ek9k_status_write_record(longoutRecord* prec);
+static long ek9k_status_get_ioint_info(int cmd, dbCommon* prec, IOSCANPVT* iopvt);
 
 static bool ek9k_parse_string(const char* linkValue, ek9k_param_t& outParam);
 
@@ -1566,42 +1593,38 @@ CONSTEXPR StatusReg status_regs[] = {{"analogOutputs", 0x1010, STATUS_RD | STATU
 									 {"ebusMode", 0x1140, STATUS_RW}};
 
 // Read-only status info (tcp connections, fallbacks triggered, etc.)
-struct devEK9000ConfigRO_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN write_longout;
-} devEK9000ConfigRO = {
-	5,
-	NULL,
-	(DEVSUPFUN)ek9k_status_init,
-	ek9k_status_init_record<longinRecord>,
-	(DEVSUPFUN)ek9k_status_get_ioint_info,
+longindset devEK9000ConfigRO = {
+	{
+		5,
+		NULL,
+		ek9k_status_init,
+		ek9k_status_init_record<longinRecord>,
+		ek9k_status_get_ioint_info,
+	},
 	ek9k_status_read_record,
 };
 
-epicsExportAddress(dset, devEK9000ConfigRO);
+extern "C"
+{
+	epicsExportAddress(dset, devEK9000ConfigRO);
+}
 
 // Read-write parameters (watchdog type, fallback mode, etc.)
-struct devEK9000ConfigRW_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN write_longout;
-} devEK9000ConfigRW = {
-	5,
-	NULL,
-	(DEVSUPFUN)ek9k_status_init,
-	ek9k_status_init_record<longoutRecord>,
-	(DEVSUPFUN)ek9k_status_get_ioint_info,
+longoutdset devEK9000ConfigRW = {
+	{
+		5,
+		NULL,
+		ek9k_status_init,
+		ek9k_status_init_record<longoutRecord>,
+		ek9k_status_get_ioint_info,
+	},
 	ek9k_status_write_record,
 };
 
-epicsExportAddress(dset, devEK9000ConfigRW);
+extern "C"
+{
+	epicsExportAddress(dset, devEK9000ConfigRW);
+}
 
 static long ek9k_status_init(int) {
 	return 0;
@@ -1615,8 +1638,8 @@ static const char* link_value(longoutRecord* rec) {
 	return rec->out.value.instio.string;
 }
 
-template <class T> static long ek9k_status_init_record(void* prec) {
-	T* precord = static_cast<T*>(prec);
+template <class T> static long ek9k_status_init_record(dbCommon* prec) {
+	T* precord = reinterpret_cast<T*>(prec);
 	precord->dpvt = calloc(1, sizeof(ek9k_param_t));
 	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
 	ek9k_param_t param;
@@ -1630,8 +1653,7 @@ template <class T> static long ek9k_status_init_record(void* prec) {
 	return 0;
 }
 
-static long ek9k_status_write_record(void* prec) {
-	longoutRecord* precord = static_cast<longoutRecord*>(prec);
+static long ek9k_status_write_record(longoutRecord* precord) {
 	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
 	class devEK9000* dev = dpvt->ek9k;
 
@@ -1647,8 +1669,7 @@ static long ek9k_status_write_record(void* prec) {
 	return 0;
 }
 
-static long ek9k_status_read_record(void* prec) {
-	longinRecord* precord = static_cast<longinRecord*>(prec);
+static long ek9k_status_read_record(longinRecord* precord) {
 	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
 	class devEK9000* dev = dpvt->ek9k;
 	uint16_t buf;
@@ -1670,9 +1691,8 @@ static long ek9k_status_read_record(void* prec) {
 	return 0;
 }
 
-static long ek9k_status_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
-	longinRecord* rec = static_cast<longinRecord*>(prec);
-	ek9k_param_t* param = static_cast<ek9k_param_t*>(rec->dpvt);
+static long ek9k_status_get_ioint_info(int cmd, dbCommon* prec, IOSCANPVT* iopvt) {
+	ek9k_param_t* param = static_cast<ek9k_param_t*>(prec->dpvt);
 	if (!param->ek9k)
 		return 1;
 
@@ -1726,7 +1746,7 @@ bool ek9k_parse_string(const char* str, ek9k_param_t& param) {
 			}
 		}
 		else if (spec[i].first == "flags") {
-			for (int n = 0; n < spec[i].second.length(); ++n) {
+			for (size_t n = 0; n < spec[i].second.length(); ++n) {
 				char c = spec[i].second[n];
 				if (c == 'r')
 					param.flags |= STATUS_RD;

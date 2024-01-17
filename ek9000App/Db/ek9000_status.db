@@ -2,7 +2,7 @@
 # Various status PVs for the EK9k
 #
 
-record(longin,"$(EK9K):AnalogOutputSize")
+record(longin,"$(P):AnalogOutputSize")
 {
 	field(PINI,"YES")
 	field(EGU, "bytes")
@@ -10,7 +10,7 @@ record(longin,"$(EK9K):AnalogOutputSize")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):AnalogInputSize")
+record(longin,"$(P):AnalogInputSize")
 {
 	field(PINI,"YES")
 	field(EGU, "bytes")
@@ -18,7 +18,7 @@ record(longin,"$(EK9K):AnalogInputSize")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):DigitalInputSize")
+record(longin,"$(P):DigitalInputSize")
 {
 	field(PINI,"YES")
 	field(EGU, "bits")
@@ -26,7 +26,7 @@ record(longin,"$(EK9K):DigitalInputSize")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):DigitalOutputSize")
+record(longin,"$(P):DigitalOutputSize")
 {
 	field(PINI,"YES")
 	field(EGU, "bits")
@@ -34,7 +34,7 @@ record(longin,"$(EK9K):DigitalOutputSize")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):WatchdogExpTime")
+record(longin,"$(P):WatchdogExpTime")
 {
 	field(SCAN, "I/O Intr")
 	field(EGU, "ms")
@@ -42,77 +42,77 @@ record(longin,"$(EK9K):WatchdogExpTime")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):FallbacksTriggered")
+record(longin,"$(P):FallbacksTriggered")
 {
 	field(SCAN, "I/O Intr")
 	field(INP, "@device=$(EK9K),type=fallbacks")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):TCPConnections")
+record(longin,"$(P):TCPConnections")
 {
 	field(SCAN, "I/O Intr")
 	field(INP, "@device=$(EK9K),type=tcpConnections")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):HardwareVersion")
+record(longin,"$(P):HardwareVersion")
 {
 	field(PINI,"YES")
 	field(INP,"@device=$(EK9K),type=hardwareVer")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):SoftwareVersionMain")
+record(longin,"$(P):SoftwareVersionMain")
 {
 	field(PINI,"YES")
 	field(INP,"@device=$(EK9K),type=softVerMain")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):SoftwareVersionSub")
+record(longin,"$(P):SoftwareVersionSub")
 {
 	field(PINI,"YES")
 	field(INP,"@device=$(EK9K),type=softVerSub")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):SoftwareVersionBeta")
+record(longin,"$(P):SoftwareVersionBeta")
 {
 	field(PINI,"YES")
 	field(INP,"@device=$(EK9K),type=softVerBeta")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):SerialNumber")
+record(longin,"$(P):SerialNumber")
 {
 	field(PINI,"YES")
 	field(INP,"@device=$(EK9K),type=serialNum")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):DayOfMfg")
+record(longin,"$(P):DayOfMfg")
 {
 	field(PINI,"YES")
 	field(INP,"@device=$(EK9K),type=prodDay")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):MonthOfMfg")
+record(longin,"$(P):MonthOfMfg")
 {
 	field(PINI,"YES")
 	field(INP,"@device=$(EK9K),type=prodMonth")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):YearOfMfg")
+record(longin,"$(P):YearOfMfg")
 {
 	field(PINI,"YES")
 	field(INP,"@device=$(EK9K),type=prodYear")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longin,"$(EK9K):EbusStatus")
+record(longin,"$(P):EbusStatus")
 {
 	field(INP,"@device=$(EK9K),type=ebusStatus")
 	field(SCAN,"I/O Intr")
@@ -123,7 +123,7 @@ record(longin,"$(EK9K):EbusStatus")
 	field(DTYP, "EK9000ConfigRO")
 }
 
-record(longout,"$(EK9K):WatchdogTime")
+record(longout,"$(P):WatchdogTime")
 {
 	field(OUT,"@device=$(EK9K),type=wdtTime")
 	field(DTYP, "EK9000ConfigRW")
@@ -131,7 +131,7 @@ record(longout,"$(EK9K):WatchdogTime")
 	field(PINI, "YES")
 }
 
-record(longout,"$(EK9K):WatchdogType")
+record(longout,"$(P):WatchdogType")
 {
 	field(OUT,"@device=$(EK9K),type=wdtType")
 	field(DTYP, "EK9000ConfigRW")
@@ -139,7 +139,7 @@ record(longout,"$(EK9K):WatchdogType")
 	field(PINI, "YES")
 }
 
-record(longout,"$(EK9K):FallbackMode")
+record(longout,"$(P):FallbackMode")
 {
 	field(OUT,"@device=$(EK9K),type=wdtFallback")
 	field(DTYP, "EK9000ConfigRW")
@@ -147,7 +147,7 @@ record(longout,"$(EK9K):FallbackMode")
 	field(PINI, "YES")
 }
 
-record(longout,"$(EK9K):WriteLock")
+record(longout,"$(P):WriteLock")
 {
 	field(OUT,"@device=$(EK9K),type=writelock")
 	field(DTYP, "EK9000ConfigRW")
@@ -155,7 +155,7 @@ record(longout,"$(EK9K):WriteLock")
 	field(PINI, "YES")
 }
 
-record(longout,"$(EK9K):EBusControl")
+record(longout,"$(P):EBusControl")
 {
 	field(OUT,"@device=$(EK9K),type=ebusMode")
 	field(DTYP, "EK9000ConfigRW")

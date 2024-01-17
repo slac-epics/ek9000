@@ -1,64 +1,64 @@
 record(bo,"$(TERMINAL):1")
 {
 	field(DTYP, "EL20XX")
-	field(ZNAM, "low")
-	field(ONAM, "high")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
 	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL2088")
 }
 
 record(bo,"$(TERMINAL):2")
 {
 	field(DTYP, "EL20XX")
-	field(ZNAM, "low")
-	field(ONAM, "high")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
 	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=2,type=EL2088")
 }
 
 record(bo,"$(TERMINAL):3")
 {
 	field(DTYP, "EL20XX")
-	field(ZNAM, "low")
-	field(ONAM, "high")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
 	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=3,type=EL2088")
 }
 
 record(bo,"$(TERMINAL):4")
 {
 	field(DTYP, "EL20XX")
-	field(ZNAM, "low")
-	field(ONAM, "high")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
 	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=4,type=EL2088")
 }
 
 record(bo,"$(TERMINAL):5")
 {
 	field(DTYP, "EL20XX")
-	field(ZNAM, "low")
-	field(ONAM, "high")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
 	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=5,type=EL2088")
 }
 
 record(bo,"$(TERMINAL):6")
 {
 	field(DTYP, "EL20XX")
-	field(ZNAM, "low")
-	field(ONAM, "high")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
 	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=6,type=EL2088")
 }
 
 record(bo,"$(TERMINAL):7")
 {
 	field(DTYP, "EL20XX")
-	field(ZNAM, "low")
-	field(ONAM, "high")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
 	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=7,type=EL2088")
 }
 
 record(bo,"$(TERMINAL):8")
 {
 	field(DTYP, "EL20XX")
-	field(ZNAM, "low")
-	field(ONAM, "high")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
 	field(OUT, "@device=$(DEVICE),pos=$(POS),channel=8,type=EL2088")
 }
 

@@ -122,12 +122,10 @@ static inline void type_specific_setup(mbboDirectRecord* record, int16_t numbits
 	record->shft = 0;
 }
 
-template <class RecordT> static long EL20XX_init_record(void* precord) {
+template <class RecordT> static long EL20XX_init_record(dbCommon* precord) {
 	RecordT* pRecord = (RecordT*)precord;
 	pRecord->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
-
-	const bool mbbo = util::is_same<RecordT, mbboDirectRecord>::value;
 
 	/* Grab terminal info */
 	if (!util::setupCommonDpvt<RecordT>(pRecord, *dpvt)) {
@@ -154,7 +152,7 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 
 	/* Read terminal ID */
 	uint16_t termid = 0;
-	dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+	termid = dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex);
 
 	/* Verify terminal ID */
 	if (termid == 0 || termid != dpvt->pterm->m_terminalId) {
@@ -164,7 +162,7 @@ template <class RecordT> static long EL20XX_init_record(void* precord) {
 	return 0;
 }
 
-template <class T> static long EL20XX_write_record(void* precord) {
+template <class T> static long EL20XX_write_record(T* precord) {
 	T* prec = (T*)precord;
 	if (prec->pact)
 		prec->pact = FALSE;
@@ -182,31 +180,35 @@ struct devEL20XX_t {
 	DEVSUPFUN init_record;
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN write_record;
-} devEL20XX = {
-	5,
-	(DEVSUPFUN)EL20XX_dev_report,
-	(DEVSUPFUN)EL20XX_init,
-	(DEVSUPFUN)EL20XX_init_record<boRecord>,
-	NULL,
-	(DEVSUPFUN)EL20XX_write_record<boRecord>,
+};
+bodset devEL20XX = {
+	{
+		5,
+		EL20XX_dev_report,
+		EL20XX_init,
+		EL20XX_init_record<boRecord>,
+		NULL,
+	},
+	EL20XX_write_record<boRecord>,
 };
 
-epicsExportAddress(dset, devEL20XX);
+extern "C"
+{
+	epicsExportAddress(dset, devEL20XX);
+}
 
-struct {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN write_record;
-} devEL20XX_mbboDirect = {
-	5,
-	(DEVSUPFUN)EL20XX_dev_report,
-	(DEVSUPFUN)EL20XX_init,
-	(DEVSUPFUN)EL20XX_init_record<mbboDirectRecord>,
-	NULL,
-	(DEVSUPFUN)EL20XX_write_record<mbboDirectRecord>,
+mbbodirectdset devEL20XX_mbboDirect = {
+	{
+		5,
+		EL20XX_dev_report,
+		EL20XX_init,
+		EL20XX_init_record<mbboDirectRecord>,
+		NULL,
+	},
+	EL20XX_write_record<mbboDirectRecord>,
 };
 
-epicsExportAddress(dset, devEL20XX_mbboDirect);
+extern "C"
+{
+	epicsExportAddress(dset, devEL20XX_mbboDirect);
+}

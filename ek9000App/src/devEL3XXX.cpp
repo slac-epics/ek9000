@@ -38,11 +38,11 @@
 
 static long EL3XXX_dev_report(int interest);
 static long EL3XXX_init(int after);
-static long EL3XXX_init_record(void* precord);
-static long EL3XXX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
-static long EL3XXX_linconv(void* precord, int after);
+static long EL3XXX_init_record(dbCommon* precord);
+static long EL3XXX_get_ioint_info(int cmd, dbCommon* prec, IOSCANPVT* iopvt);
+static long EL3XXX_linconv(aiRecord* precord, int after);
 
-static long EL3XXX_linconv(void*, int) {
+static long EL3XXX_linconv(aiRecord*, int) {
 	return 0;
 }
 
@@ -54,8 +54,8 @@ static long EL3XXX_init(int) {
 	return 0;
 }
 
-static long EL3XXX_init_record(void* precord) {
-	aiRecord* pRecord = static_cast<aiRecord*>(precord);
+static long EL3XXX_init_record(dbCommon* precord) {
+	aiRecord* pRecord = reinterpret_cast<aiRecord*>(precord);
 	pRecord->dpvt = util::allocDpvt();
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 	uint16_t termid = 0;
@@ -81,7 +81,7 @@ static long EL3XXX_init_record(void* precord) {
 		}
 
 		/* Check that slave # is OK */
-		dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex, termid);
+		termid = dpvt->pdrv->ReadTerminalID(dpvt->pterm->m_terminalIndex);
 	}
 
 	/* This is important; if the terminal id is different than what we want, report an error */
@@ -98,7 +98,7 @@ static long EL3XXX_init_record(void* precord) {
 //	EL30XX Device support
 //
 //======================================================//
-static long EL30XX_read_record(void* precord);
+static long EL30XX_read_record(aiRecord* precord);
 
 struct devEL30XX_t {
 	long number;
@@ -108,17 +108,23 @@ struct devEL30XX_t {
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN read_record;
 	DEVSUPFUN linconv;
-} devEL30XX = {
-	6,
-	(DEVSUPFUN)EL3XXX_dev_report,
-	(DEVSUPFUN)EL3XXX_init,
-	(DEVSUPFUN)EL3XXX_init_record,
-	(DEVSUPFUN)EL3XXX_get_ioint_info,
-	(DEVSUPFUN)EL30XX_read_record,
-	(DEVSUPFUN)EL3XXX_linconv,
+};
+aidset devEL30XX = {
+	{
+		6,
+		EL3XXX_dev_report,
+		EL3XXX_init,
+		EL3XXX_init_record,
+		EL3XXX_get_ioint_info,
+	},
+	EL30XX_read_record,
+	EL3XXX_linconv,
 };
 
-epicsExportAddress(dset, devEL30XX);
+extern "C"
+{
+	epicsExportAddress(dset, devEL30XX);
+}
 
 #pragma pack(1)
 // This PDO type applies to EL30XX, EL31XX and EL32XX. For 31XX and 32XX some align bits are interpreted differently.
@@ -178,9 +184,8 @@ DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3164);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3174);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3202);
 
-static long EL3XXX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+static long EL3XXX_get_ioint_info(int cmd, dbCommon* pRecord, IOSCANPVT* iopvt) {
 	UNUSED(cmd);
-	struct dbCommon* pRecord = static_cast<struct dbCommon*>(prec);
 	TerminalDpvt_t* dpvt = static_cast<TerminalDpvt_t*>(pRecord->dpvt);
 	if (!util::DpvtValid(dpvt))
 		return 1;
@@ -189,7 +194,7 @@ static long EL3XXX_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
 	return 0;
 }
 
-static long EL30XX_read_record(void* prec) {
+static long EL30XX_read_record(aiRecord* prec) {
 	struct aiRecord* pRecord = (struct aiRecord*)prec;
 	EL30XXStandardInputPDO_t* spdo;
 	uint16_t buf[2];
@@ -233,43 +238,48 @@ static long EL30XX_read_record(void* prec) {
 //	EL36XX Device support
 //
 //======================================================//
-static long EL36XX_read_record(void* precord);
+static long EL36XX_read_record(aiRecord* precord);
 
-struct devEL36XX_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN read_record;
-	DEVSUPFUN linconv;
-} devEL36XX = {
-	6,
-	(DEVSUPFUN)EL3XXX_dev_report,
-	(DEVSUPFUN)EL3XXX_init,
-	(DEVSUPFUN)EL3XXX_init_record,
-	(DEVSUPFUN)EL3XXX_get_ioint_info,
-	(DEVSUPFUN)EL36XX_read_record,
-	(DEVSUPFUN)EL3XXX_linconv,
+aidset devEL36XX = {
+	{
+		6,
+		EL3XXX_dev_report,
+		EL3XXX_init,
+		EL3XXX_init_record,
+		EL3XXX_get_ioint_info,
+	},
+	EL36XX_read_record,
+	EL3XXX_linconv,
 };
-epicsExportAddress(dset, devEL36XX);
+
+extern "C"
+{
+	epicsExportAddress(dset, devEL36XX);
+}
 
 #pragma pack(1)
 struct EL36XXInputPDO_t {
-	uint16_t status;
+	struct {
+		uint8_t underrange : 1;
+		uint8_t overrange : 1;
+		uint8_t limit1 : 1;
+		uint8_t limit2 : 1;
+		uint8_t _r0 : 4;
+	} status;
+	uint8_t _r1; // Corresponds to some data we don't care about
 	uint32_t inp;
+	uint8_t _r2 : 4;
+	uint8_t sai_mode : 4;
+	uint8_t sai_range;
 };
 #pragma pack()
 
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL36XXInputPDO_t, EL3681);
 DEFINE_DUMMY_OUTPUT_PDO_CHECK(EL3681); // Currently no output support for EL3681 outputs. This is a TODO!
 
-#define EL36XX_OVERRANGE_MASK 0x2
-#define EL36XX_UNDERRANGE_MASK 0x1
-
-static long EL36XX_read_record(void* prec) {
+static long EL36XX_read_record(aiRecord* prec) {
 	struct aiRecord* pRecord = (struct aiRecord*)prec;
-	uint16_t buf[3];
+	uint16_t buf[STRUCT_SIZE_TO_MODBUS_SIZE(sizeof(EL36XXInputPDO_t))];
 	EL36XXInputPDO_t* pdo = NULL;
 	/*static_assert(sizeof(EL36XXInputPDO_t) <= sizeof(buf),
 				  "SEL36XXInput is greater than 3 bytes in size! Contact the author regarding this error.");
@@ -281,13 +291,14 @@ static long EL36XX_read_record(void* prec) {
 		return 1;
 
 	/* Lock mutex */
-	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf, 2);
+	int status = dpvt->pterm->getEK9000IO(READ_ANALOG, dpvt->pterm->m_inputStart + ((dpvt->channel - 1) * 2), buf,
+										  ArraySize(buf));
 	if (status == EK_EOK) {
 		pdo = reinterpret_cast<EL36XXInputPDO_t*>(buf);
 		pRecord->rval = pdo->inp;
 
 		/* Check the overrange and underrange flags */
-		if ((pdo->status & EL36XX_OVERRANGE_MASK) || (pdo->status & EL36XX_UNDERRANGE_MASK)) {
+		if ((pdo->status.overrange) || (pdo->status.underrange)) {
 			recGblSetSevr(pRecord, HW_LIMIT_ALARM, MAJOR_ALARM);
 		}
 	}
@@ -306,26 +317,24 @@ static long EL36XX_read_record(void* prec) {
 //	EL331X Device support
 //
 //======================================================//
-static long EL331X_read_record(void* precord);
+static long EL331X_read_record(aiRecord* precord);
 
-struct devEL331X_t {
-	long number;
-	DEVSUPFUN dev_report;
-	DEVSUPFUN init;
-	DEVSUPFUN init_record;
-	DEVSUPFUN get_ioint_info;
-	DEVSUPFUN read_record;
-	DEVSUPFUN linconv;
-} devEL331X = {
-	6,
-	(DEVSUPFUN)EL3XXX_dev_report,
-	(DEVSUPFUN)EL3XXX_init,
-	(DEVSUPFUN)EL3XXX_init_record,
-	(DEVSUPFUN)EL3XXX_get_ioint_info,
-	(DEVSUPFUN)EL331X_read_record,
-	(DEVSUPFUN)EL3XXX_linconv,
+aidset devEL331X = {
+	{
+		6,
+		EL3XXX_dev_report,
+		EL3XXX_init,
+		EL3XXX_init_record,
+		EL3XXX_get_ioint_info,
+	},
+	EL331X_read_record,
+	EL3XXX_linconv,
 };
-epicsExportAddress(dset, devEL331X);
+
+extern "C"
+{
+	epicsExportAddress(dset, devEL331X);
+}
 
 #pragma pack(1)
 struct EL331XInputPDO_t {
@@ -356,7 +365,7 @@ DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL331XInputPDO_t, EL3314);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL331XInputPDO_t, EL3312);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL331XInputPDO_t, EL3311);
 
-static long EL331X_read_record(void* prec) {
+static long EL331X_read_record(aiRecord* prec) {
 	struct aiRecord* pRecord = (struct aiRecord*)prec;
 
 	uint16_t buf[2];
