@@ -1200,19 +1200,22 @@ epicsExportRegistrar(ek9000RegisterFunctions);
 //
 //======================================================//
 static long ek9000_init(int);
-static long ek9000_init_record(dbCommon* prec);
+static long ek9000_init_record(void* prec);
 
-bidset devEK9000 = {
-	{5, NULL, ek9000_init, ek9000_init_record, NULL},
-	NULL,
+struct devEK9000_t {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN write_record;
+} devEK9000 = {
+	5, NULL, (DEVSUPFUN)ek9000_init, (DEVSUPFUN)ek9000_init_record, NULL, NULL,
 };
 
-extern "C"
-{
-	epicsExportAddress(dset, devEK9000);
-}
+epicsExportAddress(dset, devEK9000);
 
-static long ek9000_init_record(dbCommon*) {
+static long ek9000_init_record(void*) {
 	epicsPrintf("FATAL ERROR: You should not use devEK9000 on any records!\n");
 	epicsAssert(__FILE__, __LINE__, "FATAL ERROR: You should not use devEK9000 on any records!\n", "Jeremy L.");
 	return 0;
@@ -1274,25 +1277,28 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param);
 //-----------------------------------------------------------------//
 // Configuration CoE RO parameter
 static long ek9k_confli_init(int pass);
-static long ek9k_confli_init_record(dbCommon* prec);
-static long ek9k_confli_read_record(int64inRecord* prec);
+static long ek9k_confli_init_record(void* prec);
+static long ek9k_confli_read_record(void* prec);
 
-int64indset devEK9KCoERO = {
-	{5, NULL, ek9k_confli_init, ek9k_confli_init_record, NULL},
-	ek9k_confli_read_record,
+struct devEK9KCoERO_t {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN read_longin; /*returns: (-1,0)=>(failure,success)*/
+} devEK9KCoERO = {
+	5, NULL, (DEVSUPFUN)ek9k_confli_init, ek9k_confli_init_record, NULL, ek9k_confli_read_record,
 };
 
-extern "C"
-{
-	epicsExportAddress(dset, devEK9KCoERO);
-}
+epicsExportAddress(dset, devEK9KCoERO);
 
 static long ek9k_confli_init(int) {
 	return 0;
 }
 
-static long ek9k_confli_init_record(dbCommon* prec) {
-	int64inRecord* precord = reinterpret_cast<int64inRecord*>(prec);
+static long ek9k_confli_init_record(void* prec) {
+	int64inRecord* precord = static_cast<int64inRecord*>(prec);
 	ek9k_coe_param_t param;
 	precord->dpvt = calloc(1, sizeof(ek9k_conf_pvt_t));
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
@@ -1305,7 +1311,8 @@ static long ek9k_confli_init_record(dbCommon* prec) {
 	return 0;
 }
 
-static long ek9k_confli_read_record(int64inRecord* precord) {
+static long ek9k_confli_read_record(void* prec) {
+	int64inRecord* precord = static_cast<int64inRecord*>(prec);
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 
 	if (!dpvt || !dpvt->param.ek9k)
@@ -1360,7 +1367,7 @@ static long ek9k_confli_read_record(int64inRecord* precord) {
 			break;
 	}
 	if (err != EK_EOK) {
-		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
+		recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
 		return 1;
 	}
 	return 0;
@@ -1371,8 +1378,8 @@ static long ek9k_confli_read_record(int64inRecord* precord) {
 //-----------------------------------------------------------------//
 // Configuration RW CoE parameter
 static long ek9k_conflo_init(int pass);
-static long ek9k_conflo_init_record(dbCommon* prec);
-static long ek9k_conflo_write_record(int64outRecord* prec);
+static long ek9k_conflo_init_record(void* prec);
+static long ek9k_conflo_write_record(void* prec);
 
 struct devEK9KCoERW_t {
 	long number;
@@ -1381,23 +1388,18 @@ struct devEK9KCoERW_t {
 	DEVSUPFUN init_record; /*returns: (-1,0)=>(failure,success)*/
 	DEVSUPFUN get_ioint_info;
 	DEVSUPFUN write_longout; /*(-1,0)=>(failure,success*/
-};
-int64outdset devEK9KCoERW = {
-	{5, NULL, ek9k_conflo_init, ek9k_conflo_init_record, NULL},
-	ek9k_conflo_write_record,
+} devEK9KCoERW = {
+	5, NULL, (DEVSUPFUN)ek9k_conflo_init, ek9k_conflo_init_record, NULL, ek9k_conflo_write_record,
 };
 
-extern "C"
-{
-	epicsExportAddress(dset, devEK9KCoERW);
-}
+epicsExportAddress(dset, devEK9KCoERW);
 
 static long ek9k_conflo_init(int) {
 	return 0;
 }
 
-static long ek9k_conflo_init_record(dbCommon* prec) {
-	int64outRecord* precord = reinterpret_cast<int64outRecord*>(prec);
+static long ek9k_conflo_init_record(void* prec) {
+	int64outRecord* precord = static_cast<int64outRecord*>(prec);
 	ek9k_coe_param_t param;
 	precord->dpvt = calloc(1, sizeof(ek9k_conf_pvt_t));
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
@@ -1410,7 +1412,8 @@ static long ek9k_conflo_init_record(dbCommon* prec) {
 	return 0;
 }
 
-static long ek9k_conflo_write_record(int64outRecord* precord) {
+static long ek9k_conflo_write_record(void* prec) {
+	int64outRecord* precord = static_cast<int64outRecord*>(prec);
 	ek9k_conf_pvt_t* dpvt = static_cast<ek9k_conf_pvt_t*>(precord->dpvt);
 	int ret = EK_EOK;
 
@@ -1461,7 +1464,7 @@ static long ek9k_conflo_write_record(int64outRecord* precord) {
 
 	if (ret != EK_EOK) {
 		epicsPrintf("ek9k_conflo_write_record(): Error writing data to record.\n");
-		recGblSetSevr(precord, COMM_ALARM, INVALID_ALARM);
+		recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
 	}
 
 	return 0;
@@ -1548,11 +1551,10 @@ bool CoE_ParseString(const char* str, ek9k_coe_param_t* param) {
 //-----------------------------------------------------------------//
 // EK9K RO configuration/status
 static long ek9k_status_init(int pass);
-template <class T>
-static long ek9k_status_init_record(dbCommon* prec); // Common init function for status/config records
-static long ek9k_status_read_record(longinRecord* prec);
-static long ek9k_status_write_record(longoutRecord* prec);
-static long ek9k_status_get_ioint_info(int cmd, dbCommon* prec, IOSCANPVT* iopvt);
+template <class T> static long ek9k_status_init_record(void* prec); // Common init function for status/config records
+static long ek9k_status_read_record(void* prec);
+static long ek9k_status_write_record(void* prec);
+static long ek9k_status_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt);
 
 static bool ek9k_parse_string(const char* linkValue, ek9k_param_t& outParam);
 
@@ -1593,38 +1595,42 @@ CONSTEXPR StatusReg status_regs[] = {{"analogOutputs", 0x1010, STATUS_RD | STATU
 									 {"ebusMode", 0x1140, STATUS_RW}};
 
 // Read-only status info (tcp connections, fallbacks triggered, etc.)
-longindset devEK9000ConfigRO = {
-	{
-		5,
-		NULL,
-		ek9k_status_init,
-		ek9k_status_init_record<longinRecord>,
-		ek9k_status_get_ioint_info,
-	},
+struct devEK9000ConfigRO_t {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN write_longout;
+} devEK9000ConfigRO = {
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_status_init,
+	ek9k_status_init_record<longinRecord>,
+	(DEVSUPFUN)ek9k_status_get_ioint_info,
 	ek9k_status_read_record,
 };
 
-extern "C"
-{
-	epicsExportAddress(dset, devEK9000ConfigRO);
-}
+epicsExportAddress(dset, devEK9000ConfigRO);
 
 // Read-write parameters (watchdog type, fallback mode, etc.)
-longoutdset devEK9000ConfigRW = {
-	{
-		5,
-		NULL,
-		ek9k_status_init,
-		ek9k_status_init_record<longoutRecord>,
-		ek9k_status_get_ioint_info,
-	},
+struct devEK9000ConfigRW_t {
+	long number;
+	DEVSUPFUN dev_report;
+	DEVSUPFUN init;
+	DEVSUPFUN init_record;
+	DEVSUPFUN get_ioint_info;
+	DEVSUPFUN write_longout;
+} devEK9000ConfigRW = {
+	5,
+	NULL,
+	(DEVSUPFUN)ek9k_status_init,
+	ek9k_status_init_record<longoutRecord>,
+	(DEVSUPFUN)ek9k_status_get_ioint_info,
 	ek9k_status_write_record,
 };
 
-extern "C"
-{
-	epicsExportAddress(dset, devEK9000ConfigRW);
-}
+epicsExportAddress(dset, devEK9000ConfigRW);
 
 static long ek9k_status_init(int) {
 	return 0;
@@ -1638,8 +1644,8 @@ static const char* link_value(longoutRecord* rec) {
 	return rec->out.value.instio.string;
 }
 
-template <class T> static long ek9k_status_init_record(dbCommon* prec) {
-	T* precord = reinterpret_cast<T*>(prec);
+template <class T> static long ek9k_status_init_record(void* prec) {
+	T* precord = static_cast<T*>(prec);
 	precord->dpvt = calloc(1, sizeof(ek9k_param_t));
 	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
 	ek9k_param_t param;
@@ -1653,7 +1659,8 @@ template <class T> static long ek9k_status_init_record(dbCommon* prec) {
 	return 0;
 }
 
-static long ek9k_status_write_record(longoutRecord* precord) {
+static long ek9k_status_write_record(void* prec) {
+	longoutRecord* precord = static_cast<longoutRecord*>(prec);
 	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
 	class devEK9000* dev = dpvt->ek9k;
 
@@ -1669,7 +1676,8 @@ static long ek9k_status_write_record(longoutRecord* precord) {
 	return 0;
 }
 
-static long ek9k_status_read_record(longinRecord* precord) {
+static long ek9k_status_read_record(void* prec) {
+	longinRecord* precord = static_cast<longinRecord*>(prec);
 	ek9k_param_t* dpvt = static_cast<ek9k_param_t*>(precord->dpvt);
 	class devEK9000* dev = dpvt->ek9k;
 	uint16_t buf;
@@ -1691,8 +1699,9 @@ static long ek9k_status_read_record(longinRecord* precord) {
 	return 0;
 }
 
-static long ek9k_status_get_ioint_info(int cmd, dbCommon* prec, IOSCANPVT* iopvt) {
-	ek9k_param_t* param = static_cast<ek9k_param_t*>(prec->dpvt);
+static long ek9k_status_get_ioint_info(int cmd, void* prec, IOSCANPVT* iopvt) {
+	longinRecord* rec = static_cast<longinRecord*>(prec);
+	ek9k_param_t* param = static_cast<ek9k_param_t*>(rec->dpvt);
 	if (!param->ek9k)
 		return 1;
 
