@@ -28,8 +28,8 @@ if __name__ == '__main__':
         exit(1)
 
     exclude = []
-    with open('.clang-tidy-exclude.json', 'rb') as fp:
-        exclude = json.load(fp)
+    with open('.clang-tidy-exclude', 'rb') as fp:
+        exclude = yaml.safe_load(fp)['Exclude']
 
     assert isinstance(exclude, list)
 
