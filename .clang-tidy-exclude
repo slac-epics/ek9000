@@ -1,0 +1,3 @@
+# Defines patterns to exclude from the clang-tidy run
+Exclude:
+  - '\S+registerRecordDeviceDriver.cpp'

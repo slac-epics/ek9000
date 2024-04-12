@@ -163,10 +163,10 @@ jobs:
     # To get a complete compile_commands.json, we need to re-run the entire compile with bear. For now, we'll only do this on Linux native builds.
     - name: Run clang-tidy
       run: |
-        python3 -m pip install -r requirements.txt
+        python3 -m pip install -r scripts/requirements.txt
         make clean
         bear -- make -j$(nproc)
-        python3 clang-tidy.py
+        python3 scripts/clang-tidy.py
       if: matrix.clang-tidy
 
     - name: Run main module tests
