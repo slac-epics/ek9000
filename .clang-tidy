@@ -1,3 +1,32 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,cert-*,performance-*'
+# See: https://clang.llvm.org/extra/clang-tidy/checks/list.html
+Checks:
+  - 'clang-diagnostic-*'
+  - 'clang-analyzer-*'
+  # All CERT checks that clang-tidy supports are relevant
+  - 'cert-*'
+  - 'performance-*'
+  # Validate return value checks for POSIX functions
+  - 'bugprone-posix-return'
+  - 'bugprone-sizeof-*'
+  - 'bugprone-too-small-loop-variable'
+  - 'bugprone-swapped-arguments'
+  # Common mistakes due to reversed parameters, bad sizeof's and such
+  - 'bugprone-suspicious-*'
+  # Avoid RAII misuse (i.e. forgetting to name mutex guard)
+  - 'bugprone-unused-raii'
+  # Flag possible ODR violations
+  - 'misc-definitions-in-headers'
+  - 'bugprone-use-after-move'
+  - 'bugprone-unused-local-non-trivial-variable'
+  - 'bugprone-not-null-terminated-result'
+  - 'bugprone-branch-clone'
+  # Flag potentially bad copy constructors
+  - 'bugprone-copy-constructor-init'
+  - 'bugprone-dangling-handle'
+  - 'bugprone-chained-comparison'
+  # Avoid cyclic includes
+  - 'misc-header-include-cycle'
+  # Get rid of deprecated smart pointer types
+  - 'modernize-replace-auto-ptr'
 WarningsAsErrors: '*'
