@@ -7,11 +7,11 @@
 
 name: EK9000
 
-# Trigger on pushes and PRs to any branch
+# Trigger on pushes and PRs to any branch, but ignore docs
 on:
   push:
     paths-ignore:
-      - 'documentation/*'
+      - 'docs/*'
       - '**/*.html'
       - '**/*.md'
   pull_request:
@@ -33,7 +33,7 @@ jobs:
     name: clang-format formatting check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: clang-format check
         uses: jidicula/clang-format-action@v4.8.0
         with:
@@ -42,10 +42,12 @@ jobs:
           exclude-regex: 'terminals.h'
   
   scripts-check:
+    # Run basic checks on the Python scripts bundled here. 
+    # Checks the terminals.json against the schema as well.
     name: Scripts Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
@@ -71,51 +73,54 @@ jobs:
       fail-fast: false
       matrix:
         # Job names also name artifacts, character limitations apply
+        # Ubuntu 22.04:
+        #   clang, clang-13, clang-14, clang-15 (clang=clang-14)
+        #   gcc, gcc-9, gcc-10, gcc-12, gcc-13 (gcc=gcc-11)
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cmp: gcc
             configuration: default
             wine: "64"
-            name: "Ub-20 gcc-9 + MinGW"
+            name: "Ub-22 gcc-11 + MinGW"
 
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cmp: gcc
             configuration: static
             extra: "CMD_CXXFLAGS=-std=c++14"
             name: "clang-tidy checks"
             clang-tidy: true
 
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cmp: gcc
             configuration: static
             extra: "CMD_CXXFLAGS=-std=c++14"
-            name: "Ub-20 gcc-9 C++14, static"
+            name: "Ub-22 gcc-11 C++14, static"
 
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cmp: gcc
             configuration: static
             extra: "CMD_CXXFLAGS=-std=c++03"
-            name: "Ub-20 gcc-9 C++03, static"
+            name: "Ub-22 gcc-11 C++03, static"
 
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cmp: clang
             configuration: default
             extra: "CMD_CXXFLAGS=-std=c++14"
-            name: "Ub-20 clang-10 C++14"
+            name: "Ub-22 clang-14 C++14"
 
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cmp: gcc
             configuration: default
             rtems: "5"
             rtems_target: RTEMS-beatnik
             test: NO
-            name: "Ub-20 gcc-9 + RT-5.1 beatnik"
+            name: "Ub-22 gcc-11 + RT-5.1 beatnik"
 
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cmp: clang
             configuration: default
             extra: "CMD_CXXFLAGS=-std=c++03"
-            name: "Ub-20 clang-10 C++03"
+            name: "Ub-22 clang-14 C++03"
 
           - os: macos-latest
             cmp: clang
@@ -128,16 +133,21 @@ jobs:
             name: "Win2019 MinGW"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
+
     - name: Automatic core dumper analysis
       uses: mdavidsaver/ci-core-dumper@master
+
+    # Install dependencies. Qemu for RTEMS, mingw GCC for Windows cross builds and bear to generate compile_commands.json for clang-tidy
     - name: "apt-get install"
       run: |
         sudo apt-get update
         sudo apt-get -y install qemu-system-x86 g++-mingw-w64-x86-64 gdb bear clang-tidy
       if: runner.os == 'Linux'
+
+    # Install required cross toolchain for RTEMS
     - name: "apt-get install ${{ matrix.cmp }}"
       run: |
         sudo apt-get -y install software-properties-common
@@ -145,22 +155,31 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install ${{ matrix.cmp }}
       if: matrix.utoolchain
+
     - name: Prepare and compile dependencies
       run: python .ci/cue.py prepare
+
     - name: Build main module
       run: python .ci/cue.py build
+
+    # Run clang-tidy on our code. To do this, we need compile_commands.json, which we generate using 'bear'
+    # To get a complete compile_commands.json, we need to re-run the entire compile with bear. For now, we'll only do this on Linux native builds.
     - name: Run clang-tidy
       run: |
         make clean
         bear make -j$(nproc)
         python3 clang-tidy.py
       if: matrix.clang-tidy
+
     - name: Run main module tests
       run: python .ci/cue.py test
+
+    # Resulting test files will be uploaded and attached to this run
     - name: Upload tapfiles Artifact
       uses: actions/upload-artifact@v2
       with:
         name: tapfiles ${{ matrix.name }}
         path: '**/O.*/*.tap'
+
     - name: Collect and show test results
       run: python .ci/cue.py test-results
