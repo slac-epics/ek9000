@@ -1,0 +1,10 @@
+MODULES="asyn modbus"
+
+ASYN=master
+MODBUS=master
+
+# FIXME: Motor module build fails in mingw/windows. Only needed for motor support though
+#MOTOR=master
+
+# Enable libtirpc for Linux builds
+ASYN_HOOK=.ci-local/asyn-tirpc.sh
