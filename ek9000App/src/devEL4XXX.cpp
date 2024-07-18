@@ -39,6 +39,10 @@ static long EL40XX_init_record(void* record);
 static long EL40XX_write_record(void* record);
 static long EL40XX_linconv(void* precord, int after);
 
+struct EL40XXDpvt_t : public TerminalDpvt_t {
+	bool sign = false;
+};
+
 struct devEL40XX_t {
 	long num;
 	DEVSUPFUN report;
@@ -54,6 +58,11 @@ struct devEL40XX_t {
 
 epicsExportAddress(dset, devEL40XX);
 
+// The default representation for all of these terminals is signed. Unsigned may also be set, even for the bipolar terminals that
+// may produce a negative value. To retain some level of support for unsigned representation, terminals that have a positive
+// output range use uint16_t as the PDO type. Bipolar terminals always use int16_t to support negative values and will behave incorrectly
+// if you choose the unsigned (or absolute w/MSB sign) representation. 
+
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4001);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4002);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4004);
@@ -66,23 +75,33 @@ DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4021);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4022);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4024);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4028);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4031);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4032);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4034);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4038);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4031);		// EL403X support negative output values.
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4032);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4034);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4038);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4102);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4104);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4112);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4114);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4112);		// EL411X support negative output values.
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4114);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4122);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4132);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4134);
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4132);		// EL413X support negative output values.
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4134);
+
+static bool isTerminalSigned(int id) {
+	if (id <= 4039 && id >= 4030)
+		return true; // EL403X
+	if (id <= 4119 && id >= 4110)
+		return true; // EL411X
+	if (id <= 4139 && id >= 4130)
+		return true; // EL413X
+	return false;
+}
 
 static void EL40XX_WriteCallback(CALLBACK* callback) {
 	void* record = NULL;
 	callbackGetUser(record, callback);
 	aoRecord* pRecord = (aoRecord*)record;
-	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
+	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
 	free(callback);
 	int status = 0;
 
@@ -103,9 +122,14 @@ static void EL40XX_WriteCallback(CALLBACK* callback) {
 		}
 
 		/* Set buffer & do write */
-		uint16_t buf = (int16_t)pRecord->rval;
+		char buf[2];
+		if (dpvt->sign)
+			*(int16_t*)buf = (int16_t)pRecord->rval;
+		else
+			*(uint16_t*)buf = (uint16_t)pRecord->rval;
+
 		status = dpvt->pterm->doEK9000IO(MODBUS_WRITE_MULTIPLE_REGISTERS,
-										 dpvt->pterm->m_outputStart + (dpvt->channel - 1), &buf, 1);
+										 dpvt->pterm->m_outputStart + (dpvt->channel - 1), (uint16_t*)buf, 1);
 	}
 
 	/* Check error */
@@ -135,7 +159,7 @@ static long EL40XX_init(int) {
 static long EL40XX_init_record(void* record) {
 	aoRecord* pRecord = (aoRecord*)record;
 	pRecord->dpvt = util::allocDpvt();
-	TerminalDpvt_t* dpvt = (TerminalDpvt_t*)pRecord->dpvt;
+	EL40XXDpvt_t* dpvt = (EL40XXDpvt_t*)pRecord->dpvt;
 	uint16_t termid = 0;
 
 	/* Verify terminal */
@@ -163,6 +187,9 @@ static long EL40XX_init_record(void* record) {
 		LOG_ERROR(dpvt->pdrv, "%s: %s != %u\n", devEK9000::ErrorToString(EK_ETERMIDMIS), pRecord->name, termid);
 		return 1;
 	}
+
+	/* Determine if it's signed or not */
+	dpvt->sign = isTerminalSigned(termid);
 
 	return 0;
 }
