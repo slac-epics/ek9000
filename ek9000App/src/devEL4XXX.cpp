@@ -58,10 +58,10 @@ struct devEL40XX_t {
 
 epicsExportAddress(dset, devEL40XX);
 
-// The default representation for all of these terminals is signed. Unsigned may also be set, even for the bipolar terminals that
-// may produce a negative value. To retain some level of support for unsigned representation, terminals that have a positive
-// output range use uint16_t as the PDO type. Bipolar terminals always use int16_t to support negative values and will behave incorrectly
-// if you choose the unsigned (or absolute w/MSB sign) representation. 
+// The default representation for all of these terminals is signed. Unsigned may also be set, even for the bipolar
+// terminals that may produce a negative value. To retain some level of support for unsigned representation, terminals
+// that have a positive output range use uint16_t as the PDO type. Bipolar terminals always use int16_t to support
+// negative values and will behave incorrectly if you choose the unsigned (or absolute w/MSB sign) representation.
 
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4001);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4002);
@@ -75,16 +75,16 @@ DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4021);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4022);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4024);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4028);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4031);		// EL403X support negative output values.
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4031); // EL403X support negative output values.
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4032);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4034);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4038);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4102);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4104);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4112);		// EL411X support negative output values.
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4112); // EL411X support negative output values.
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4114);
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(uint16_t, EL4122);
-DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4132);		// EL413X support negative output values.
+DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4132); // EL413X support negative output values.
 DEFINE_SINGLE_CHANNEL_OUTPUT_PDO(int16_t, EL4134);
 
 static bool isTerminalSigned(int id) {
