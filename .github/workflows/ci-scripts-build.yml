@@ -174,7 +174,7 @@ jobs:
 
     # Resulting test files will be uploaded and attached to this run
     - name: Upload tapfiles Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: tapfiles ${{ matrix.name }}
         path: '**/O.*/*.tap'
