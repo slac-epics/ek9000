@@ -797,7 +797,7 @@ uint16_t devEK9000::ReadTerminalID(uint16_t index) {
 		// Check if there are no further terminals on the rail, otherwise continue reading
 		if (off > 0 && m_terminals[off] == 0)
 			break;
-		const size_t toRead = util::clamp(ArraySize(m_terminals) - off, 0, 125);
+		const size_t toRead = util::clamp(ArraySize(m_terminals) - off, 0UL, 125UL);
 		if (this->doModbusIO(0, MODBUS_READ_INPUT_REGISTERS, 0x6000, m_terminals + off, toRead) != asynSuccess) {
 			LOG_WARNING(this, "%s: Failed to read terminal layout\n", m_name.data());
 			break;
