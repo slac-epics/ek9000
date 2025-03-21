@@ -998,7 +998,8 @@
 			"dtyp": "EL331X",
 			"defaults": {
 				"ESLO": "0.1",
-				"EGU": "C"
+				"EGU": "C",
+				"LINR": "$(LINR=SLOPE)"
 			}
 		},
 		{
@@ -1011,7 +1012,8 @@
 			"dtyp": "EL331X",
 			"defaults": {
 				"ESLO": "0.1",
-				"EGU": "C"
+				"EGU": "C",
+				"LINR": "$(LINR=SLOPE)"
 			}
 		},
 		{
@@ -1024,7 +1026,8 @@
 			"dtyp": "EL331X",
 			"defaults": {
 				"ESLO": "0.1",
-				"EGU": "C"
+				"EGU": "C",
+				"LINR": "$(LINR=SLOPE)"
 			}
 		},
 		{
