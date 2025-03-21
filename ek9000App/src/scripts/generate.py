@@ -4,8 +4,7 @@
 #   * ../../../SupportedDevices.md
 #   * ../terminals.h (as designated by -o)
 #   * ../../Db/Templates.mak (Makefile for including all auto-generated templates)
-#   * ../../Db/*.template
-#   * ../../Db/*.substitutions
+#   * ../../Db/*.db
 
 import argparse
 import json
@@ -357,8 +356,7 @@ def get_dtyp(terminal: dict, type: str) -> str:
 def emit_terminal(terminal: dict, fp, type: str, extras: dict):
     # Add a postfix for mbbo/mbbi types
     postfix = '_mbbiDirect' if type == 'DigInMulti' else '_mbboDirect' if type == 'DigOutMulti' else ''
-    template_filename = f'../../Db/{terminal["name"]}{postfix}.template'
-    subs_filename = f'../../Db/{terminal["name"]}{postfix}.substitutions'
+    db_filename = f'../../Db/{terminal["name"]}{postfix}.db'
     
     name = terminal["name"]
     inputs = terminal["inputs"]
@@ -367,8 +365,7 @@ def emit_terminal(terminal: dict, fp, type: str, extras: dict):
     
     dtyp = get_dtyp(terminal, type)
     
-    tfp = open(template_filename, "w")
-    sfp = open(subs_filename, "w")
+    tfp = open(db_filename, "w")
     if type == "DigIn":
         t = Terminal('bi', inputs, dtyp, type, name)
         t.set_default_bi()
@@ -394,18 +391,15 @@ def emit_terminal(terminal: dict, fp, type: str, extras: dict):
         raise RuntimeError(f"Unexpected terminal type: {terminal}")
     t.add_values(extras)
     t.write(tfp)
-    # Write out the subs
-    sfp.write(subs.replace("$$FILE", f'{name}.template'))
-    fp.write(f"# {name} \nDB += {template_filename} {subs_filename}\n\n")
+    fp.write(f"# {name} \nDB += {db_filename}\n\n")
     tfp.close()
-    sfp.close()
     if args.verbose:
-        print(f"Wrote {template_filename} and {subs_filename} (had {inputs} inputs and {outputs} outputs)")
+        print(f"Wrote {db_filename} (had {inputs} inputs and {outputs} outputs)")
 
 
 def write_templates(terms: dict):
     """
-    Writes out templates and substitutions for all supported terminals
+    Writes out db files for all supported terminals
     
     Parameters
     ----------

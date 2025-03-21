@@ -46,7 +46,7 @@ if use_modbus and (args.terminals is None or len(args.terminals) == 0):
 		if r == 0:
 			break
 		name = f'EL{r}'
-		if not os.path.exists(f'../../db/{name}.template'):
+		if not os.path.exists(f'../../db/{name}.db'):
 			print(f'Unsupported terminal type {name}, stopping here!')
 			break
 		terms.append(f'EL{r}')
@@ -75,7 +75,7 @@ data = data.replace('$CONFIGURE$', conf)
 
 rec = ''
 for index, term in enumerate(terms, start=1):
-	rec += f'dbLoadRecords("../../db/{term}.template", "TERMINAL={args.record_base}{index},DEVICE={args.ek9k_name},POS={index}")\n'
+	rec += f'dbLoadRecords("../../db/{term}.db", "TERMINAL={args.record_base}{index},DEVICE={args.ek9k_name},POS={index}")\n'
 data = data.replace('$RECORDS$', rec)
 
 with open(args.out, 'w') as outfp:
