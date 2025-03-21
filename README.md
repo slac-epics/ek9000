@@ -13,7 +13,12 @@ Because it uses modbus, it's runnable on any IOC without needing a kernel module
 
 ## Building
 
-See the wiki page for instructions on building and a small example.
+C++11 is **required** as of R1.7.3
+
+Build like any other EPICS module:
+```
+make
+```
 
 ## Contributing
 
@@ -23,7 +28,7 @@ If you'd like to contribute to this, you can open a pull request with changes, a
 
 If you have any questions or comments about the module, you can reach me at jeremy.lorelli.1337@gmail.com
 
-# Known Issues
+## Known Issues
 
 The EK9000 doesn't really make figuring out a register map easy, so please keep these things in mind:
 

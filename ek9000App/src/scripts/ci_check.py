@@ -101,11 +101,11 @@ def check_json(file: dict) -> bool:
 
 
 def check_db(file: dict) -> bool:
-    print('Checking for .template and .substitutions...', end='')
+    print('Checking for .db...', end='')
     ok = True
     for term in file['terminals']:
         name = term['name']
-        files = [f'{name}.template', f'{name}.substitutions']
+        files = [f'{name}.db']
         for f in files:
             if not os.path.exists(f'{get_db_dir()}/{f}'):
                 print(f'Missing {f}')
