@@ -1572,27 +1572,31 @@ struct StatusReg {
 	StatusFlags flags;
 };
 
-CONSTEXPR StatusReg status_regs[] = {{"analogOutputs", 0x1010, STATUS_RD | STATUS_STATIC},
-									 {"analogInputs", 0x1011, STATUS_RD | STATUS_STATIC},
-									 {"digitalOutputs", 0x1012, STATUS_RD | STATUS_STATIC},
-									 {"digitalInputs", 0x1013, STATUS_RD | STATUS_STATIC},
-									 {"fallbacks", 0x1021, STATUS_RD},
-									 {"tcpConnections", 0x1022, STATUS_RD},
-									 {"hardwareVer", 0x1030, STATUS_RD | STATUS_STATIC},
-									 {"softVerMain", 0x1031, STATUS_RD | STATUS_STATIC},
-									 {"softVerSub", 0x1032, STATUS_RD | STATUS_STATIC},
-									 {"softVerBeta", 0x1033, STATUS_RD | STATUS_STATIC},
-									 {"serialNum", 0x1034, STATUS_RD | STATUS_STATIC},
-									 {"prodDay", 0x1035, STATUS_RD | STATUS_STATIC},
-									 {"prodMonth", 0x1036, STATUS_RD | STATUS_STATIC},
-									 {"prodYear", 0x1037, STATUS_RD | STATUS_STATIC},
-									 {"ebusStatus", 0x1040, STATUS_RD},
-									 {"wdtTime", 0x1120, STATUS_RW},
-									 {"wdtReset", 0x1121, STATUS_RW},
-									 {"wdtType", 0x1122, STATUS_RW},
-									 {"wdtFallback", 0x1123, STATUS_RW},
-									 {"writelock", 0x1124, STATUS_RW},
-									 {"ebusMode", 0x1140, STATUS_RW}};
+// clang-format off
+CONSTEXPR StatusReg status_regs[] = {
+	{"analogOutputs",   0x1010, STATUS_RD | STATUS_STATIC},
+	{"analogInputs",    0x1011, STATUS_RD | STATUS_STATIC},
+	{"digitalOutputs",  0x1012, STATUS_RD | STATUS_STATIC},
+	{"digitalInputs",   0x1013, STATUS_RD | STATUS_STATIC},
+	{"fallbacks",       0x1021, STATUS_RD                },
+	{"tcpConnections",  0x1022, STATUS_RD                },
+	{"hardwareVer",     0x1030, STATUS_RD | STATUS_STATIC},
+	{"softVerMain",     0x1031, STATUS_RD | STATUS_STATIC},
+	{"softVerSub",      0x1032, STATUS_RD | STATUS_STATIC},
+	{"softVerBeta",     0x1033, STATUS_RD | STATUS_STATIC},
+	{"serialNum",       0x1034, STATUS_RD | STATUS_STATIC},
+	{"prodDay",         0x1035, STATUS_RD | STATUS_STATIC},
+	{"prodMonth",       0x1036, STATUS_RD | STATUS_STATIC},
+	{"prodYear",        0x1037, STATUS_RD | STATUS_STATIC},
+	{"ebusStatus",      0x1040, STATUS_RD                },
+	{"wdtTime",         0x1120, STATUS_RW                },
+	{"wdtReset",        0x1121, STATUS_RW                },
+	{"wdtType",         0x1122, STATUS_RW                },
+	{"wdtFallback",     0x1123, STATUS_RW                },
+	{"writelock",       0x1124, STATUS_RW                },
+	{"ebusMode",        0x1140, STATUS_RW                }
+};
+// clang-format on
 
 // Read-only status info (tcp connections, fallbacks triggered, etc.)
 struct devEK9000ConfigRO_t {
