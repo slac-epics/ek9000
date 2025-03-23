@@ -5,6 +5,7 @@ Because it uses modbus, it's runnable on any IOC without needing a kernel module
 
 [Documentation](https://github.com/slaclab/epics-ek9000/wiki/Manual)
 [DOE Code](https://www.osti.gov/doecode/biblio/75566)
+[doi:10.11578/dc.20220707.2](https://doi.org/10.11578/dc.20220707.2)
 
 ## Dependencies
 
@@ -13,7 +14,7 @@ Because it uses modbus, it's runnable on any IOC without needing a kernel module
 
 ## Building
 
-C++11 is **required** as of R1.7.3
+C++11 is **required** as of R1.7.4
 
 Build like any other EPICS module:
 ```
@@ -58,3 +59,12 @@ At least some of the following terminal families are supported:
 
 Any other terminals are not generally supported, but a few exceptions exist.
 Support for motor terminals (EL70XX) is currently being developed.
+
+## Copyright Notice:
+
+COPYRIGHT © SLAC National Accelerator Laboratory. All rights reserved. This work is supported [in part] by the U.S. Department of Energy, Office of Basic Energy Sciences under contract DE-AC02-76SF00515.
+
+## Usage Restrictions:
+
+Neither the name of the Leland Stanford Junior University, SLAC National Accelerator Laboratory, U.S. Department of Energy nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
