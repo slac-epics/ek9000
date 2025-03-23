@@ -50,3 +50,5 @@ BhcConfigFiles/
 .cache
 
 st*.cmd
+
+RELEASE_SITE
