@@ -1,3 +1,8 @@
+R1.7.4    Mar 28th, 2025 (lorelli)
+    - Require C++11
+	- Use LINR=SLOPE for thermocouple terminals
+	- Fix some signed compare warnings
+
 R1.7.3    Aug 1st, 2024 (lorelli)
     - Improvements for bipolar analog input and output terminals. (#67)
         - Absolute value w/MSB sign still unsupported.
