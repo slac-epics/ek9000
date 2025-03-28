@@ -1,0 +1,65 @@
+R1.7.3    Aug 1st, 2024 (lorelli)
+    - Improvements for bipolar analog input and output terminals. (#67)
+        - Absolute value w/MSB sign still unsupported.
+    - Update asyn to R4.39-1.0.2 and modbus to R3.2-1.0.2 (#68 )
+    - CI Improvements (#66)
+        - Using Ubuntu 22.04 now
+        - Expand list of clang-tidy checks
+    - Reverted USE_TYPED_DSET for now as it requires EPICS base 7.0.4 or later.
+
+R1.7.2    Jan 16th, 2024 (lorelli)
+    - ENH: allow separate record name in ek9000_status.db by @JJL772 in #56
+    - optimizations and some fault tolerance by @JJL772 in #54
+    - FIX: el3681 PDO size and layout by @JJL772 in #59
+    - ENH: enable USE_TYPED_DSET and convert all dsets to it by @JJL772 in #57
+    - Change record field defaults and allow overrides of them by @JJL772 in #63
+
+R1.7.1    Aug 14th, 2023 (lorelli)
+    - FIX: builds for older versions of EPICS base (#49)
+    - FIX: fix sanitizer warnings by (#49)
+    - FIX: incorrect usage of epicsParseInt (#52)
+
+R1.7.0    Jul 26th, 2023 (lorelli)
+    - Switched to INST_IO links for mapping terminals (#44)
+    - Improved record defaults (#40)
+    - Added status and configuration records (#46)
+    - Added screen for status/configuration records (#46)
+    - Skip device poll if it's not connected (#47)
+    - Changed default PREC to 3 for analog I/O records (#39)
+
+R1.6.0    May 30th, 2023 (lorelli)
+    - Added support for mbbiDirect and mbboDirect records with digital I/O terminals (#34)
+    - Added find_terminals tool and fixed EL2794 (By @klauer in #24)
+    - Fixed support for EL5042, EL3681, EL3004, EL3008, EL3012 & EL3044 (#36)
+    - Fixed missing DB templates for EL5001 and EL5002 (#38)
+    - Fixed EL3681 support
+    - PINI is no longer set for input records
+    - Many other improvements to stability and maintainability of the module
+
+R1.5.0    Feb 4th, 2022 (klauer)
+    - ENH: Added el5042 support by @mamontironi in #12
+    - REF: Massive changes - switch to I/O interrupt-based reading instead of polling by @mcb64 in #14
+    - FIX: locking issue by @mcb64 in #16
+    - MNT: restore README.md by @klauer in #17
+    - MNT/REF: script cleanup and clarification by @klauer in #18
+    - ENH: add find_terminal tool and EL2794 support by @klauer in #19 (use this to help with adding new terminals)
+    - FIX: el50xx / el5042 I/O interrupt support by @klauer in #20
+    - MNT: Replace NUM_TERMINALS with ArraySize by @JJL772 in #22
+    - MNT: gcc 4.4 support with NO_FORCE_CXX03=1
+    - CONFIG_SITE support and other build system fixes
+
+R1.2.2    Jul 9th, 2021 (lorelli)
+    - Fixed PDO size on EL3681
+    - Fixed record support conversion being disabled for analog input records
+
+R1.2.1    Jul 2nd, 2021 (lorelli)
+    - Fix compile for GCC 4.8
+
+R1.2.0    Oct 13th, 2020 (lorelli)
+    - Added support for EL4104, EL4134, EL4114, EL3681 and EL2816 terminals
+    - Added support for thermocouple modules
+    - Added new device type EL36XX for EL36XX terminals
+    - Added new device type EL331X for EL331X terminals
+    - Updated generation scripts
+    - Lots of code cleanup
+
