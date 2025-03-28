@@ -4,7 +4,9 @@ This is a device support module for the EK9000, which couples EtherCAT terminals
 Because it uses modbus, it's runnable on any IOC without needing a kernel module or other support software.
 
 [Documentation](https://github.com/slaclab/epics-ek9000/wiki/Manual)
+
 [DOE Code](https://www.osti.gov/doecode/biblio/75566)
+
 [doi:10.11578/dc.20220707.2](https://doi.org/10.11578/dc.20220707.2)
 
 ## Dependencies
