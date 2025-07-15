@@ -37,11 +37,11 @@ if arch is None:
 
 terms = []
 if use_modbus and (args.terminals is None or len(args.terminals) == 0):
-	client = ModbusTcpClient(args.ip, args.port)
+	client = ModbusTcpClient(args.ip, port=args.port)
 	if not client.connect():
 		print('Connection to coupler failed, use --terminals instead')
 		sys.exit(1)
-	resp = client.read_holding_registers(0x6001, 125)
+	resp = client.read_holding_registers(0x6001, count=125)
 	for r in resp.registers:
 		if r == 0:
 			break
