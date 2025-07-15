@@ -52,3 +52,5 @@ BhcConfigFiles/
 st*.cmd
 
 RELEASE_SITE
+
+.iocsh_history
