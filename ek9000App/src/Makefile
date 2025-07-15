@@ -38,9 +38,10 @@ ek9000Support_SRCS += devEL4XXX.cpp
 ek9000Support_SRCS += devEL50XX.cpp
 ek9000Support_SRCS += ekUtil.cpp
 
-ek9000Support_LIBS += $(EPICS_BASE_IOC_LIBS)
 ek9000Support_LIBS += modbus
 ek9000Support_LIBS += asyn
+ek9000Support_LIBS += pvxs
+ek9000Support_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 ifeq ($(ENABLE_MOTOR_SUPPORT),1)
 ek9000Support_SRCS += devEL7XXX.cpp

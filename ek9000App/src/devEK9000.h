@@ -42,6 +42,8 @@
 #include <errlog.h>
 #include <epicsMessageQueue.h>
 
+#include "pvxs/sharedpv.h"
+
 #include <drvModbusAsyn.h>
 #include <asynPortDriver.h>
 
@@ -226,6 +228,8 @@ public:
 	uint16_t m_terminals[TERMINAL_REGISTER_COUNT];
 	bool m_readTerminals;
 
+	pvxs::server::SharedPV m_debugPv;
+
 public:
 	static devEK9000* FindDevice(const char* name);
 
@@ -359,6 +363,9 @@ public:
 	bool operator==(const devEK9000& other) const {
 		return (strcmp(this->m_name.data(), other.m_name.data()) == 0);
 	}
+
+protected:
+	void SetupDebugPVs();
 };
 
 class DeviceLock FINAL {
