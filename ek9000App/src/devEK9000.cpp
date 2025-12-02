@@ -210,6 +210,7 @@ void devEK9000Terminal::Init(uint32_t termid, int termindex) {
 	else if (termid >= 9000 && termid < 10000)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		this->m_terminalFamily = TERMINAL_FAMILY_POWERSUPPLY;
 =======
 		this->m_terminalFamily = TERMINAL_FAMILY_SPECIAL;
@@ -217,6 +218,9 @@ void devEK9000Terminal::Init(uint32_t termid, int termindex) {
 =======
 		this->m_terminalFamily = TERMINAL_FAMILY_DIAGNOSTIC;
 >>>>>>> 8abbf11 (change special to diagnostic)
+=======
+		this->m_terminalFamily = TERMINAL_FAMILY_POWERSUPPLY;
+>>>>>>> b2d83dc (change diagnostic to powersupply)
 
 	/* Get the process image size for this terminal */
 	devEK9000Terminal::GetTerminalInfo((int)termid, inp, outp);
@@ -501,6 +505,7 @@ bool devEK9000::ComputeTerminalMapping() {
 		}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if ((term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) ||
 			(term->m_terminalFamily == TERMINAL_FAMILY_POWERSUPPLY)) {
 =======
@@ -509,6 +514,9 @@ bool devEK9000::ComputeTerminalMapping() {
 =======
 		if ((term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) || (term->m_terminalFamily == TERMINAL_FAMILY_DIAGNOSTIC)) {
 >>>>>>> 8abbf11 (change special to diagnostic)
+=======
+		if ((term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) || (term->m_terminalFamily == TERMINAL_FAMILY_POWERSUPPLY)) {
+>>>>>>> b2d83dc (change diagnostic to powersupply)
 			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
 					coil_in, coil_out, term->m_inputSize, term->m_outputSize);
 			term->m_inputStart = coil_in;

@@ -106,6 +106,7 @@ enum {
 	TERMINAL_FAMILY_DIGITAL = 0x2,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	TERMINAL_FAMILY_POWERSUPPLY = 0x3
 =======
 	TERMINAL_FAMILY_SPECIAL = 0x3
@@ -113,6 +114,9 @@ enum {
 =======
 	TERMINAL_FAMILY_DIAGNOSTIC = 0x3
 >>>>>>> 8abbf11 (change special to diagnostic)
+=======
+	TERMINAL_FAMILY_POWERSUPPLY = 0x3
+>>>>>>> b2d83dc (change diagnostic to powersupply)
 };
 
 #define DevInfo(...)                                                                                                   \
