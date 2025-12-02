@@ -1452,7 +1452,7 @@
 		},
 		{
 			"name": "EL9505",
-			"type": ["DigIn", "DigInMulti"],
+			"type": "DigIn",
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 2,

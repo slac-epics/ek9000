@@ -478,8 +478,5 @@ DB += ../../Db/EL7047.template ../../Db/EL7047.substitutions
 # EL9505 
 DB += ../../Db/EL9505.template ../../Db/EL9505.substitutions
 
-# EL9505 
-DB += ../../Db/EL9505_mbbiDirect.template ../../Db/EL9505_mbbiDirect.substitutions
-
 
 
