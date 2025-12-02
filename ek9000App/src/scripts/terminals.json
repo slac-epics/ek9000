@@ -1500,7 +1500,11 @@
 		},
 		{
 			"name": "EL9505",
+<<<<<<< HEAD
 			"type": "DigIn",
+=======
+			"type": ["DigIn", "DigInMulti"],
+>>>>>>> 569bcf9 (add entry for EL2798 and EL9505)
 			"inputs": 2,
 			"outputs": 0,
 			"pdo_in_size": 2,

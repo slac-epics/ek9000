@@ -487,5 +487,11 @@ DB += ../../Db/EL7047.template ../../Db/EL7047.substitutions
 # EL9505 
 DB += ../../Db/EL9505.template ../../Db/EL9505.substitutions
 
+<<<<<<< HEAD
+=======
+# EL9505 
+DB += ../../Db/EL9505_mbbiDirect.template ../../Db/EL9505_mbbiDirect.substitutions
+
+>>>>>>> 569bcf9 (add entry for EL2798 and EL9505)
 
 
