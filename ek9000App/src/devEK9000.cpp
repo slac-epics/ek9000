@@ -208,7 +208,7 @@ void devEK9000Terminal::Init(uint32_t termid, int termindex) {
 	else if (termid >= 3000 && termid < 8000)
 		this->m_terminalFamily = TERMINAL_FAMILY_ANALOG;
 	else if (termid >= 9000 && termid < 10000)
-		this->m_terminalFamily = TERMINAL_FAMILY_SPECIAL;
+		this->m_terminalFamily = TERMINAL_FAMILY_DIAGNOSTIC;
 
 	/* Get the process image size for this terminal */
 	devEK9000Terminal::GetTerminalInfo((int)termid, inp, outp);
@@ -491,7 +491,7 @@ bool devEK9000::ComputeTerminalMapping() {
 			reg_in += term->m_inputSize;
 			reg_out += term->m_outputSize;
 		}
-		if ((term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) || (term->m_terminalFamily == TERMINAL_FAMILY_SPECIAL)) {
+		if ((term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) || (term->m_terminalFamily == TERMINAL_FAMILY_DIAGNOSTIC)) {
 			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
 					coil_in, coil_out, term->m_inputSize, term->m_outputSize);
 			term->m_inputStart = coil_in;

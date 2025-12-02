@@ -104,7 +104,7 @@ std::list<devEK9000*>& GlobalDeviceList();
 enum {
 	TERMINAL_FAMILY_ANALOG = 0x1,
 	TERMINAL_FAMILY_DIGITAL = 0x2,
-	TERMINAL_FAMILY_SPECIAL = 0x3
+	TERMINAL_FAMILY_DIAGNOSTIC = 0x3
 };
 
 #define DevInfo(...)                                                                                                   \
