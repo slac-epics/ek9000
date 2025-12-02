@@ -241,6 +241,12 @@ DB += ../../Db/EL2794.template ../../Db/EL2794.substitutions
 # EL2794 
 DB += ../../Db/EL2794_mbboDirect.template ../../Db/EL2794_mbboDirect.substitutions
 
+# EL2798 
+DB += ../../Db/EL2798.template ../../Db/EL2798.substitutions
+
+# EL2798 
+DB += ../../Db/EL2798_mbboDirect.template ../../Db/EL2798_mbboDirect.substitutions
+
 # EL2808 
 DB += ../../Db/EL2808.template ../../Db/EL2808.substitutions
 
@@ -468,6 +474,9 @@ DB += ../../Db/EL5042.template ../../Db/EL5042.substitutions
 
 # EL7047 
 DB += ../../Db/EL7047.template ../../Db/EL7047.substitutions
+
+# EL9505 
+DB += ../../Db/EL9505.template ../../Db/EL9505.substitutions
 
 
 

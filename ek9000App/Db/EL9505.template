@@ -1,0 +1,18 @@
+record(bi,"$(TERMINAL):1")
+{
+	field(DTYP, "EL10XX")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
+	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=1,type=EL9505")
+}
+
+record(bi,"$(TERMINAL):2")
+{
+	field(DTYP, "EL10XX")
+	field(ZNAM, "$(ZNAM=low)")
+	field(ONAM, "$(ONAM=high)")
+	field(SCAN, "I/O Intr")
+	field(INP, "@device=$(DEVICE),pos=$(POS),channel=2,type=EL9505")
+}
+
