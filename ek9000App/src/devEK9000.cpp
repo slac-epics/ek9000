@@ -207,6 +207,8 @@ void devEK9000Terminal::Init(uint32_t termid, int termindex) {
 		this->m_terminalFamily = TERMINAL_FAMILY_DIGITAL;
 	else if (termid >= 3000 && termid < 8000)
 		this->m_terminalFamily = TERMINAL_FAMILY_ANALOG;
+	else if (termid >= 9000 && termid < 10000)
+		this->m_terminalFamily = TERMINAL_FAMILY_SPECIAL;
 
 	/* Get the process image size for this terminal */
 	devEK9000Terminal::GetTerminalInfo((int)termid, inp, outp);
@@ -267,6 +269,7 @@ int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, int le
 		return EK_EBADTERM;
 	}
 	int status = this->m_device->doModbusIO(0, type, startaddr, buf, len);
+
 	if (status) {
 		return EK_EMODBUSERR;
 	}
@@ -276,6 +279,7 @@ int devEK9000Terminal::doEK9000IO(int type, int startaddr, uint16_t* buf, int le
 int devEK9000Terminal::getEK9000IO(EIOType type, int startaddr, uint16_t* buf, int len) {
 	if (!this->m_device)
 		return EK_EBADTERM;
+
 	return m_device->getEK9000IO(type, startaddr, buf, len);
 }
 
@@ -487,7 +491,7 @@ bool devEK9000::ComputeTerminalMapping() {
 			reg_in += term->m_inputSize;
 			reg_out += term->m_outputSize;
 		}
-		if (term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) {
+		if ((term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) || (term->m_terminalFamily == TERMINAL_FAMILY_SPECIAL)) {
 			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
 					coil_in, coil_out, term->m_inputSize, term->m_outputSize);
 			term->m_inputStart = coil_in;

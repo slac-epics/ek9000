@@ -321,6 +321,14 @@
 			"pdo_out_size": 4
 		},
 		{
+			"name": "EL2798",
+			"type": ["DigOut", "DigOutMulti"],
+			"inputs": 0,
+			"outputs": 8,
+			"pdo_in_size": 0,
+			"pdo_out_size": 8
+		},
+		{
 			"name": "EL2808",
 			"type": ["DigOut", "DigOutMulti"],
 			"inputs": 0,
@@ -1441,6 +1449,14 @@
 			"outputs": 0,
 			"pdo_in_size": 14,
 			"pdo_out_size": 14
+		},
+		{
+			"name": "EL9505",
+			"type": ["DigIn", "DigInMulti"],
+			"inputs": 2,
+			"outputs": 0,
+			"pdo_in_size": 2,
+			"pdo_out_size": 0
 		}
 	]
 }
