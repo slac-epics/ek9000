@@ -27,13 +27,14 @@
 # If using the sequencer, point SNCSEQ at its top directory:
 #SNCSEQ = $(MODULES)/seq-ver
 
+-include $(TOP)/../../RELEASE_SITE
 -include $(TOP)/RELEASE_SITE
 
 # Set RULES here if you want to use build rules from somewhere
 # other than EPICS_BASE:
 #RULES = $(MODULES)/build-rules
 
-#  ==========================================================
+# ==========================================================
 # Define the version strings for all needed modules
 # Use naming pattern:
 #   FOO_MODULE_VERSION = R1.2
