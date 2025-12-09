@@ -491,7 +491,8 @@ bool devEK9000::ComputeTerminalMapping() {
 			reg_in += term->m_inputSize;
 			reg_out += term->m_outputSize;
 		}
-		if ((term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) || (term->m_terminalFamily == TERMINAL_FAMILY_POWERSUPPLY)) {
+		if ((term->m_terminalFamily == TERMINAL_FAMILY_DIGITAL) ||
+			(term->m_terminalFamily == TERMINAL_FAMILY_POWERSUPPLY)) {
 			DevInfo("Mapped %u: inp_start(0x%X) out_start(0x%X) inp_size(0x%X) outp_size(0x%X)\n", term->m_terminalId,
 					coil_in, coil_out, term->m_inputSize, term->m_outputSize);
 			term->m_inputStart = coil_in;
