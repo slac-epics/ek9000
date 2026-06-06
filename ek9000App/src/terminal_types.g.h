@@ -1050,6 +1050,57 @@ struct EL3068_t FINAL : terminal_t {
 	static void _pdo_input_check();
 };
 
+struct EL3072_t FINAL : terminal_t {
+	static const uint32_t ID = 3072;
+	static const uint16_t NUM_INPUTS = 2;
+	static const uint16_t INPUT_SIZE = 4;
+	static const uint16_t NUM_OUTPUTS = 0;
+	static const uint16_t OUTPUT_SIZE = 0;
+	EL3072_t() {
+		str = "EL3072";
+		id = ID;
+		numInputs = NUM_INPUTS;
+		numOutputs = NUM_OUTPUTS;
+		inputSize = INPUT_SIZE;
+		outputSize = OUTPUT_SIZE;
+	}
+	static void _pdo_input_check();
+};
+
+struct EL3074_t FINAL : terminal_t {
+	static const uint32_t ID = 3074;
+	static const uint16_t NUM_INPUTS = 4;
+	static const uint16_t INPUT_SIZE = 8;
+	static const uint16_t NUM_OUTPUTS = 0;
+	static const uint16_t OUTPUT_SIZE = 0;
+	EL3074_t() {
+		str = "EL3074";
+		id = ID;
+		numInputs = NUM_INPUTS;
+		numOutputs = NUM_OUTPUTS;
+		inputSize = INPUT_SIZE;
+		outputSize = OUTPUT_SIZE;
+	}
+	static void _pdo_input_check();
+};
+
+struct EL3078_t FINAL : terminal_t {
+	static const uint32_t ID = 3078;
+	static const uint16_t NUM_INPUTS = 8;
+	static const uint16_t INPUT_SIZE = 16;
+	static const uint16_t NUM_OUTPUTS = 0;
+	static const uint16_t OUTPUT_SIZE = 0;
+	EL3078_t() {
+		str = "EL3078";
+		id = ID;
+		numInputs = NUM_INPUTS;
+		numOutputs = NUM_OUTPUTS;
+		inputSize = INPUT_SIZE;
+		outputSize = OUTPUT_SIZE;
+	}
+	static void _pdo_input_check();
+};
+
 struct EL3101_t FINAL : terminal_t {
 	static const uint32_t ID = 3101;
 	static const uint16_t NUM_INPUTS = 1;
@@ -1943,12 +1994,13 @@ static const terminal_t s_terminalInfos[] = {
 	EL2084_t(), EL2088_t(), EL2124_t(), EL2794_t(), EL2798_t(), EL2808_t(), EL2816_t(), EL3001_t(), EL3002_t(),
 	EL3004_t(), EL3008_t(), EL3012_t(), EL3014_t(), EL3021_t(), EL3022_t(), EL3024_t(), EL3041_t(), EL3042_t(),
 	EL3044_t(), EL3048_t(), EL3051_t(), EL3052_t(), EL3054_t(), EL3058_t(), EL3061_t(), EL3062_t(), EL3064_t(),
-	EL3068_t(), EL3101_t(), EL3102_t(), EL3104_t(), EL3111_t(), EL3112_t(), EL3114_t(), EL3121_t(), EL3122_t(),
-	EL3124_t(), EL3141_t(), EL3142_t(), EL3144_t(), EL3151_t(), EL3152_t(), EL3154_t(), EL3161_t(), EL3162_t(),
-	EL3164_t(), EL3174_t(), EL3202_t(), EL3314_t(), EL3312_t(), EL3311_t(), EL3681_t(), EL4001_t(), EL4002_t(),
-	EL4004_t(), EL4008_t(), EL4011_t(), EL4012_t(), EL4014_t(), EL4018_t(), EL4021_t(), EL4022_t(), EL4024_t(),
-	EL4028_t(), EL4031_t(), EL4032_t(), EL4034_t(), EL4038_t(), EL4102_t(), EL4104_t(), EL4114_t(), EL4112_t(),
-	EL4134_t(), EL4132_t(), EL4122_t(), EL5001_t(), EL5002_t(), EL5042_t(), EL7047_t(), EL9505_t(),
+	EL3068_t(), EL3072_t(), EL3074_t(), EL3078_t(), EL3101_t(), EL3102_t(), EL3104_t(), EL3111_t(), EL3112_t(),
+	EL3114_t(), EL3121_t(), EL3122_t(), EL3124_t(), EL3141_t(), EL3142_t(), EL3144_t(), EL3151_t(), EL3152_t(),
+	EL3154_t(), EL3161_t(), EL3162_t(), EL3164_t(), EL3174_t(), EL3202_t(), EL3314_t(), EL3312_t(), EL3311_t(),
+	EL3681_t(), EL4001_t(), EL4002_t(), EL4004_t(), EL4008_t(), EL4011_t(), EL4012_t(), EL4014_t(), EL4018_t(),
+	EL4021_t(), EL4022_t(), EL4024_t(), EL4028_t(), EL4031_t(), EL4032_t(), EL4034_t(), EL4038_t(), EL4102_t(),
+	EL4104_t(), EL4114_t(), EL4112_t(), EL4134_t(), EL4132_t(), EL4122_t(), EL5001_t(), EL5002_t(), EL5042_t(),
+	EL7047_t(), EL9505_t(),
 };
 
 MAYBE_UNUSED static void __pdo_check() {
@@ -1973,6 +2025,9 @@ MAYBE_UNUSED static void __pdo_check() {
 	EL3062_t::_pdo_input_check();
 	EL3064_t::_pdo_input_check();
 	EL3068_t::_pdo_input_check();
+	EL3072_t::_pdo_input_check();
+	EL3074_t::_pdo_input_check();
+	EL3078_t::_pdo_input_check();
 	EL3101_t::_pdo_input_check();
 	EL3102_t::_pdo_input_check();
 	EL3104_t::_pdo_input_check();
