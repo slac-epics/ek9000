@@ -127,7 +127,7 @@ struct EL30XXStandardInputPDO_t {
 	uint8_t overrange : 1;
 	uint8_t limit1 : 2;
 	uint8_t limit2 : 2;
-	uint8_t _r1 : 2; // First bit in this align is error for EL31XX
+	uint8_t _r1 : 2; // First bit in this align is error for EL31XX and EL307X
 	uint8_t _r2 : 6; // Last bit in this align is Sync error for EL31XX
 	uint8_t txpdo_state : 1;
 	uint8_t txpdo_toggle : 1;
@@ -158,6 +158,9 @@ DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3061);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3062);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3064);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3068);
+DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3072);
+DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3074);
+DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3078);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3101);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3102);
 DEFINE_SINGLE_CHANNEL_INPUT_PDO(EL30XXStandardInputPDO_t, EL3104);
@@ -209,7 +212,7 @@ static long EL30XX_read_record(void* prec) {
 		pRecord->rval = spdo->value;
 
 		/* For standard PDO types, we have limits, so we should set alarms based on these,
-		apparently the error bit is just equal to (overrange || underrange) */
+		 * apparently the error bit is just equal to (overrange || underrange) */
 		if (spdo->overrange || spdo->underrange) {
 			recGblSetSevr(pRecord, HW_LIMIT_ALARM, MAJOR_ALARM);
 		}

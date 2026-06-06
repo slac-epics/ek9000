@@ -681,6 +681,54 @@
 			"pdo_out_size": 0
 		},
 		{
+			"name": "EL3072",
+			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
+			"inputs": 2,
+			"outputs": 0,
+			"pdo_in_size": 4,
+			"pdo_out_size": 0
+		},
+		{
+			"name": "EL3074",
+			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
+			"inputs": 4,
+			"outputs": 0,
+			"pdo_in_size": 8,
+			"pdo_out_size": 0
+		},
+		{
+			"name": "EL3078",
+			"type": "AnalogIn",
+			"specs": {
+				"resolution": 16,
+				"representation": "int16",
+				"egu": "V",
+				"min": 0,
+				"max": 10,
+				"error": 0.3
+			},
+			"inputs": 8,
+			"outputs": 0,
+			"pdo_in_size": 16,
+			"pdo_out_size": 0
+		},
+		{
 			"name": "EL3101",
 			"type": "AnalogIn",
 			"specs": {
