@@ -322,6 +322,15 @@ DB += ../../Db/EL3064.template ../../Db/EL3064.substitutions
 # EL3068 
 DB += ../../Db/EL3068.template ../../Db/EL3068.substitutions
 
+# EL3072 
+DB += ../../Db/EL3072.template ../../Db/EL3072.substitutions
+
+# EL3074 
+DB += ../../Db/EL3074.template ../../Db/EL3074.substitutions
+
+# EL3078 
+DB += ../../Db/EL3078.template ../../Db/EL3078.substitutions
+
 # EL3101 
 DB += ../../Db/EL3101.template ../../Db/EL3101.substitutions
 
