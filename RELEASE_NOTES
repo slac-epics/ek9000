@@ -1,3 +1,8 @@
+R1.7.5    Jun 8th,  2026 (lorelli)
+    - Added support for EL9XXX terminals (#78)
+    - Added support for EL2798 (#78)
+    - Added support for EL307X (#81)
+
 R1.7.4    Mar 28th, 2025 (lorelli)
     - Require C++11
 	- Use LINR=SLOPE for thermocouple terminals
