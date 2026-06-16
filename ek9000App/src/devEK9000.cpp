@@ -40,8 +40,13 @@
 #include <int64outRecord.h>
 #include <dbStaticLib.h>
 
+/* pvxs includes */
+#include "pvxs/server.h"
+#include "pvxs/sharedpv.h"
+#include "pvxs/nt.h"
+#include "pvxs/iochooks.h"
+
 /* Modbus or asyn includes */
-//#include <drvModbusAsyn.h>
 #include <drvAsynIPPort.h>
 #include <modbusInterpose.h>
 
@@ -516,6 +521,10 @@ bool devEK9000::ComputeTerminalMapping() {
 		m_digital_buf = (uint16_t*)calloc(m_digital_cnt, sizeof(uint16_t));
 	else
 		m_digital_buf = NULL;
+
+	/* Expose debug PVs using pvxs */
+	SetupDebugPVs();
+
 	return true;
 }
 
@@ -877,6 +886,62 @@ const char* devEK9000::ErrorToString(int i) {
 			assert(!"Invalid parameter passed to ErrorToString");
 			return "Unknown";
 	}
+}
+
+/**
+ * Setup debug PVs with pvxs.
+ * Requires that we have pvxs and qsrv2 built into the IOC.
+ */
+void devEK9000::SetupDebugPVs() {
+	using namespace pvxs;
+
+	auto server = pvxs::ioc::server();
+	if (!server) {
+		epicsPrintf("%s: No qsrv2 server, skipping debug PVs\n", __func__);
+		return;
+	}
+
+	auto type = pvxs::TypeDef(pvxs::TypeCode::StructA, {});
+
+	/* Type for each terminal */
+	auto termType = TypeDef(TypeCode::Struct, {
+		Member(TypeCode::UInt32, "type"),
+		Member(TypeCode::Bool, "digital"),
+		Member(TypeCode::Bool, "analog"),
+		Member(TypeCode::UInt32, "inputSize"),
+		Member(TypeCode::UInt32, "outputSize"),
+		Member(TypeCode::UInt32, "inputStart"),
+		Member(TypeCode::UInt32, "outputStart"),
+	});
+
+	shared_array<Value> vals;
+	vals.resize(m_terms.size());
+
+	auto value = type.create();
+
+	int n = 0;
+	for (auto& t : m_terms) {
+		auto tval = termType.create();
+		tval["type"] = t->m_terminalId;
+		tval["digital"] = t->m_terminalFamily == TERMINAL_FAMILY_DIGITAL;
+		tval["analog"] = t->m_terminalFamily == TERMINAL_FAMILY_ANALOG;
+		tval["inputSize"] = t->m_inputSize;
+		tval["outputSize"] = t->m_outputSize;
+		tval["inputStart"] = t->m_inputStart;
+		tval["outputStart"] = t->m_outputStart;
+		
+		vals[n++] = tval;
+	}
+
+	value.from(vals.freeze());
+
+	/* Create the PV */
+	if (m_debugPv.isOpen())
+		m_debugPv.close();
+	m_debugPv = pvxs::server::SharedPV::buildReadonly();
+
+	m_debugPv.open(value);
+	server.addPV("test", m_debugPv);
 }
 
 //==========================================================//
